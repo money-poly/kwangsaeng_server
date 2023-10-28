@@ -1,9 +1,13 @@
+# environments
+.dev.env
+.prod.env
+
 # compiled output
 /dist
 /node_modules
 
 # Logs
-logs
+logs/*
 *.log
 npm-debug.log*
 pnpm-debug.log*

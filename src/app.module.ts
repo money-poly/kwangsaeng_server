@@ -1,23 +1,28 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { ConfigModule } from '@nestjs/config';
+import { validationSchema } from './global/config/validation.schema';
+import { DatabaseModule } from './database/database.module';
+import { UsersModule } from './users/users.module';
+import { StoresModule } from './stores/stores.module';
+import { MenusModule } from './menus/menus.module';
+import databaseConfiguration from './global/config/database.configuration';
 
 @Module({
-  imports: [
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: 'aws.connect.psdb.cloud',
-      port: 3306,
-      username: 'fpl8clnkit21yhvth1jq',
-      password: 'pscale_pw_Ong9HBRbNh8kpjDUiSLF8rHS2c8dgMpSaad4eqdRHfN',
-      database: 'kwangsaeng_db',
-      // charset: "utf8mb4",
-      synchronize: false,
-      logging: true,
-    }),
-  ],
-  controllers: [AppController],
-  providers: [AppService],
+    imports: [
+        ConfigModule.forRoot({
+            isGlobal: true,
+            load: [databaseConfiguration],
+            envFilePath: __dirname + `/../src/global/config/envs/.${process.env.NODE_ENV}.env`,
+            validationSchema,
+        }),
+        DatabaseModule,
+        UsersModule,
+        StoresModule,
+        MenusModule,
+    ],
+    controllers: [AppController],
+    providers: [AppService],
 })
 export class AppModule {}

@@ -3,5 +3,5 @@ import { MenusService } from './menus.service';
 
 @Controller('menus')
 export class MenusController {
-  constructor(private readonly menusService: MenusService) {}
+    constructor(private readonly menusService: MenusService) {}
 }

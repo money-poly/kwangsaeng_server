@@ -1,0 +1,41 @@
+services:
+    ks_api:
+        container_name: api
+        build:
+            context: .
+            dockerfile: dev-dockerfile
+        volumes:
+            - ./src:/api/src
+        restart: always
+        ports:
+            - ${SERVER_PORT}:${SERVER_PORT}
+        depends_on:
+            ks_db:
+                condition: service_healthy
+        networks:
+            - dev-network
+
+    ks_db:
+        image: mysql:8.0
+        restart: always
+        container_name: db
+        environment:
+            MYSQL_ROOT_USER: ${DATABASE_USERNAME}
+            MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD}
+            MYSQL_DATABASE: ${DATABASE_NAME}
+            TZ: Asia/Seoul
+        healthcheck:
+            test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-u', 'root', '-p$$MYSQL_ROOT_PASSWORD']
+            timeout: 20s
+            retries: 10
+        ports:
+            - ${DATABASE_PORT}:${DATABASE_PORT}
+        networks:
+            - dev-network
+
+volumes:
+    db:
+
+networks:
+    dev-network:
+        driver: bridge

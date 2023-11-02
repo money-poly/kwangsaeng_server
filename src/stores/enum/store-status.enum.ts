@@ -1,4 +1,4 @@
 export enum StoreStatus {
-    OPENED = 'opened',
+    OPEN = 'open',
     CLOSED = 'closed',
 }

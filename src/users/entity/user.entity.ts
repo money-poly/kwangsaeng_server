@@ -8,7 +8,7 @@ export class User extends BaseEntity {
     fId: string;
 
     @Column({ type: 'enum', enum: Role, default: Role.USER, comment: '역할' })
-    role: Role[];
+    role: Role;
 
     @Column({ comment: '위도' })
     latitude: number;

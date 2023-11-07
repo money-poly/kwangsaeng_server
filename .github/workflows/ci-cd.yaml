@@ -56,7 +56,7 @@ jobs:
           region: ${{ secrets.AWS_REGION }}
           cpu : 1
           memory : 2
-          port: 8080
+          port: 3000
           copy-env-vars:
             SERVER_PORT
             DATABASE_TYPE

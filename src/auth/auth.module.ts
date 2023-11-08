@@ -22,10 +22,10 @@ import { User } from 'src/users/entity/user.entity';
     ],
     providers: [
         AuthService,
-        {
-            provide: APP_GUARD,
-            useClass: AuthGuard,
-        },
+        // {
+        //     provide: APP_GUARD,
+        //     useClass: AuthGuard,
+        // },
         Logger,
     ],
     controllers: [AuthController],

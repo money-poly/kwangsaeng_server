@@ -1,8 +1,8 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { CanActivate, ExecutionContext, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-// import { jwtConstants } from './constants';
+import { jwtConstants } from './config/secretkey';
 import { IS_PUBLIC_KEY } from './decorators/public.decorator';
 
 @Injectable()
@@ -25,7 +25,7 @@ export class AuthGuard implements CanActivate {
         const request = context.switchToHttp().getRequest();
         const token = this.extractTokenFromHeader(request);
         if (!token) {
-            // throw new HttpException('Token 전송 안됨', HttpStatus.UNAUTHORIZED);
+            throw new HttpException('Token is empty', HttpStatus.UNAUTHORIZED);
         } else {
             this.validateToken(token);
         }
@@ -38,24 +38,24 @@ export class AuthGuard implements CanActivate {
     }
 
     private validateToken(token: string) {
-        const secretKey = process.env.JWT_SECRET_KEY ? process.env.JWT_SECRET_KEY : 'dev';
+        const secretKey = jwtConstants.secret;
 
         try {
             const verify = this.jwtService.verify(token, { secret: secretKey });
             return verify;
         } catch (e) {
-            switch (e.message) {
-                // 토큰에 대한 오류를 판단합니다.
-                case 'INVALID_TOKEN':
-                case 'TOKEN_IS_ARRAY':
-                case 'NO_USER':
-                // throw new HttpException('유효하지 않은 토큰입니다.', 401);
+            switch (e.name) {
+                case 'JsonWebTokenError':
+                    throw new HttpException('JWT 오류: 유효하지 않은 토큰입니다.', 401);
 
-                case 'EXPIRED_TOKEN':
-                // throw new HttpException('토큰이 만료되었습니다.', 410);
+                case 'TokenExpiredError':
+                    throw new HttpException('JWT 오류: 토큰이 만료되었습니다.', 410);
+
+                case 'NotBeforeError':
+                    throw new HttpException('JWT 오류: 아직 활성화되지 않은 토큰입니다.', 403);
 
                 default:
-                // throw new HttpException('서버 오류입니다.', 500);
+                    throw new HttpException('JWT 검증 중에 오류가 발생했습니다.', 500);
             }
         }
     }

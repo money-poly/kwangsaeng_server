@@ -3,12 +3,12 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { CommonException } from 'src/global/exception/common.exception';
-import { uid } from 'rand-token';
 
-import { SellerLoginDto } from './dto/auth.dto';
+import { SellerLoginDto, refeshAccessTokenDto } from './dto/auth.dto';
 import { User } from 'src/users/entity/user.entity';
 import { Token } from 'src/auth/entity/auth.entity';
-import { TokenModel } from './model/auth.model';
+import { AccessTokenModel, TokenModel } from './model/auth.model';
+import { jwtConstants } from './config/secretkey';
 
 @Injectable()
 export class AuthService {
@@ -48,17 +48,25 @@ export class AuthService {
                 user = await this.usersRepository.findOne({ where: { fId: dto.fId } });
             }
             const payload = { id: user.id, sub: user.fId };
-            const accessToken = this.jwtService.sign(payload);
-            const refreshToken = uid(256);
+            const accessToken = this.jwtService.sign(payload, {
+                secret: jwtConstants.access_secret,
+                expiresIn: jwtConstants.access_expires,
+            });
+            const refreshToken = this.jwtService.sign(payload, {
+                secret: jwtConstants.refresh_secret,
+                expiresIn: jwtConstants.refresh_expires,
+            });
 
-            await this.tokenRepository.update({ id: user.id }, { refreshToken: refreshToken });
+            await this.tokenRepository.update({ fId: user.fId }, { refreshToken: refreshToken });
 
             const accessTokenExp = new Date(this.jwtService.decode(accessToken.replace('Bearer ', ''))['exp'] * 1000);
+            const refreshTokenExp = new Date(this.jwtService.decode(refreshToken.replace('Bearer ', ''))['exp'] * 1000);
 
             return {
                 accessToken,
                 refreshToken,
                 accessTokenExp,
+                refreshTokenExp,
             };
         } catch (e) {
             this.logger.log(e);
@@ -66,24 +74,36 @@ export class AuthService {
         }
     }
 
-    // async refreshAccessToken(dto: refeshAccessTokenDto) {
-    //     try {
-    //         const jwtEntity = new JWT();
-    //         jwtEntity.refreshToken = dto.refreshToken;
+    async getNewAccessToken(dto: refeshAccessTokenDto): Promise<AccessTokenModel> {
+        try {
+            const tokenEntity = new Token();
+            const access_token = this.jwtService.decode(dto.accessToken.replace('Bearer ', ''));
 
-    //         const now = new Date();
+            if (!access_token) {
+                throw new CommonException(999, 'JWT 오류: 토큰이 비어있습니다');
+            }
 
-    //         const betweenTime = Math.floor((tokenExp.getTime() - now.getTime()) / 1000 / 60);
-    //         // 기간 만료된 경우 || 기간 얼마 안남은 경우
-    //         if (betweenTime < 3) {
-    //             // refreshToken 통신 유도
-    //             return {
-    //                 id: user.id,
-    //                 email: user.email,
-    //                 isAuth: true,
-    //                 isRefresh: true,
-    //             };
-    //         }
-    //     } catch (e) {}
-    // }
+            tokenEntity.fId = access_token['sub'];
+
+            if (!tokenEntity.fId) {
+                throw new CommonException(999, 'JWT 오류: 토큰을 소유한 유저가 존재하지 않습니다');
+            }
+
+            const user = await this.usersRepository.findOne({ where: { fId: tokenEntity.fId } });
+
+            const payload = { id: user.id, sub: user.fId };
+            const newAccessToken = this.jwtService.sign(payload, {
+                secret: jwtConstants.access_secret,
+                expiresIn: jwtConstants.access_expires,
+            });
+            const newAccessTokenExp = new Date(
+                this.jwtService.decode(newAccessToken.replace('Bearer ', ''))['exp'] * 1000,
+            );
+
+            return {
+                accessToken: newAccessToken,
+                accessTokenExp: newAccessTokenExp,
+            };
+        } catch (e) {}
+    }
 }

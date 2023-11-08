@@ -3,5 +3,5 @@ export class SellerLoginDto {
 }
 
 export class refeshAccessTokenDto {
-    refreshToken: string;
+    accessToken: string;
 }

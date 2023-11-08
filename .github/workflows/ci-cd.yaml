@@ -1,7 +1,7 @@
 name: Deploy to App Runner - Image based # Name of the workflow
 on:
   push:
-    branches: [ main ] # Trigger workflow on git push to main branch
+    branches: [  ks-25-seller_local_login ] # Trigger workflow on git push to main branch
   workflow_dispatch: # Allow manual invocation of the workflow
 jobs:  
   deploy:
@@ -19,7 +19,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}     
+          aws-region: ap-northeast-1
 
       - name: Login to Amazon ECR
         id: login-ecr

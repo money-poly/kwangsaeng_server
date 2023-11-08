@@ -9,6 +9,7 @@ export class AppController {
         private logger: Logger,
     ) {}
 
+    // @UseGuards(AuthGuard)
     @Get()
     getHello(): string {
         return this.appService.getHello();

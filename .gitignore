@@ -1,5 +1,5 @@
 # environments
-.dev.env
+# .dev.env
 .prod.env
 
 # secret

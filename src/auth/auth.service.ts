@@ -47,31 +47,40 @@ export class AuthService {
                 }
                 user = await this.usersRepository.findOne({ where: { fId: dto.fId } });
             }
-            const payload = { id: user.id, sub: user.fId };
-            const accessToken = this.jwtService.sign(payload, {
-                secret: jwtConstants.access_secret,
-                expiresIn: jwtConstants.access_expires,
-            });
-            const refreshToken = this.jwtService.sign(payload, {
-                secret: jwtConstants.refresh_secret,
-                expiresIn: jwtConstants.refresh_expires,
-            });
 
-            await this.tokenRepository.update({ fId: user.fId }, { refreshToken: refreshToken });
+            const tokenModel = this.issueTokens(user.id, user.fId);
 
-            const accessTokenExp = new Date(this.jwtService.decode(accessToken.replace('Bearer ', ''))['exp'] * 1000);
-            const refreshTokenExp = new Date(this.jwtService.decode(refreshToken.replace('Bearer ', ''))['exp'] * 1000);
+            await this.tokenRepository.update({ fId: user.fId }, { refreshToken: tokenModel.refreshToken });
 
             return {
-                accessToken,
-                refreshToken,
-                accessTokenExp,
-                refreshTokenExp,
+                ...tokenModel,
             };
         } catch (e) {
             this.logger.log(e);
             throw new CommonException(999, 'failed to sign');
         }
+    }
+
+    private issueTokens(id: number, fId: string): TokenModel {
+        const payload = { id: id, sub: fId };
+        const accessToken = this.jwtService.sign(payload, {
+            secret: jwtConstants.access_secret,
+            expiresIn: jwtConstants.access_expires,
+        });
+        const refreshToken = this.jwtService.sign(payload, {
+            secret: jwtConstants.refresh_secret,
+            expiresIn: jwtConstants.refresh_expires,
+        });
+        const accessTokenExp = new Date(this.jwtService.decode(accessToken.replace('Bearer ', ''))['exp'] * 1000);
+        const refreshTokenExp = new Date(this.jwtService.decode(refreshToken.replace('Bearer ', ''))['exp'] * 1000);
+
+
+        return {
+            accessToken,
+            refreshToken,
+            accessTokenExp,
+            refreshTokenExp,
+        };
     }
 
     async getNewAccessToken(dto: refeshAccessTokenDto): Promise<AccessTokenModel> {

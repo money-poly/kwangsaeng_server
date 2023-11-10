@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { StoresModule } from './stores/stores.module';
 import { MenusModule } from './menus/menus.module';
 import databaseConfiguration from './global/config/database.configuration';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
     imports: [
@@ -21,6 +22,7 @@ import databaseConfiguration from './global/config/database.configuration';
         UsersModule,
         StoresModule,
         MenusModule,
+        AuthModule,
     ],
     controllers: [AppController],
     providers: [AppService, Logger],

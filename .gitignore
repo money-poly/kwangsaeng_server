@@ -2,6 +2,9 @@
 .dev.env
 .prod.env
 
+# secret
+# /src/auth/config/*
+
 # compiled output
 /dist
 /node_modules

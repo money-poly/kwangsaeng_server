@@ -74,7 +74,6 @@ export class AuthService {
         const accessTokenExp = new Date(this.jwtService.decode(accessToken.replace('Bearer ', ''))['exp'] * 1000);
         const refreshTokenExp = new Date(this.jwtService.decode(refreshToken.replace('Bearer ', ''))['exp'] * 1000);
 
-
         return {
             accessToken,
             refreshToken,

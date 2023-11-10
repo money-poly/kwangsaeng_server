@@ -4,75 +4,67 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { CommonException } from 'src/global/exception/common.exception';
 
-import { SellerLoginDto, refeshAccessTokenDto } from './dto/auth.dto';
+import { SignInDto, SignUpDto, RefeshAccessTokenDto } from './dto/auth.dto';
 import { User } from 'src/users/entity/user.entity';
 import { Token } from 'src/auth/entity/auth.entity';
-import { AccessTokenModel, TokenModel } from './model/auth.model';
+import { AccessTokenModel, TokensModel } from './model/auth.model';
 import { jwtConstants } from './config/secretkey';
 
 @Injectable()
 export class AuthService {
     constructor(
-        @InjectRepository(User)
-        private usersRepository: Repository<User>,
         @InjectRepository(Token)
-        private tokenRepository: Repository<Token>,
-        private jwtService: JwtService,
+        private readonly tokenRepository: Repository<Token>,
+        private readonly jwtService: JwtService,
         private readonly logger: Logger,
-        private dataSource: DataSource,
+        private readonly dataSource: DataSource,
     ) {}
 
-    async signUpOrIn(dto: SellerLoginDto): Promise<TokenModel> {
+    public async signUpAndIssueTokens(dto: SignUpDto): Promise<TokensModel> {
+        const userEntity = new User();
+        const tokenEntity = new Token();
+        userEntity.fId = dto.fId;
+        tokenEntity.fId = dto.fId;
+
+        const queryRunner = this.dataSource.createQueryRunner();
         try {
-            const queryRunner = this.dataSource.createQueryRunner();
-
-            let user = await this.usersRepository.findOne({ where: { fId: dto.fId } });
-            if (!user) {
-                await queryRunner.connect();
-                await queryRunner.startTransaction();
-                try {
-                    const userEntity = new User();
-                    userEntity.fId = dto.fId;
-                    await queryRunner.manager.getRepository(User).save(userEntity);
-
-                    const tokenEntity = new Token();
-                    tokenEntity.fId = dto.fId;
-                    await queryRunner.manager.getRepository(Token).save(tokenEntity);
-                    await queryRunner.commitTransaction();
-                } catch (error) {
-                    await queryRunner.rollbackTransaction();
-                    throw error;
-                } finally {
-                    await queryRunner.release();
-                }
-                user = await this.usersRepository.findOne({ where: { fId: dto.fId } });
-            }
-
-            const tokenModel = this.issueTokens(user.id, user.fId);
-
-            await this.tokenRepository.update({ fId: user.fId }, { refreshToken: tokenModel.refreshToken });
-
-            return {
-                ...tokenModel,
-            };
+            await queryRunner.connect();
+            await queryRunner.startTransaction();
+            await queryRunner.manager.getRepository(User).save(userEntity);
+            await queryRunner.manager.getRepository(Token).save(tokenEntity);
+            await queryRunner.commitTransaction();
         } catch (e) {
-            this.logger.log(e);
-            throw new CommonException(999, 'failed to sign');
+            await queryRunner.rollbackTransaction();
+            this.logger.error(e);
+            throw new CommonException(999, 'failed to sign up');
+        } finally {
+            await queryRunner.release();
+            delete userEntity.fId;
+            delete tokenEntity.fId;
         }
+
+        const tokenModel = this.issueTokens(dto);
+
+        try {
+            await this.tokenRepository.update({ fId: dto.fId }, { refreshToken: tokenModel.refreshToken });
+        } catch (e) {
+            this.logger.error(e);
+            throw new CommonException(999, 'failed to token update');
+        }
+
+        return {
+            ...tokenModel,
+        };
     }
 
-    private issueTokens(id: number, fId: string): TokenModel {
-        const payload = { id: id, sub: fId };
-        const accessToken = this.jwtService.sign(payload, {
-            secret: jwtConstants.access_secret,
-            expiresIn: jwtConstants.access_expires,
-        });
-        const refreshToken = this.jwtService.sign(payload, {
-            secret: jwtConstants.refresh_secret,
-            expiresIn: jwtConstants.refresh_expires,
-        });
-        const accessTokenExp = new Date(this.jwtService.decode(accessToken.replace('Bearer ', ''))['exp'] * 1000);
-        const refreshTokenExp = new Date(this.jwtService.decode(refreshToken.replace('Bearer ', ''))['exp'] * 1000);
+    public issueTokens(user: SignInDto | SignUpDto): TokensModel {
+        const payload = { id: user.fId };
+
+        const accessToken = this.generateToken(payload, jwtConstants.ACCESS_SECRET, jwtConstants.ACCESS_EXPIRES);
+        const refreshToken = this.generateToken(payload, jwtConstants.REFRESH_SECRET, jwtConstants.REFRESH_EXPIRES);
+
+        const accessTokenExp = this.expiresToken(accessToken);
+        const refreshTokenExp = this.expiresToken(refreshToken);
 
         return {
             accessToken,
@@ -81,37 +73,33 @@ export class AuthService {
             refreshTokenExp,
         };
     }
+    private generateToken = (payload: any, secret: string, expiresIn: string) => {
+        return this.jwtService.sign(payload, { secret, expiresIn });
+    };
 
-    async getNewAccessToken(dto: refeshAccessTokenDto): Promise<AccessTokenModel> {
+    private expiresToken = (token: string) => {
+        return new Date(
+            new Date(this.jwtService.decode(token.replace('Bearer ', ''))['exp'] * 1000).getTime() -
+                new Date().getTimezoneOffset() * 60 * 1000,
+        );
+    };
+
+    public issueAccessToken(dto: RefeshAccessTokenDto): AccessTokenModel {
+        const tokenEntity = new Token();
         try {
-            const tokenEntity = new Token();
-            const access_token = this.jwtService.decode(dto.accessToken.replace('Bearer ', ''));
+            const accessToken = this.jwtService.decode(dto.accessToken.replace('Bearer ', ''));
+            tokenEntity.fId = accessToken['id'];
+        } catch (e) {
+            throw new CommonException(999, 'failed to read token');
+        }
 
-            if (!access_token) {
-                throw new CommonException(999, 'JWT 오류: 토큰이 비어있습니다');
-            }
+        const payload = { id: tokenEntity.fId };
+        const newAccessToken = this.generateToken(payload, jwtConstants.ACCESS_SECRET, jwtConstants.ACCESS_EXPIRES);
+        const newAccessTokenExp = this.expiresToken(newAccessToken);
 
-            tokenEntity.fId = access_token['sub'];
-
-            if (!tokenEntity.fId) {
-                throw new CommonException(999, 'JWT 오류: 토큰을 소유한 유저가 존재하지 않습니다');
-            }
-
-            const user = await this.usersRepository.findOne({ where: { fId: tokenEntity.fId } });
-
-            const payload = { id: user.id, sub: user.fId };
-            const newAccessToken = this.jwtService.sign(payload, {
-                secret: jwtConstants.access_secret,
-                expiresIn: jwtConstants.access_expires,
-            });
-            const newAccessTokenExp = new Date(
-                this.jwtService.decode(newAccessToken.replace('Bearer ', ''))['exp'] * 1000,
-            );
-
-            return {
-                accessToken: newAccessToken,
-                accessTokenExp: newAccessTokenExp,
-            };
-        } catch (e) {}
+        return {
+            accessToken: newAccessToken,
+            accessTokenExp: newAccessTokenExp,
+        };
     }
 }

@@ -1,7 +1,8 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post, UseInterceptors } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { SellerLoginDto, refeshAccessTokenDto } from './dto/auth.dto';
+import { SignInDto, SignUpDto, RefeshAccessTokenDto } from './dto/auth.dto';
 import { Public } from './decorators/public.decorator';
+import { TransformInterceptor } from 'src/global/interceptor/transform.interceptor';
 
 @Controller('auth')
 export class AuthController {
@@ -9,15 +10,25 @@ export class AuthController {
 
     @Public()
     @HttpCode(HttpStatus.OK)
-    @Post('login')
-    sellerLocalLogin(@Body() dto: SellerLoginDto) {
-        return this.authService.signUpOrIn(dto);
+    @UseInterceptors(TransformInterceptor)
+    @Post('signUp')
+    sellerSignUp(@Body() dto: SignUpDto) {
+        return this.authService.signUpAndIssueTokens(dto);
     }
 
     @Public()
     @HttpCode(HttpStatus.OK)
+    @UseInterceptors(TransformInterceptor)
+    @Post('signIn')
+    sellerSignIn(@Body() dto: SignInDto) {
+        return this.authService.issueTokens(dto);
+    }
+
+    @Public()
+    @HttpCode(HttpStatus.OK)
+    @UseInterceptors(TransformInterceptor)
     @Post('reissue')
-    reissueAccessToken(@Body() dto: refeshAccessTokenDto) {
-        return this.authService.getNewAccessToken(dto);
+    reissueToken(@Body() dto: RefeshAccessTokenDto) {
+        return this.authService.issueAccessToken(dto);
     }
 }

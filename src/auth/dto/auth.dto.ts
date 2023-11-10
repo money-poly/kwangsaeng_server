@@ -1,7 +1,9 @@
-export class SellerLoginDto {
+export class SignUpDto {
     fId: string;
 }
-
-export class refeshAccessTokenDto {
+export class SignInDto {
+    fId: string;
+}
+export class RefeshAccessTokenDto {
     accessToken: string;
 }

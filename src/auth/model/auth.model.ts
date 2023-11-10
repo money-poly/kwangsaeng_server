@@ -1,4 +1,4 @@
-export type TokenModel = {
+export type TokensModel = {
     accessToken: string;
     refreshToken: string;
     accessTokenExp: Date;

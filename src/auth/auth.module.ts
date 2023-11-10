@@ -13,7 +13,7 @@ import { jwtConstants } from './config/secretkey';
         UsersModule,
         JwtModule.register({
             global: true,
-            secret: jwtConstants.access_secret,
+            secret: jwtConstants.ACCESS_SECRET,
         }),
         TypeOrmModule.forFeature([Token, User]),
     ],

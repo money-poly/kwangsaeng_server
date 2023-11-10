@@ -40,14 +40,14 @@ jobs:
         id: deploy-apprunner
         uses: awslabs/amazon-app-runner-deploy@main
         env: 
-          SERVER_PORT: ${{ secrets.DEV_SERVER_PORT }}
-          DATABASE_TYPE: ${{ secrets.DEV_DATABASE_TYPE }}
-          DATABASE_HOST: ${{ secrets.DEV_DATABASE_HOST }}
-          DATABASE_PORT: ${{ secrets.DEV_DATABASE_PORT }}
-          DATABASE_USERNAME: ${{ secrets.DEV_DATABASE_USERNAME }}
-          DATABASE_PASSWORD: ${{ secrets.DEV_DATABASE_PASSWORD }}
-          DATABASE_NAME: ${{ secrets.DEV_DATABASE_NAME }}
-          DATABASE_SYNC: ${{ secrets.DEV_DATABASE_SYNC }}     
+          DEV_SERVER_PORT: ${{ secrets.DEV_SERVER_PORT }}
+          DEV_DATABASE_TYPE: ${{ secrets.DEV_DATABASE_TYPE }}
+          DEV_DATABASE_HOST: ${{ secrets.DEV_DATABASE_HOST }}
+          DEV_DATABASE_PORT: ${{ secrets.DEV_DATABASE_PORT }}
+          DEV_DATABASE_USERNAME: ${{ secrets.DEV_DATABASE_USERNAME }}
+          DEV_DATABASE_PASSWORD: ${{ secrets.DEV_DATABASE_PASSWORD }}
+          DEV_DATABASE_NAME: ${{ secrets.DEV_DATABASE_NAME }}
+          DEV_DATABASE_SYNC: ${{ secrets.DEV_DATABASE_SYNC }}     
         with:
           service: app-runner-image-deploy-service
           image: ${{ steps.build-image.outputs.image }}          
@@ -57,15 +57,15 @@ jobs:
           cpu : 1
           memory : 2
           port: 3000
-          copy-env-vars: /
-            SERVER_PORT
-            DATABASE_TYPE
-            DATABASE_HOST
-            DATABASE_PORT
-            DATABASE_USERNAME
-            DATABASE_PASSWORD
-            DATABASE_NAME
-            DATABASE_SYNC
+          copy-env-vars: / 
+            DEV_SERVER_PORT
+            DEV_DATABASE_TYPE
+            DEV_DATABASE_HOST
+            DEV_DATABASE_PORT
+            DEV_DATABASE_USERNAME
+            DEV_DATABASE_PASSWORD
+            DEV_DATABASE_NAME
+            DEV_DATABASE_SYNC
           wait-for-service-stability: true
       
       - name: App Runner output

@@ -1,6 +1,6 @@
 export const jwtConstants = {
-    access_secret: 'ACCESS_SECRET_KWANGSAENG',
-    access_expires: '30m',
-    refresh_secret: 'REFRESH_SECRET_KWANGSAENG',
-    refresh_expires: '7d',
+    ACCESS_SECRET: 'ACCESS_SECRET_KWANGSAENG',
+    ACCESS_EXPIRES: '30m',
+    REFRESH_SECRET: 'REFRESH_SECRET_KWANGSAENG',
+    REFRESH_EXPIRES: '7d',
 };

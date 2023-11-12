@@ -10,7 +10,7 @@ export default registerAs('database', () => ({
     sync: JSON.parse(process.env.DATABASE_SYNC),
     ssl: Object({
         ssl: {
-            rejectUnauthorized: false,
+            rejectUnauthorized: true,
         },
     }),
 }));

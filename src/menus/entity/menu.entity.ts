@@ -1,8 +1,9 @@
-import { Column, Entity } from 'typeorm';
-import { BaseEntity } from '../../global/common/base.entity';
+import { AbstractEntity } from 'src/global/common/abstract.entity';
+import { Store } from 'src/stores/entity/store.entity';
+import { Column, Entity, ManyToOne } from 'typeorm';
 
 @Entity({ name: 'menus' })
-export class Menu extends BaseEntity {
+export class Menu extends AbstractEntity<Menu> {
     @Column()
     category: string;
 
@@ -35,4 +36,7 @@ export class Menu extends BaseEntity {
 
     @Column({ comment: '메뉴에 관한 설명' })
     description: string;
+
+    @ManyToOne(() => Store, (store) => store.menus, { cascade: ['soft-remove'] })
+    store: Store;
 }

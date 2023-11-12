@@ -9,8 +9,6 @@ export default registerAs('database', () => ({
     database: process.env.DATABASE_NAME.toString(),
     sync: JSON.parse(process.env.DATABASE_SYNC),
     ssl: Object({
-        ssl: {
-            rejectUnauthorized: true,
-        },
+        rejectUnauthorized: true,
     }),
 }));

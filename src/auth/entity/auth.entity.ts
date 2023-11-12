@@ -6,6 +6,6 @@ export class Token extends BaseEntity {
     @Column({ name: 'f_id', comment: 'firebase uid' })
     fId: string;
 
-    @Column({ name: 'refresh_token', comment: 'refresh token' })
+    @Column({ name: 'refresh_token', comment: 'refresh token', nullable: true })
     refreshToken: string;
 }

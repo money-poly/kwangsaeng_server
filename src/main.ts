@@ -8,10 +8,8 @@ async function bootstrap() {
     const app = await NestFactory.create(AppModule, { logger: winstonLogger });
     const configService = app.get(ConfigService);
 
-    app.enableVersioning({
-        type: VersioningType.URI,
-        defaultVersion: '1',
-    });
+    app.setGlobalPrefix('api');
+    app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
 
     await app.listen(configService.getOrThrow('SERVER_PORT'));
 }

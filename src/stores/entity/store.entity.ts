@@ -1,24 +1,28 @@
-import { Column, Entity } from 'typeorm';
-import { BaseEntity } from '../../global/common/base.entity';
+import { SoftDeleteEntity } from 'src/global/common/abstract.entity';
+import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
+import { Menu } from 'src/menus/entity/menu.entity';
+import { StoreCategory } from '../enum/store-category.enum';
+import { StoreStatus } from '../enum/store-status.enum';
+import { User } from 'src/users/entity/user.entity';
 
 @Entity({ name: 'stores' })
-export class Store extends BaseEntity {
-    @Column({ comment: '가게 이름' })
+export class Store extends SoftDeleteEntity<Store> {
+    @Column({ comment: '가게 이름', unique: true })
     name: string;
 
-    @Column({ type: 'json', comment: '음식 카테고리' })
-    category: string;
+    @Column({ type: 'enum', enum: StoreCategory, comment: '음식 카테고리' })
+    category: StoreCategory;
 
     @Column()
     address: string;
 
-    @Column({ comment: '가게 위도' })
+    @Column({ type: 'decimal', precision: 12, scale: 10, comment: '가게 위도' })
     latitude: number;
 
-    @Column({ comment: '가게 경도' })
+    @Column({ type: 'decimal', precision: 13, scale: 10, comment: '가게 경도' })
     longitude: number;
 
-    @Column({ comment: '가게 소개 사진' })
+    @Column({ nullable: true, comment: '가게 소개 사진' })
     storePictureUrl: string;
 
     @Column({ nullable: true, comment: '가게 전화번호' })
@@ -33,6 +37,12 @@ export class Store extends BaseEntity {
     @Column({ nullable: true, comment: '고정 휴무일' })
     closedDays: string;
 
-    @Column()
+    @Column({ type: 'enum', enum: StoreStatus, default: StoreStatus.OPEN })
     status: string;
+
+    @ManyToOne(() => User, (user) => user.stores, { cascade: ['soft-remove'] })
+    user: User;
+
+    @OneToMany(() => Menu, (menu) => menu.store, { cascade: true })
+    menus: Menu[];
 }

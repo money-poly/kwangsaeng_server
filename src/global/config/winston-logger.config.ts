@@ -35,7 +35,6 @@ export const winstonLogger = WinstonModule.createLogger({
             level: 'info',
             format,
         }),
-        new winstonDaily(dailyOption('warn')),
         new winstonDaily(dailyOption('error')),
     ],
 });

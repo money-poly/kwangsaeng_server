@@ -17,7 +17,9 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "docker:dev": "docker-compose -f dev-compose.yml --env-file src/global/config/envs/.dev.env up",
+    "docker:build": "docker-compose -f dev-compose.yml --env-file src/global/config/envs/.dev.env build"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
@@ -30,6 +32,7 @@
     "joi": "^17.11.0",
     "mysql2": "^3.6.2",
     "nest-winston": "^1.9.4",
+    "typeorm-naming-strategies": "^4.1.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
     "typeorm": "^0.3.17"

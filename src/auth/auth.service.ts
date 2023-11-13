@@ -1,30 +1,28 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { CommonException } from 'src/global/exception/common.exception';
 
-import { SignInDto, SignUpDto, RefeshAccessTokenDto } from './dto/auth.dto';
+import { SignInDto, SignUpDto, ReissueTokensDto } from './dto/auth.dto';
 import { User } from 'src/users/entity/user.entity';
 import { Token } from 'src/auth/entity/auth.entity';
-import { AccessTokenModel, TokensModel } from './model/auth.model';
+import { TokensModel } from './model/auth.model';
 import { jwtConstants } from './config/secretkey';
+import { TokensRepository } from './auth.repository';
+import { Roles } from 'src/users/enum/roles.enum';
 
 @Injectable()
 export class AuthService {
     constructor(
-        @InjectRepository(Token)
-        private readonly tokenRepository: Repository<Token>,
+        private readonly tokensRepository: TokensRepository,
         private readonly jwtService: JwtService,
         private readonly logger: Logger,
         private readonly dataSource: DataSource,
     ) {}
 
-    public async signUpAndIssueTokens(dto: SignUpDto): Promise<TokensModel> {
-        const userEntity = new User();
-        const tokenEntity = new Token();
-        userEntity.fId = dto.fId;
-        tokenEntity.fId = dto.fId;
+    public async signUpAndIssueTokens(role: Roles, dto: SignUpDto): Promise<TokensModel> {
+        let userEntity = new User({ role, ...dto });
+        let tokenEntity = new Token({ ...dto });
 
         const queryRunner = this.dataSource.createQueryRunner();
         try {
@@ -36,20 +34,20 @@ export class AuthService {
         } catch (e) {
             await queryRunner.rollbackTransaction();
             this.logger.error(e);
-            throw new CommonException(999, 'failed to sign up');
+            throw new CommonException(1000, 'failed to sign up');
         } finally {
             await queryRunner.release();
-            delete userEntity.fId;
-            delete tokenEntity.fId;
+            userEntity = null;
+            tokenEntity = null;
         }
 
         const tokenModel = this.issueTokens(dto);
 
         try {
-            await this.tokenRepository.update({ fId: dto.fId }, { refreshToken: tokenModel.refreshToken });
+            await this.tokensRepository.findOneAndUpdate({ fId: dto.fId }, { refreshToken: tokenModel.refreshToken });
         } catch (e) {
             this.logger.error(e);
-            throw new CommonException(999, 'failed to token update');
+            throw new CommonException(1001, 'failed to update tokens');
         }
 
         return {
@@ -57,8 +55,15 @@ export class AuthService {
         };
     }
 
-    public issueTokens(user: SignInDto | SignUpDto): TokensModel {
-        const payload = { id: user.fId };
+    public issueTokens(dto: SignUpDto | SignInDto | ReissueTokensDto): TokensModel {
+        let id: string;
+        if ('fId' in dto) {
+            id = dto.fId;
+        } else {
+            const accessToken = this.jwtService.decode(dto.accessToken.replace('Bearer ', ''));
+            id = accessToken['id'];
+        }
+        const payload = { id: id };
 
         const accessToken = this.generateToken(payload, jwtConstants.ACCESS_SECRET, jwtConstants.ACCESS_EXPIRES);
         const refreshToken = this.generateToken(payload, jwtConstants.REFRESH_SECRET, jwtConstants.REFRESH_EXPIRES);
@@ -73,6 +78,7 @@ export class AuthService {
             refreshTokenExp,
         };
     }
+
     private generateToken = (payload: any, secret: string, expiresIn: string) => {
         return this.jwtService.sign(payload, { secret, expiresIn });
     };
@@ -83,23 +89,4 @@ export class AuthService {
                 new Date().getTimezoneOffset() * 60 * 1000,
         );
     };
-
-    public issueAccessToken(dto: RefeshAccessTokenDto): AccessTokenModel {
-        const tokenEntity = new Token();
-        try {
-            const accessToken = this.jwtService.decode(dto.accessToken.replace('Bearer ', ''));
-            tokenEntity.fId = accessToken['id'];
-        } catch (e) {
-            throw new CommonException(999, 'failed to read token');
-        }
-
-        const payload = { id: tokenEntity.fId };
-        const newAccessToken = this.generateToken(payload, jwtConstants.ACCESS_SECRET, jwtConstants.ACCESS_EXPIRES);
-        const newAccessTokenExp = this.expiresToken(newAccessToken);
-
-        return {
-            accessToken: newAccessToken,
-            accessTokenExp: newAccessTokenExp,
-        };
-    }
 }

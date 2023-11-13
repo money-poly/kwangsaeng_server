@@ -18,7 +18,7 @@ import { TokensRepository } from './auth.repository';
         }),
         TypeOrmModule.forFeature([Token, User]),
     ],
-    providers: [AuthService, Logger, TokensRepository],
     controllers: [AuthController],
+    providers: [AuthService, Logger, TokensRepository],
 })
 export class AuthModule {}

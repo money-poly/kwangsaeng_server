@@ -1,8 +1,8 @@
 import { Column, Entity } from 'typeorm';
-import { SoftDeleteEntity } from '../../global/common/abstract.entity';
+import { AbstractEntity } from '../../global/common/abstract.entity';
 
 @Entity({ name: 'tokens' })
-export class Token extends SoftDeleteEntity<Token> {
+export class Token extends AbstractEntity<Token> {
     @Column({ name: 'f_id', comment: 'firebase uid' })
     fId: string;
 

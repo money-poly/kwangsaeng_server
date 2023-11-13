@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AbstractRepository } from 'src/global/common/abstract.repository';
-import { Token } from './entity/auth.entity';
+import { Token } from './entity/token.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 

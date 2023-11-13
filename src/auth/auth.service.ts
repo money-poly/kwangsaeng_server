@@ -5,7 +5,7 @@ import { CommonException } from 'src/global/exception/common.exception';
 
 import { SignInDto, SignUpDto, ReissueTokensDto } from './dto/auth.dto';
 import { User } from 'src/users/entity/user.entity';
-import { Token } from 'src/auth/entity/auth.entity';
+import { Token } from 'src/auth/entity/token.entity';
 import { TokensModel } from './model/auth.model';
 import { TokensRepository } from './auth.repository';
 import { Roles } from 'src/users/enum/roles.enum';

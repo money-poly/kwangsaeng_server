@@ -6,7 +6,8 @@ import { AuthService } from './auth.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Token } from './entity/auth.entity';
 import { User } from 'src/users/entity/user.entity';
-import { jwtConstants } from './config/secretkey';
+import { jwtConstants } from './config/jwtConstants';
+import { TokensRepository } from './auth.repository';
 
 @Module({
     imports: [
@@ -17,7 +18,7 @@ import { jwtConstants } from './config/secretkey';
         }),
         TypeOrmModule.forFeature([Token, User]),
     ],
-    providers: [AuthService, Logger],
+    providers: [AuthService, Logger, TokensRepository],
     controllers: [AuthController],
 })
 export class AuthModule {}

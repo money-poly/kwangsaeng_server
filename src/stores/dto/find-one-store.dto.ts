@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsNumberString, IsOptional, IsString } from 'class-validator';
 
 export class FindOneStoreDto {
     @IsOptional()
@@ -7,6 +7,6 @@ export class FindOneStoreDto {
 
     @IsOptional()
     @IsString()
-    @IsUUID()
-    id: string;
+    @IsNumberString()
+    id: number;
 }

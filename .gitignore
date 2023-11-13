@@ -3,7 +3,7 @@
 .prod.env
 
 # secret
-# /src/auth/config/*
+/src/auth/config/*
 
 # compiled output
 /dist

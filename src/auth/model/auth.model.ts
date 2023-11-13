@@ -1,11 +1,18 @@
-export type TokensModel = {
+import { IsNotEmpty, IsString, IsDate } from 'class-validator';
+export class TokensModel {
+    @IsString()
+    @IsNotEmpty()
     accessToken: string;
-    refreshToken: string;
-    accessTokenExp: Date;
-    refreshTokenExp: Date;
-};
 
-export type AccessTokenModel = {
-    accessToken: string;
+    @IsString()
+    @IsNotEmpty()
+    refreshToken: string;
+
+    @IsDate()
+    @IsNotEmpty()
     accessTokenExp: Date;
-};
+
+    @IsDate()
+    @IsNotEmpty()
+    refreshTokenExp: Date;
+}

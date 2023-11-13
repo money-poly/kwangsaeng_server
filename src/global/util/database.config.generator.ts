@@ -10,6 +10,9 @@ export const configGenerator = (env: string): TypeOrmModuleOptions => {
             password: process.env.DATABASE_PASSWORD,
             database: process.env.DATABASE_NAME,
             synchronize: JSON.parse(process.env.DATABASE_SYNC),
+            ssl: {
+                rejectUnauthorized: true,
+            },
             entities: [__dirname + '/../../**/*.entity.*'],
             logging: true,
         };

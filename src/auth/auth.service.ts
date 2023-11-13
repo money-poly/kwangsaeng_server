@@ -21,8 +21,8 @@ export class AuthService {
     ) {}
 
     public async signUpAndIssueTokens(role: Roles, dto: SignUpDto): Promise<TokensModel> {
-        let userEntity = new User({ role, ...dto });
-        let tokenEntity = new Token({ ...dto });
+        let userEntity = new User({ ...dto, role });
+        let tokenEntity = new Token({ fId: dto.fId, refreshToken: null });
 
         const queryRunner = this.dataSource.createQueryRunner();
         try {

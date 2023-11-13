@@ -8,14 +8,14 @@ export class AbstractEntity<T> {
     @PrimaryGeneratedColumn({ type: 'bigint' })
     id: number;
 
-    @CreateDateColumn()
+    @CreateDateColumn({ name: 'created_date' })
     createdDate: Date;
 
-    @UpdateDateColumn()
+    @UpdateDateColumn({ name: 'modified_date' })
     modifiedDate: Date;
 }
 
 export class SoftDeleteEntity<T> extends AbstractEntity<T> {
-    @DeleteDateColumn()
+    @DeleteDateColumn({ name: 'deleted_date' })
     deletedDate: Date;
 }

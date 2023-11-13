@@ -6,8 +6,14 @@ import { Roles } from '../enum/roles.enum';
 
 @Entity({ name: 'users' })
 export class User extends SoftDeleteEntity<User> {
-    @Column({ comment: 'firebase uid' })
+    @Column({ name: 'f_id', comment: 'firebase uid' })
     fId: string;
+
+    @Column({ comment: '유저 이름' })
+    name: string;
+
+    @Column({ length: 15, comment: '전화번호 000-0000-0000' })
+    phone: string;
 
     @Column({ type: 'enum', enum: Roles, default: Roles.USER, comment: '역할' })
     role: Roles;
@@ -21,7 +27,7 @@ export class User extends SoftDeleteEntity<User> {
     @Column({ type: 'enum', enum: UserStatus, default: UserStatus.ACTIVATE, comment: '유저 상태' })
     status: string;
 
-    @Column({ comment: 'Pass 인증 유무', default: false })
+    @Column({ name: 'pass_auth', comment: 'Pass 인증 유무', default: false })
     passAuth: boolean;
 
     @OneToMany(() => Store, (store) => store.user, { cascade: true })

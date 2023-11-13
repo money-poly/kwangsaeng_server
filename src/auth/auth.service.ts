@@ -7,9 +7,9 @@ import { SignInDto, SignUpDto, ReissueTokensDto } from './dto/auth.dto';
 import { User } from 'src/users/entity/user.entity';
 import { Token } from 'src/auth/entity/auth.entity';
 import { TokensModel } from './model/auth.model';
-import { jwtConstants } from './config/secretkey';
 import { TokensRepository } from './auth.repository';
 import { Roles } from 'src/users/enum/roles.enum';
+import { jwtConstants } from './config/jwtConstants';
 
 @Injectable()
 export class AuthService {

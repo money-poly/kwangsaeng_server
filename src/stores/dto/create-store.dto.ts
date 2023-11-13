@@ -1,4 +1,4 @@
-import { IsEnum, IsLatitude, IsLongitude, IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import { IsEnum, IsLatitude, IsLongitude, IsNotEmpty, IsNumberString, IsString } from 'class-validator';
 import { StoreCategory } from '../enum/store-category.enum';
 
 export class CreateStoreDto {
@@ -24,6 +24,6 @@ export class CreateStoreDto {
 
     @IsString()
     @IsNotEmpty()
-    @IsUUID()
-    userId: string;
+    @IsNumberString()
+    userId: number;
 }

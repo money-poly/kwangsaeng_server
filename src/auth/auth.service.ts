@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { DataSource } from 'typeorm';
-import { CommonException } from 'src/global/exception/common.exception';
+import { CommonException } from 'src/global/exception/common-exception';
 
 import { SignInDto, SignUpDto, ReissueTokensDto } from './dto/auth.dto';
 import { User } from 'src/users/entity/user.entity';

@@ -1,5 +1,5 @@
 import { ExceptionFilter, Catch, ArgumentsHost } from '@nestjs/common';
-import { CommonException } from '../exception/common.exception';
+import { CommonException } from '../exception/common-exception';
 
 @Catch(CommonException)
 export class CommonExceptionFilter implements ExceptionFilter {

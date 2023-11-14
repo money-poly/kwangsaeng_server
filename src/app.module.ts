@@ -1,6 +1,4 @@
 import { Logger, Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { validationSchema } from './global/config/validation.schema';
 import { DatabaseModule } from './database/database.module';
@@ -24,7 +22,6 @@ import { AuthModule } from './auth/auth.module';
         MenusModule,
         AuthModule,
     ],
-    controllers: [AppController],
-    providers: [AppService, Logger],
+    providers: [Logger],
 })
 export class AppModule {}

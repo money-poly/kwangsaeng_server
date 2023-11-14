@@ -1,7 +1,8 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
 export const configGenerator = (env: string): TypeOrmModuleOptions => {
-    if (env === 'dev')
+    if (env === 'local')
         return {
             type: 'mysql',
             host: process.env.DATABASE_HOST,
@@ -12,8 +13,9 @@ export const configGenerator = (env: string): TypeOrmModuleOptions => {
             synchronize: JSON.parse(process.env.DATABASE_SYNC),
             entities: [__dirname + '/../../**/*.entity.*'],
             logging: true,
+            namingStrategy: new SnakeNamingStrategy(),
         };
-    else if (env === 'prod')
+    else if (env === 'dev')
         return {
             type: 'mysql',
             host: process.env.DATABASE_HOST,
@@ -26,5 +28,6 @@ export const configGenerator = (env: string): TypeOrmModuleOptions => {
                 rejectUnauthorized: true,
             },
             entities: [__dirname + '/../**/*.entity.*'],
+            namingStrategy: new SnakeNamingStrategy(),
         };
 };

@@ -5,17 +5,17 @@ export class AbstractEntity<T> {
         Object.assign(this, entity);
     }
 
-    @PrimaryGeneratedColumn({ type: 'bigint' })
+    @PrimaryGeneratedColumn()
     id: number;
 
-    @CreateDateColumn({ name: 'created_date' })
+    @CreateDateColumn()
     createdDate: Date;
 
-    @UpdateDateColumn({ name: 'modified_date' })
+    @UpdateDateColumn()
     modifiedDate: Date;
 }
 
 export class SoftDeleteEntity<T> extends AbstractEntity<T> {
-    @DeleteDateColumn({ name: 'deleted_date' })
+    @DeleteDateColumn()
     deletedDate: Date;
 }

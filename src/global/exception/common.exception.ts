@@ -1,24 +1,15 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus } from '@nestjs/common';
-import { Response } from 'express';
-
+import { HttpStatus } from '@nestjs/common';
 export class CommonException extends Error {
     readonly code: number;
+    readonly status: number;
 
-    constructor(code: number, message: string) {
+    constructor(code: number, message: string, status: number = HttpStatus.BAD_REQUEST) {
         super(message);
         this.code = code;
+        this.status = status;
     }
-}
 
-@Catch(CommonException)
-export class CommonExceptionFilter implements ExceptionFilter {
-    catch(exception: CommonException, host: ArgumentsHost) {
-        const ctx = host.switchToHttp();
-        const resp = ctx.getResponse<Response>();
-
-        resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            code: exception.code,
-            message: exception.message,
-        });
+    getStatus(): HttpStatus {
+        return this.status;
     }
 }

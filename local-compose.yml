@@ -3,7 +3,7 @@ services:
         container_name: api
         build:
             context: .
-            dockerfile: dev-dockerfile
+            dockerfile: local-dockerfile
         volumes:
             - ./src:/api/src
         restart: always
@@ -13,7 +13,7 @@ services:
             ks_db:
                 condition: service_healthy
         networks:
-            - dev-network
+            - local-network
 
     ks_db:
         image: mysql:8.0
@@ -31,11 +31,11 @@ services:
         ports:
             - ${DATABASE_PORT}:${DATABASE_PORT}
         networks:
-            - dev-network
+            - local-network
 
 volumes:
     db:
 
 networks:
-    dev-network:
+    local-network:
         driver: bridge

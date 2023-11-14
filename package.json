@@ -9,8 +9,8 @@
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "NODE_ENV=dev nest start",
-    "start:dev": "NODE_ENV=dev nest start --watch",
-    "start:debug": "NODE_ENV=dev nest start --debug --watch",
+    "start:dev": "NODE_ENV=local nest start --watch",
+    "start:debug": "NODE_ENV=local nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
@@ -18,8 +18,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "docker:dev": "docker-compose -f dev-compose.yml --env-file src/global/config/envs/.dev.env up",
-    "docker:build": "docker-compose -f dev-compose.yml --env-file src/global/config/envs/.dev.env build"
+    "docker:local": "docker-compose -f local-compose.yml --env-file src/global/config/envs/.local.env up",
+    "docker:build": "docker-compose -f local-compose.yml --env-file src/global/config/envs/.local.env build"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

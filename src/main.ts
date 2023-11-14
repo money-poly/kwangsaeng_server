@@ -3,9 +3,9 @@ import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { winstonLogger } from './global/config/winston-logger.config';
-import { CommonExceptionFilter } from './global/exception/common.exception';
 import { HttpExceptionFilter } from './global/filter/http-exception.filter';
 import { TransformInterceptor } from './global/interceptor/transform.interceptor';
+import { CommonExceptionFilter } from './global/filter/common-exception.filter';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, { logger: winstonLogger });

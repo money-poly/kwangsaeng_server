@@ -4,6 +4,11 @@ import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 // import { IS_PUBLIC_KEY } from './decorators/public.decorator';
 import { jwtConstants } from '../config/jwtConstants';
+import { User } from 'src/users/entity/user.entity';
+
+interface RequestUser extends Request {
+    user: User;
+}
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -22,12 +27,15 @@ export class AuthGuard implements CanActivate {
         //     return true;
         // }
 
-        const request = context.switchToHttp().getRequest();
+        const request: RequestUser = context.switchToHttp().getRequest();
         const token = this.extractTokenFromHeader(request);
         if (!token) {
             throw new HttpException('Token is empty', HttpStatus.UNAUTHORIZED);
         } else {
-            this.validateToken(token);
+            const payload = this.validateToken(token);
+            request.user = {
+                fId: payload.id,
+            } as User;
         }
         return true;
     }

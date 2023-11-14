@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, UnprocessableEntityException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { StoresRepository } from './stores.repository';
 import { Store } from './entity/store.entity';
 import { UsersRepository } from 'src/users/users.repository';
@@ -6,6 +6,8 @@ import { Roles } from 'src/users/enum/roles.enum';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { FindStoresDto } from './dto/find-stores.dto';
 import { FindOneStoreDto } from './dto/find-one-store.dto';
+import { User } from 'src/users/entity/user.entity';
+import { CommonException } from 'src/global/exception/common.exception';
 
 @Injectable()
 export class StoresService {
@@ -14,9 +16,8 @@ export class StoresService {
         private readonly usersRepository: UsersRepository,
     ) {}
 
-    async create(dto: CreateStoreDto) {
-        await this.validateCreateStoreDto(dto);
-        const user = await this.validateUserRole(dto);
+    async create(user: User, dto: CreateStoreDto) {
+        await this.validateCreateStoreDto(user, dto);
 
         const newStore = new Store({
             ...dto,
@@ -34,16 +35,11 @@ export class StoresService {
         return await this.storesRepository.find(dto);
     }
 
-    private async validateCreateStoreDto(dto: CreateStoreDto) {
+    private async validateCreateStoreDto(user: User, dto: CreateStoreDto) {
         const isExist = await this.storesRepository.exist({ name: dto.name });
-        if (isExist) throw new UnprocessableEntityException('이미 존재하는 가게 이름입니다.');
-    }
+        if (isExist) throw new CommonException(2000, '이미 존재하는 가게 이름입니다.');
 
-    private async validateUserRole(dto: CreateStoreDto) {
-        const user = await this.usersRepository.findOne({ id: dto.userId });
-
-        if (user.role != Roles.OWNER) throw new ForbiddenException('가게 생성 권한이 없습니다.');
-
-        return user;
+        // TODO: 토큰 로직 문제로 인해 기능 구현 잠시 보류
+        if (user?.role != Roles.OWNER) throw new CommonException(2001, '가게 생성 권한이 없습니다.');
     }
 }

@@ -6,7 +6,7 @@ import { Roles } from '../enum/roles.enum';
 
 @Entity({ name: 'users' })
 export class User extends SoftDeleteEntity<User> {
-    @Column({ name: 'f_id', comment: 'firebase uid' })
+    @Column({ name: 'f_id', comment: 'firebase uid', unique: true })
     fId: string;
 
     @Column({ comment: '유저 이름' })

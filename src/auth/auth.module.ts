@@ -8,6 +8,7 @@ import { Token } from './entity/token.entity';
 import { User } from 'src/users/entity/user.entity';
 import { jwtConstants } from './config/jwtConstants';
 import { TokensRepository } from './auth.repository';
+import { UsersRepository } from 'src/users/users.repository';
 
 @Module({
     imports: [
@@ -19,6 +20,6 @@ import { TokensRepository } from './auth.repository';
         TypeOrmModule.forFeature([Token, User]),
     ],
     controllers: [AuthController],
-    providers: [AuthService, Logger, TokensRepository],
+    providers: [AuthService, Logger, TokensRepository, UsersRepository],
 })
 export class AuthModule {}

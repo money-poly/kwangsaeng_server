@@ -1,20 +1,25 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { DataSource } from 'typeorm';
-import { CommonException } from 'src/global/exception/common-exception';
 
-import { SignInDto, SignUpDto, ReissueTokensDto } from './dto/auth.dto';
 import { User } from 'src/users/entity/user.entity';
 import { Token } from 'src/auth/entity/token.entity';
 import { TokensModel } from './model/auth.model';
 import { TokensRepository } from './auth.repository';
+import { UsersRepository } from 'src/users/users.repository';
 import { Roles } from 'src/users/enum/roles.enum';
 import { jwtConstants } from './config/jwtConstants';
+import { AuthException } from 'src/global/exception/auth-exception';
+import { SignUpDto } from './dto/sign-up.dto';
+import { ReissueTokensDto } from './dto/reissue-token.dto';
+import { SignInDto } from './dto/sign-in.dto';
+import { UsersException } from 'src/global/exception/users-exception';
 
 @Injectable()
 export class AuthService {
     constructor(
         private readonly tokensRepository: TokensRepository,
+        private readonly usersRepository: UsersRepository,
         private readonly jwtService: JwtService,
         private readonly logger: Logger,
         private readonly dataSource: DataSource,
@@ -34,20 +39,20 @@ export class AuthService {
         } catch (e) {
             await queryRunner.rollbackTransaction();
             this.logger.error(e);
-            throw new CommonException(1000, 'failed to sign up');
+            throw UsersException.FAIL_SAVE_USER;
         } finally {
             await queryRunner.release();
             userEntity = null;
             tokenEntity = null;
         }
 
-        const tokenModel = this.issueTokens(dto);
+        const tokenModel = await this.issueTokens(dto);
 
         try {
             await this.tokensRepository.findOneAndUpdate({ fId: dto.fId }, { refreshToken: tokenModel.refreshToken });
         } catch (e) {
             this.logger.error(e);
-            throw new CommonException(1001, 'failed to update tokens');
+            throw AuthException.FAIL_UPDATE_TOKEN;
         }
 
         return {
@@ -55,21 +60,17 @@ export class AuthService {
         };
     }
 
-    public issueTokens(dto: SignUpDto | SignInDto | ReissueTokensDto): TokensModel {
-        let id: string;
-        if ('fId' in dto) {
-            id = dto.fId;
-        } else {
-            const accessToken = this.jwtService.decode(dto.accessToken.replace('Bearer ', ''));
-            id = accessToken['id'];
-        }
-        const payload = { id: id };
+    public async issueTokens(dto: SignUpDto | SignInDto | ReissueTokensDto): Promise<TokensModel> {
+        const fId = this.extractfIdFromDto(dto);
+        const user = await this.validateUserByfId(fId);
+
+        const payload = { ...user };
 
         const accessToken = this.generateToken(payload, jwtConstants.ACCESS_SECRET, jwtConstants.ACCESS_EXPIRES);
         const refreshToken = this.generateToken(payload, jwtConstants.REFRESH_SECRET, jwtConstants.REFRESH_EXPIRES);
 
-        const accessTokenExp = this.expiresToken(accessToken);
-        const refreshTokenExp = this.expiresToken(refreshToken);
+        const accessTokenExp = this.getExpiredTime(accessToken);
+        const refreshTokenExp = this.getExpiredTime(refreshToken);
 
         return {
             accessToken,
@@ -79,14 +80,35 @@ export class AuthService {
         };
     }
 
+    private extractfIdFromDto = (dto: SignUpDto | SignInDto | ReissueTokensDto): string => {
+        let id: string;
+        if ('fId' in dto) {
+            id = dto.fId;
+        } else if ('accessToken' in dto) {
+            const accessToken = this.jwtService.decode(dto.accessToken.replace('Bearer ', ''));
+            id = accessToken['fId'];
+        }
+        return id;
+    };
+
+    private validateUserByfId = async (id: string): Promise<User> => {
+        const user = await this.usersRepository.findOne({ fId: id });
+        if (!user) throw UsersException.NOT_EXIST_USER;
+        return user;
+    };
+
     private generateToken = (payload: any, secret: string, expiresIn: string) => {
         return this.jwtService.sign(payload, { secret, expiresIn });
     };
 
-    private expiresToken = (token: string) => {
-        return new Date(
-            new Date(this.jwtService.decode(token.replace('Bearer ', ''))['exp'] * 1000).getTime() -
-                new Date().getTimezoneOffset() * 60 * 1000,
-        );
+    private getExpiredTime = (token: string): Date => {
+        const decodedToken = this.jwtService.decode(token.replace('Bearer ', ''));
+        if (decodedToken && decodedToken['exp']) {
+            const timezoneExpiredTime = new Date(decodedToken['exp'] * 1000).getTime();
+            const timezoneOffset = new Date().getTimezoneOffset() * 60 * 1000;
+            return new Date(timezoneExpiredTime - timezoneOffset);
+        } else {
+            throw AuthException.FAIL_EXTRACT_TOKEN_EXPRIED_TIME;
+        }
     };
 }

@@ -1,10 +1,10 @@
-import { CanActivate, ExecutionContext, HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-// import { IS_PUBLIC_KEY } from './decorators/public.decorator';
 import { jwtConstants } from '../config/jwtConstants';
 import { User } from 'src/users/entity/user.entity';
+import { AuthException } from 'src/global/exception/auth-exception';
 
 interface RequestUser extends Request {
     user: User;
@@ -18,23 +18,14 @@ export class AuthGuard implements CanActivate {
     ) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
-        // const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
-        //     context.getHandler(),
-        //     context.getClass(),
-        // ]);
-        // if (isPublic) {
-        //     // 💡 See this condition
-        //     return true;
-        // }
-
         const request: RequestUser = context.switchToHttp().getRequest();
         const token = this.extractTokenFromHeader(request);
         if (!token) {
-            throw new HttpException('Token is empty', HttpStatus.UNAUTHORIZED);
+            throw AuthException.IS_EMPTY_TOKEN;
         } else {
             const payload = this.validateToken(token);
             request.user = {
-                fId: payload.id,
+                ...payload,
             } as User;
         }
         return true;
@@ -54,16 +45,16 @@ export class AuthGuard implements CanActivate {
         } catch (e) {
             switch (e.name) {
                 case 'JsonWebTokenError':
-                    throw new HttpException('JWT 오류: 유효하지 않은 토큰입니다.', 401);
+                    throw AuthException.NOT_VALID_TOKEN;
 
                 case 'TokenExpiredError':
-                    throw new HttpException('JWT 오류: 토큰이 만료되었습니다.', 410);
+                    throw AuthException.IS_EXPIRED_TOKEN;
 
                 case 'NotBeforeError':
-                    throw new HttpException('JWT 오류: 아직 활성화되지 않은 토큰입니다.', 403);
+                    throw AuthException.NOT_BEFORE_TOKEN;
 
                 default:
-                    throw new HttpException('JWT 검증 중에 오류가 발생했습니다.', 500);
+                    throw AuthException.DEFAULT_TOKEN_ERROR;
             }
         }
     }

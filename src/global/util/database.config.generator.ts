@@ -27,7 +27,7 @@ export const configGenerator = (env: string): TypeOrmModuleOptions => {
             ssl: {
                 rejectUnauthorized: true,
             },
-            entities: [__dirname + '/../**/*.entity.*'],
+            entities: [__dirname + '/../../**/*.entity.*'],
             namingStrategy: new SnakeNamingStrategy(),
         };
 };

@@ -1,8 +1,10 @@
 import { Body, Controller, Param, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Roles } from 'src/users/enum/roles.enum';
-import { SignInDto, SignUpDto, ReissueTokensDto } from './dto/auth.dto';
 import { TokensModel } from './model/auth.model';
+import { SignUpDto } from './dto/sign-up.dto';
+import { SignInDto } from './dto/sign-in.dto';
+import { ReissueTokensDto } from './dto/reissue-token.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -14,12 +16,12 @@ export class AuthController {
     }
 
     @Post('signIn')
-    signIn(@Body() dto: SignInDto): TokensModel {
+    signIn(@Body() dto: SignInDto): Promise<TokensModel> {
         return this.authService.issueTokens(dto);
     }
 
     @Post('reissue')
-    reissueTokens(@Body() dto: ReissueTokensDto): TokensModel {
+    reissueTokens(@Body() dto: ReissueTokensDto): Promise<TokensModel> {
         return this.authService.issueTokens(dto);
     }
 }

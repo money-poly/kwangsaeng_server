@@ -46,14 +46,9 @@ export class StoresService implements OnModuleInit {
             .createQueryBuilder(Store, 'stores')
             .select('name')
             .addSelect('id')
-            .addSelect('address')
             .addSelect('CAST(latitude AS FLOAT) AS latitude')
             .addSelect('CAST(longitude AS FLOAT) AS longitude')
-            .addSelect(
-                `CAST(ST_Distance_Sphere(POINT(${lon}, ${lat}), POINT(longitude, latitude)) AS FLOAT) AS distance`,
-            )
             .where(`ST_Distance_Sphere(POINT(${lon}, ${lat}), POINT(longitude, latitude)) <= ${range}`)
-            .orderBy('distance')
             .getRawMany();
     }
 

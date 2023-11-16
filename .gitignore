@@ -1,6 +1,7 @@
 # environments
 .dev.env
 .prod.env
+.local.env
 
 # secret
 /src/auth/config/*

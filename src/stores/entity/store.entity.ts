@@ -16,10 +16,10 @@ export class Store extends SoftDeleteEntity<Store> {
     @Column()
     address: string;
 
-    @Column({ type: 'decimal', precision: 12, scale: 10, comment: '가게 위도' })
+    @Column({ type: 'decimal', precision: 6, scale: 4, comment: '가게 위도' })
     latitude: number;
 
-    @Column({ type: 'decimal', precision: 13, scale: 10, comment: '가게 경도' })
+    @Column({ type: 'decimal', precision: 7, scale: 4, comment: '가게 경도' })
     longitude: number;
 
     @Column({ nullable: true, comment: '가게 소개 사진' })
@@ -40,7 +40,7 @@ export class Store extends SoftDeleteEntity<Store> {
     @Column({ type: 'enum', enum: StoreStatus, default: StoreStatus.OPEN })
     status: string;
 
-    @ManyToOne(() => User, (user) => user.stores, { cascade: ['soft-remove'] })
+    @ManyToOne(() => User, (user) => user.stores, { onDelete: 'CASCADE' })
     user: User;
 
     @OneToMany(() => Menu, (menu) => menu.store, { cascade: true })

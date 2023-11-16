@@ -30,6 +30,6 @@ export class User extends SoftDeleteEntity<User> {
     @Column({ name: 'pass_auth', comment: 'Pass 인증 유무', default: false })
     passAuth: boolean;
 
-    @OneToMany(() => Store, (store) => store.user, { cascade: true })
+    @OneToMany(() => Store, (store) => store.user)
     stores: Store[];
 }

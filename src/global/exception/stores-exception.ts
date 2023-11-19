@@ -9,4 +9,5 @@ export abstract class StoresException {
     );
 
     static HAS_NO_PERMISSION_CREATE = new CommonException('가게 생성 권한이 없습니다.', 2001, HttpStatus.FORBIDDEN);
+    static ENTITY_NOT_FOUND = new CommonException('존재하지 않는 가게입니다.', 2002, HttpStatus.NOT_FOUND);
 }

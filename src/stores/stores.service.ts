@@ -1,6 +1,6 @@
 import { EntityManager } from 'typeorm';
 import { UsersRepository } from './../users/users.repository';
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { HttpException, Injectable, OnModuleInit } from '@nestjs/common';
 import { StoresRepository } from './stores.repository';
 import { Store } from './entity/store.entity';
 import { Roles } from 'src/users/enum/roles.enum';
@@ -32,11 +32,26 @@ export class StoresService implements OnModuleInit {
             user,
         });
 
-        return await this.storesRepository.create(newStore);
+        await this.storesRepository.create(newStore);
+
+        return await this.storesRepository.findOne({ name: newStore.name });
     }
 
     async findOne(dto: FindOneStoreDto) {
-        return this.storesRepository.findOne(dto, { user: true });
+        return this.storesRepository
+            .findOne(
+                {
+                    id: dto.id,
+                },
+                { user: false },
+                {
+                    name: true,
+                    description: true,
+                },
+            )
+            .catch((e: HttpException) => {
+                if (e.getStatus() == 404) throw StoresException.ENTITY_NOT_FOUND;
+            });
     }
 
     async findStoresWithLocation(dto: FindStoreWithLocationDto) {
@@ -53,7 +68,9 @@ export class StoresService implements OnModuleInit {
     }
 
     async find(dto: FindStoresDto) {
-        return await this.storesRepository.find(dto);
+        return await this.storesRepository.find(dto).catch((e: HttpException) => {
+            if (e.getStatus() == 404) throw StoresException.ENTITY_NOT_FOUND;
+        });
     }
 
     private async validateStoreName(user: User, dto: CreateStoreDto) {
@@ -62,7 +79,6 @@ export class StoresService implements OnModuleInit {
     }
 
     private async validateUserRole(user: User, role: Roles) {
-        // TODO: 토큰 로직 문제로 인해 기능 구현 잠시 보류
         if (user?.role != role) throw StoresException.HAS_NO_PERMISSION_CREATE;
     }
 

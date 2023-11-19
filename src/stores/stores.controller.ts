@@ -23,8 +23,8 @@ export class StoresController {
         return await this.storesService.findStoresWithLocation(dto);
     }
 
-    @Get('/:id')
-    findOne(@Param() dto: FindOneStoreDto) {
+    @Get('/map/:id')
+    onMapFindOne(@Param() dto: FindOneStoreDto) {
         return this.storesService.findOne(dto);
     }
 

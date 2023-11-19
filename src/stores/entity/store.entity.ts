@@ -29,7 +29,7 @@ export class Store extends SoftDeleteEntity<Store> {
     phone: string;
 
     @Column({ nullable: true, comment: '가게 소개글' })
-    content: string;
+    description: string;
 
     @Column({ nullable: true, comment: '운영시간' })
     operationHours: string;

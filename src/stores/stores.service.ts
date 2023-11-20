@@ -1,15 +1,13 @@
-import { EntityManager } from 'typeorm';
+import { EntityManager, FindOptionsRelations, FindOptionsSelectProperty } from 'typeorm';
 import { UsersRepository } from './../users/users.repository';
 import { HttpException, Injectable, OnModuleInit } from '@nestjs/common';
 import { StoresRepository } from './stores.repository';
 import { Store } from './entity/store.entity';
 import { Roles } from 'src/users/enum/roles.enum';
-import { CreateStoreDto } from './dto/create-store.dto';
-import { FindStoresDto } from './dto/find-stores.dto';
-import { FindOneStoreDto } from './dto/find-one-store.dto';
 import { User } from 'src/users/entity/user.entity';
 import { StoresException } from 'src/global/exception/stores-exception';
-import { FindStoreWithLocationDto } from './dto/find-store-with-location.dto';
+import { CreateStoreArgs } from './interfaces/create-store.interface';
+import { StoreLocation } from './interfaces/store-location.interface';
 
 @Injectable()
 export class StoresService implements OnModuleInit {
@@ -23,12 +21,12 @@ export class StoresService implements OnModuleInit {
         await this.createMockStoreData();
     }
 
-    async create(user: User, dto: CreateStoreDto) {
-        await this.validateStoreName(user, dto);
+    async create(user: User, args: CreateStoreArgs) {
+        await this.validateStoreName(user, args);
         await this.validateUserRole(user, Roles.OWNER);
 
         const newStore = new Store({
-            ...dto,
+            ...args,
             user,
         });
 
@@ -37,26 +35,13 @@ export class StoresService implements OnModuleInit {
         return await this.storesRepository.findOne({ name: newStore.name });
     }
 
-    async findOne(dto: FindOneStoreDto) {
-        return this.storesRepository
-            .findOne(
-                {
-                    id: dto.id,
-                },
-                { user: false },
-                {
-                    name: true,
-                    description: true,
-                },
-            )
-            .catch((e: HttpException) => {
-                if (e.getStatus() == 404) throw StoresException.ENTITY_NOT_FOUND;
-            });
+    async findOne(id: number, relation?: FindOptionsRelations<Store>, select?: FindOptionsSelectProperty<Store>) {
+        return this.storesRepository.findOne({ id }, relation, select).catch((e: HttpException) => {
+            if (e.getStatus() == 404) throw StoresException.ENTITY_NOT_FOUND;
+        });
     }
 
-    async findStoresWithLocation(dto: FindStoreWithLocationDto) {
-        const { lat, lon, range } = dto;
-
+    async findStoresWithLocation(lat: number, lon: number, range: number): Promise<StoreLocation[]> {
         return await this.entityManager
             .createQueryBuilder(Store, 'stores')
             .select('name')
@@ -67,14 +52,8 @@ export class StoresService implements OnModuleInit {
             .getRawMany();
     }
 
-    async find(dto: FindStoresDto) {
-        return await this.storesRepository.find(dto).catch((e: HttpException) => {
-            if (e.getStatus() == 404) throw StoresException.ENTITY_NOT_FOUND;
-        });
-    }
-
-    private async validateStoreName(user: User, dto: CreateStoreDto) {
-        const isExist = await this.storesRepository.exist({ name: dto.name });
+    private async validateStoreName(user: User, args: CreateStoreArgs) {
+        const isExist = await this.storesRepository.exist({ name: args.name });
         if (isExist) throw StoresException.ALREADY_EXIST_STORE_NAME;
     }
 

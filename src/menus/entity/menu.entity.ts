@@ -4,9 +4,6 @@ import { Column, Entity, ManyToOne } from 'typeorm';
 
 @Entity({ name: 'menus' })
 export class Menu extends AbstractEntity<Menu> {
-    @Column()
-    category: string;
-
     @Column({ comment: '메뉴 이름' })
     name: string;
 

@@ -1,12 +1,7 @@
-import { IsNumberString, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumberString } from 'class-validator';
 
 export class FindOneStoreDto {
-    @IsOptional()
-    @IsString()
-    name: string;
-
-    @IsOptional()
-    @IsString()
     @IsNumberString()
+    @IsNotEmpty()
     id: number;
 }

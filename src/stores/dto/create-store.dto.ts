@@ -1,7 +1,8 @@
 import { IsEnum, IsLatitude, IsLongitude, IsNotEmpty, IsString } from 'class-validator';
 import { StoreCategory } from '../enum/store-category.enum';
+import { CreateStoreArgs } from '../interfaces/create-store.interface';
 
-export class CreateStoreDto {
+export class CreateStoreDto implements CreateStoreArgs {
     @IsString()
     @IsNotEmpty()
     name: string;

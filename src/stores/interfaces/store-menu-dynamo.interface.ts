@@ -6,6 +6,6 @@ export interface DynamoKey {
 export interface DynamoSchema extends DynamoKey {
     menu_name: string;
     menu_image: string;
-    menu_discount: number;
-    price: number;
+    menu_saleRate: number;
+    menu_price: number;
 }

@@ -18,10 +18,10 @@ export const DynamoSchema = new Schema(
         menu_image: {
             type: String,
         },
-        menu_discount: {
+        menu_saleRate: {
             type: Number,
         },
-        price: {
+        menu_price: {
             type: Number,
         },
     },

@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { HttpException, Injectable, OnModuleInit } from '@nestjs/common';
 import { MenusRepository } from './menus.repository';
 import { EntityManager } from 'typeorm';
 import { UsersRepository } from 'src/users/users.repository';
@@ -7,6 +7,7 @@ import { User } from 'src/users/entity/user.entity';
 import { Menu } from './entity/menu.entity';
 import { StoresRepository } from 'src/stores/stores.repository';
 import { StoresService } from 'src/stores/stores.service';
+import { StoresException } from 'src/global/exception/stores-exception';
 
 @Injectable()
 export class MenusService implements OnModuleInit {
@@ -15,7 +16,6 @@ export class MenusService implements OnModuleInit {
         private readonly entityManager: EntityManager,
         private readonly usersRepository: UsersRepository,
         private readonly storesRepository: StoresRepository,
-        private readonly storesService: StoresService,
     ) {}
 
     async onModuleInit() {
@@ -44,7 +44,11 @@ export class MenusService implements OnModuleInit {
         let i = 0;
 
         for (const name of names) {
-            const storeInfo = await this.storesService.findOne(storeId[i]);
+            const storeInfo = await this.storesRepository
+                .findOne({ id: storeId[i] }, {}, { name: true })
+                .catch((e: HttpException) => {
+                    if (e.getStatus() == 404) throw StoresException.ENTITY_NOT_FOUND;
+                });
             const mockMenu = new Menu({
                 name,
                 saleRate: sale_rates[i],

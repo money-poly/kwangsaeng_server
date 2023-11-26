@@ -18,7 +18,7 @@ import { DynamoSchema } from 'src/stores/dynamo.schema';
         DynamooseModule.forFeature([{ name: 'Store-Menu', schema: DynamoSchema }]),
     ],
     controllers: [MenusController],
-    providers: [MenusService, MenusRepository, StoresService, StoresRepository, UsersRepository],
+    providers: [MenusService, MenusRepository, StoresRepository, UsersRepository],
     exports: [MenusService],
 })
 export class MenusModule {}

@@ -1,4 +1,4 @@
-import { EntityManager, FindOptionsRelations, FindOptionsSelectProperty } from 'typeorm';
+import { EntityManager, FindOptionsRelations, FindOptionsSelectProperty, getRepository } from 'typeorm';
 import { UsersRepository } from './../users/users.repository';
 import { HttpException, Injectable, OnModuleInit } from '@nestjs/common';
 import { StoresRepository } from './stores.repository';
@@ -8,6 +8,9 @@ import { User } from 'src/users/entity/user.entity';
 import { StoresException } from 'src/global/exception/stores-exception';
 import { CreateStoreArgs } from './interfaces/create-store.interface';
 import { StoreLocation } from './interfaces/store-location.interface';
+import { InjectModel, Model } from 'nestjs-dynamoose';
+import { DynamoKey, DynamoSchema } from './interfaces/store-menu-dynamo.interface';
+import { Menu } from 'src/menus/entity/menu.entity';
 
 @Injectable()
 export class StoresService implements OnModuleInit {
@@ -15,10 +18,13 @@ export class StoresService implements OnModuleInit {
         private readonly storesRepository: StoresRepository,
         private readonly entityManager: EntityManager,
         private readonly usersRepository: UsersRepository,
+        @InjectModel('Store-Menu')
+        private dynamoModel: Model<DynamoSchema, DynamoKey>,
     ) {}
 
     async onModuleInit() {
         await this.createMockStoreData();
+        await this.migrateDynamo(); // 일단 서버가 켜질 때 기준으로 local db랑 dynamodb 연동
     }
 
     async create(user: User, args: CreateStoreArgs) {
@@ -59,6 +65,42 @@ export class StoresService implements OnModuleInit {
 
     private async validateUserRole(user: User, role: Roles) {
         if (user?.role != role) throw StoresException.HAS_NO_PERMISSION_CREATE;
+    }
+
+    private async migrateDynamo() {
+        try {
+            const dataList = await this.entityManager
+                .createQueryBuilder(Menu, 'menus')
+                .leftJoinAndSelect(Store, 'stores', 'stores.id = menus.store_id')
+                .select('stores.id')
+                .addSelect('menus.id')
+                .addSelect('menus.name')
+                .addSelect('menus.menu_picture_url')
+                .addSelect('menus.sale_rate')
+                .addSelect('menus.price')
+                .getRawMany();
+            for (const data of dataList) {
+                const isExist = await this.dynamoModel.get({
+                    // dynamodb에 이미 데이터가 있는지 확인
+                    store_id: data.menus_id,
+                    menu_id: data.menus_id,
+                });
+                if (!isExist) {
+                    // 데이터가 없다면 dynamodb에 넣기
+                    const insertData = {
+                        store_id: data.menus_id,
+                        menu_id: data.menus_id,
+                        menu_name: data.menus_name,
+                        menu_image: data.menus_picture_url,
+                        menu_saleRate: data.menus_sale_rate,
+                        menu_price: data.menus_price,
+                    };
+                    await this.dynamoModel.create(insertData);
+                }
+            }
+        } catch (e) {
+            console.log(e);
+        }
     }
 
     private async createMockStoreData() {

@@ -3,6 +3,9 @@
 .prod.env
 .local.env
 
+# jwt
+jwtconstant.ts
+
 # secret
 /src/auth/config/*
 

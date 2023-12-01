@@ -1,4 +1,4 @@
-import { EntityManager, FindOptionsRelations, FindOptionsSelectProperty, getRepository } from 'typeorm';
+import { EntityManager, FindOptionsRelations, FindOptionsSelectProperty } from 'typeorm';
 import { UsersRepository } from './../users/users.repository';
 import { HttpException, Injectable, OnModuleInit } from '@nestjs/common';
 import { StoresRepository } from './stores.repository';
@@ -54,7 +54,7 @@ export class StoresService implements OnModuleInit {
             .addSelect('id')
             .addSelect('CAST(latitude AS FLOAT) AS latitude')
             .addSelect('CAST(longitude AS FLOAT) AS longitude')
-            .where(`ST_Distance_Sphere(POINT(${lon}, ${lat}), POINT(longitude, latitude)) <= ${range}`)
+            .where('ST_Distance_Sphere(POINT(:lon, :lat), POINT(longitude, latitude)) <= :range', { lon, lat, range })
             .getRawMany();
     }
 

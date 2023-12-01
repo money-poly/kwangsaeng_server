@@ -8,12 +8,12 @@ import { TokensModel } from './model/auth.model';
 import { TokensRepository } from './auth.repository';
 import { UsersRepository } from 'src/users/users.repository';
 import { Roles } from 'src/users/enum/roles.enum';
-import { jwtConstants } from 'src/global/config/jwtconstant';
 import { AuthException } from 'src/global/exception/auth-exception';
 import { SignUpDto } from './dto/sign-up.dto';
 import { ReissueTokensDto } from './dto/reissue-token.dto';
 import { SignInDto } from './dto/sign-in.dto';
 import { UsersException } from 'src/global/exception/users-exception';
+import { jwtConstants } from 'src/global/config/jwtConstants';
 
 @Injectable()
 export class AuthService {

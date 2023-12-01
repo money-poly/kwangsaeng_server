@@ -8,6 +8,7 @@ import { Menu } from './entity/menu.entity';
 import { StoresRepository } from 'src/stores/stores.repository';
 import { StoresService } from 'src/stores/stores.service';
 import { StoresException } from 'src/global/exception/stores-exception';
+import { CreateMenuArgs } from './interface/create-menu.interface';
 
 @Injectable()
 export class MenusService implements OnModuleInit {
@@ -21,6 +22,8 @@ export class MenusService implements OnModuleInit {
     async onModuleInit() {
         // await this.createMockMenuData();
     }
+
+    async create(user: User, args: CreateMenuArgs) {}
 
     private async createMockMenuData() {
         const names = ['돈까스', '돈까스세트', '돈까스세트메밀국수', '돈까스세트메밀국수우동'];

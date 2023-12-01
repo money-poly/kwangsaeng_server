@@ -1,6 +1,7 @@
 import { IsDateString, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { CreateMenuArgs } from '../interface/create-menu.interface';
 
-export class CreateMenuDto {
+export class CreateMenuDto implements CreateMenuArgs {
     @IsString()
     @IsNotEmpty()
     name: string;
@@ -11,7 +12,7 @@ export class CreateMenuDto {
 
     @IsNumber()
     @IsNotEmpty()
-    saleRate: number;
+    sale_rate: number;
 
     @IsString()
     description: string;

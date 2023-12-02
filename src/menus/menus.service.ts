@@ -39,16 +39,12 @@ export class MenusService implements OnModuleInit {
 
         const descriptions = ['설명1', '설명2', '설명3', '설명4'];
 
-        const storeId = [1, 2, 3, 1];
+        const storeId = [1, 2, 3, 4];
 
         let i = 0;
 
         for (const name of names) {
-            const storeInfo = await this.storesRepository
-                .findOne({ id: storeId[i] }, {}, { name: true })
-                .catch((e: HttpException) => {
-                    if (e.getStatus() == 404) throw StoresException.ENTITY_NOT_FOUND;
-                });
+            const storeInfo = await this.storesRepository.findOne({ id: storeId[i] }, {}, { id: true });
             const mockMenu = new Menu({
                 name,
                 saleRate: sale_rates[i],

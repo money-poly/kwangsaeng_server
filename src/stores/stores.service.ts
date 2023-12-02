@@ -11,6 +11,7 @@ import { StoreLocation } from './interfaces/store-location.interface';
 import { InjectModel, Model } from 'nestjs-dynamoose';
 import { DynamoKey, DynamoSchema } from './interfaces/store-menu-dynamo.interface';
 import { Menu } from 'src/menus/entity/menu.entity';
+import { DynamoException } from 'src/global/exception/dynamo-exception';
 
 @Injectable()
 export class StoresService implements OnModuleInit {
@@ -68,38 +69,57 @@ export class StoresService implements OnModuleInit {
     }
 
     private async migrateDynamo() {
-        try {
-            const dataList = await this.entityManager
-                .createQueryBuilder(Menu, 'menus')
-                .leftJoinAndSelect(Store, 'stores', 'stores.id = menus.store_id')
-                .select('stores.id')
-                .addSelect('menus.id')
-                .addSelect('menus.name')
-                .addSelect('menus.menu_picture_url')
-                .addSelect('menus.sale_rate')
-                .addSelect('menus.price')
-                .getRawMany();
-            for (const data of dataList) {
-                const isExist = await this.dynamoModel.get({
-                    // dynamodb에 이미 데이터가 있는지 확인
+        const dataList = await this.entityManager
+            .createQueryBuilder(Menu, 'menus')
+            .leftJoinAndSelect(Store, 'stores', 'stores.id = menus.store_id')
+            .select('stores.id')
+            .addSelect('menus.id')
+            .addSelect('menus.name')
+            .addSelect('menus.menu_picture_url')
+            .addSelect('menus.sale_rate')
+            .addSelect('menus.price')
+            .getRawMany();
+        for (const data of dataList) {
+            const isExist = await this.dynamoModel.get({
+                // dynamodb에 이미 데이터가 있는지 확인
+                store_id: data.menus_id,
+                menu_id: data.menus_id,
+            });
+            if (!isExist) {
+                // 데이터가 없다면 dynamodb에 넣기
+                const insertData = {
                     store_id: data.menus_id,
                     menu_id: data.menus_id,
-                });
-                if (!isExist) {
-                    // 데이터가 없다면 dynamodb에 넣기
-                    const insertData = {
-                        store_id: data.menus_id,
-                        menu_id: data.menus_id,
-                        menu_name: data.menus_name,
-                        menu_image: data.menus_picture_url,
-                        menu_saleRate: data.menus_sale_rate,
-                        menu_price: data.menus_price,
-                    };
+                    menu_name: data.menus_name,
+                    menu_image: data.menus_picture_url,
+                    menu_saleRate: data.menus_sale_rate,
+                    menu_price: data.menus_price,
+                };
+                try {
                     await this.dynamoModel.create(insertData);
+                } catch (error) {
+                    switch (error.code) {
+                        case 'ConditionalCheckFailedException':
+                            throw DynamoException.CONDITION_CHECK_FAILED;
+                        case 'ProvisionedThroughputExceededException':
+                            throw DynamoException.PROVISIONED_THROUGHPUT_EXCEEDED;
+                        case 'ItemCollectionSizeLimitExceededException':
+                            throw DynamoException.ITEM_COLLECTION_SIZE_LIMIT_EXCEEDED;
+                        case 'ResourceNotFoundException':
+                            throw DynamoException.RESOURCE_NOT_FOUND;
+                        case 'LimitExceededException':
+                            throw DynamoException.Limit_Exceeded;
+                        case 'RequestLimitExceeded':
+                            throw DynamoException.Request_Limit_Exceeded;
+                        case 'ValidationException':
+                            throw DynamoException.VALIDATION_ERROR;
+                        case 'TransactionConflictException':
+                            throw DynamoException.TRANSACTION_CONFLICT;
+                        case 'InternalServerError':
+                            throw DynamoException.INTERNAL_SERVER_ERROR;
+                    }
                 }
             }
-        } catch (e) {
-            console.log(e);
         }
     }
 

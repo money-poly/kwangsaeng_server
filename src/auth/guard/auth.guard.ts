@@ -2,9 +2,9 @@ import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { jwtConstants } from 'src/global/config/jwtconstant';
 import { User } from 'src/users/entity/user.entity';
 import { AuthException } from 'src/global/exception/auth-exception';
+import { jwtConstants } from 'src/global/config/jwtConstants';
 
 interface RequestUser extends Request {
     user: User;

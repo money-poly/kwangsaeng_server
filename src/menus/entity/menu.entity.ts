@@ -1,6 +1,6 @@
 import { AbstractEntity } from 'src/global/common/abstract.entity';
 import { Store } from 'src/stores/entity/store.entity';
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 
 @Entity({ name: 'menus' })
 export class Menu extends AbstractEntity<Menu> {
@@ -22,13 +22,13 @@ export class Menu extends AbstractEntity<Menu> {
     @Column()
     status: string;
 
-    @Column({ comment: '메뉴 유통기한' })
+    @Column({ name: 'expired_date', comment: '메뉴 유통기한' })
     expiredDate: Date;
 
-    @Column({ comment: '조회수' })
+    @Column({ name: 'view_count', comment: '조회수' })
     viewCount: number;
 
-    @Column({ comment: '원산지 표기' })
+    @Column({ name: 'country_of_origin', comment: '원산지 표기' })
     countryOfOrigin: string;
 
     @Column({ comment: '메뉴에 관한 설명' })

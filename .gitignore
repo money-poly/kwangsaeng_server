@@ -4,7 +4,7 @@
 .local.env
 
 # jwt
-jwtconstant.ts
+jwtConstants.ts
 
 # secret
 /src/auth/config/*

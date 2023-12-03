@@ -166,6 +166,8 @@ export class StoresService implements OnModuleInit {
             '서울특별시 성북구 석관동 133-95 1층',
         ];
 
+        const countryOfOrigin = [{ 닭고기: '국내산' }, { 김치: '국내산' }, { 고등어: '노르웨이산' }];
+
         const isExist = await this.usersRepository.exist({
             name: '김사장',
         });
@@ -190,6 +192,7 @@ export class StoresService implements OnModuleInit {
                     address: address[i++],
                     storePictureUrl:
                         'https://lh5.googleusercontent.com/p/AF1QipMt6zixIlfWNVnv9evhShsf9XmgDPLmXJ6KVnaS=w203-h152-k-no',
+                    countryOfOrigin: countryOfOrigin,
                     user,
                 });
 

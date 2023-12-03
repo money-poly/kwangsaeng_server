@@ -168,6 +168,20 @@ export class StoresService implements OnModuleInit {
 
         const countryOfOrigin = [{ 닭고기: '국내산' }, { 김치: '국내산' }, { 고등어: '노르웨이산' }];
 
+        const phone = [
+            '02-1111-1111',
+            '02-2222-2222',
+            '02-3333-3333',
+            '02-4444-4444',
+            '02-5555-5555',
+            '02-6666-6666',
+            '02-7777-7777',
+            '02-8888-8888',
+            '02-9999-9999',
+            '02-1010-1010',
+            '02-1111-1111',
+        ];
+
         const isExist = await this.usersRepository.exist({
             name: '김사장',
         });
@@ -189,9 +203,10 @@ export class StoresService implements OnModuleInit {
                     name,
                     latitude: latLon[i][0],
                     longitude: latLon[i][1],
-                    address: address[i++],
+                    address: address[i],
                     storePictureUrl:
                         'https://lh5.googleusercontent.com/p/AF1QipMt6zixIlfWNVnv9evhShsf9XmgDPLmXJ6KVnaS=w203-h152-k-no',
+                    phone: phone[i++],
                     countryOfOrigin: countryOfOrigin,
                     user,
                 });

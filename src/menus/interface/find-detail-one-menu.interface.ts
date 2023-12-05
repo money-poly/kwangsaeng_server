@@ -4,7 +4,6 @@ import { FindSimpleOneMenu } from './find-simple-one-menu.interface';
 
 export interface FindDetailOneMenu {
     mainMenuPictureUrl: Pick<Menu, 'menuPictureUrl'>;
-    tag: Pick<Menu, 'tag'>;
     description: Pick<Menu, 'description'>;
     name: Pick<Menu, 'name'>;
     discountRate: Pick<Menu, 'saleRate'>;

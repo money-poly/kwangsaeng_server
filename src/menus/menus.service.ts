@@ -139,7 +139,6 @@ export class MenusService implements OnModuleInit {
                     name,
                     saleRate: sale_rates[i],
                     price: prices[i],
-                    tag: null,
                     menuPictureUrl: imageUrl[i],
                     popularity: null,
                     status: MenuStatus.SALE,

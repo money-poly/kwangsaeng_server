@@ -1,7 +1,6 @@
 import { AbstractEntity } from 'src/global/common/abstract.entity';
 import { Store } from 'src/stores/entity/store.entity';
 import { Column, Entity, ManyToOne } from 'typeorm';
-import { MenuTags } from '../enum/menu-tag.enum';
 import { MenuStatus } from '../enum/menu-status.enum';
 
 @Entity({ name: 'menus' })
@@ -17,9 +16,6 @@ export class Menu extends AbstractEntity<Menu> {
 
     @Column({ name: 'count', comment: '판매 예정 개수', default: 0 })
     count: number;
-
-    @Column({ type: 'enum', enum: MenuTags, comment: '메뉴 할인 태그', nullable: true })
-    tag: MenuTags;
 
     @Column({ comment: '메뉴 사진 URL', nullable: true })
     menuPictureUrl: string;

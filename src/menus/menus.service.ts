@@ -29,6 +29,26 @@ export class MenusService implements OnModuleInit {
         await this.createMockMenuData();
     }
 
+    async create(user: User, args: CreateMenuArgs) {
+        const storeId: number = args.storeId;
+        const storeData: Store = await this.storesRepository.findOne({ id: storeId }, {}, {});
+        if (!storeData) {
+            throw StoresException.ENTITY_NOT_FOUND;
+        }
+        await this.validateMenuName(storeData, args.name);
+        await this.validateUserRole(user, Roles.OWNER);
+
+        const inputData = {
+            name: args.name,
+        };
+        const newMenu = new Menu({
+            ...args,
+            store: storeData,
+        }); // TODO: 메뉴 request body 컬럼 논의중
+
+        return (await this.meunusRepository.create(newMenu)).id;
+    }
+
     async findDetailOne(menuId: number, lat: number, lon: number): Promise<FindDetailOneMenu> {
         const data = await this.entityManager
             .createQueryBuilder(Menu, 'menus')

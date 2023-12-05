@@ -1,14 +1,18 @@
-import { HttpException, Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { MenusRepository } from './menus.repository';
 import { EntityManager } from 'typeorm';
 import { UsersRepository } from 'src/users/users.repository';
-import { Roles } from 'src/users/enum/roles.enum';
-import { User } from 'src/users/entity/user.entity';
-import { Menu } from './entity/menu.entity';
 import { StoresRepository } from 'src/stores/stores.repository';
-import { StoresService } from 'src/stores/stores.service';
-import { StoresException } from 'src/global/exception/stores-exception';
+import { Store } from 'src/stores/entity/store.entity';
+import { Menu } from 'src/menus/entity/menu.entity';
+import { User } from 'src/users/entity/user.entity';
+import { Roles } from 'src/users/enum/roles.enum';
+import { MenuStatus } from './enum/menu-status.enum';
 import { CreateMenuArgs } from './interface/create-menu.interface';
+import { FindDetailOneMenu } from './interface/find-detail-one-menu.interface';
+import { MenusException } from 'src/global/exception/menus-exception';
+import { StoresException } from 'src/global/exception/stores-exception';
 
 @Injectable()
 export class MenusService implements OnModuleInit {
@@ -17,13 +21,66 @@ export class MenusService implements OnModuleInit {
         private readonly entityManager: EntityManager,
         private readonly usersRepository: UsersRepository,
         private readonly storesRepository: StoresRepository,
+        private readonly configService: ConfigService,
     ) {}
 
     async onModuleInit() {
-        // await this.createMockMenuData();
+        await this.createMockMenuData();
     }
 
-    async create(user: User, args: CreateMenuArgs) {}
+    async findDetailOne(menuId: number, lat: number, lon: number): Promise<FindDetailOneMenu> {
+        const data = await this.entityManager
+            .createQueryBuilder(Menu, 'menus')
+            .leftJoinAndSelect(Store, 'stores', 'stores.id = menus.store_id')
+            .select(
+                'menus.menu_picture_url AS mainMenuPictureUrl, menus.tag, menus.description, menus.name, menus.sale_rate AS discountRate, menus.price, menus.view_count AS viewCount',
+            )
+            .addSelect(
+                'stores.id AS storeId, stores.name AS storeName, stores.address AS storeAddress, stores.phone, stores.latitude AS storeLatitude, stores.longitude AS storeLongitude, stores.country_of_origin AS countryOfOrigin',
+            )
+            .where(`menus.id = ${menuId}`)
+            .getRawOne();
+        if (!data) throw MenusException.ENTITY_NOT_FOUND;
+        const anotherMenus = await this.getAllMenu(data.storeId, menuId);
+        const distance: number = await this.measureDistance(data.storeLatitude, lat, data.storeLongitude, lon);
+        const notice = await this.getNoticeItems();
+        delete data.storeId; // 필요없는 값이므로 삭제
+        const menuDetailList = {
+            ...data,
+            distance,
+            anotherMenus: anotherMenus ? anotherMenus : null, // 다른 메뉴가 없을 경우 null로 전송
+            notice,
+        }; // TODO pickUpTime 값 추가
+        return menuDetailList;
+    }
+
+    private async validateMenuName(store: Store, menuName: string) {
+        const isExist = await this.meunusRepository.exist({ name: menuName, store: store });
+        if (isExist) throw MenusException.ALREADY_EXIST_MENU_NAME;
+    }
+
+    private async validateUserRole(user: User, role: Roles) {
+        if (user?.role != role) throw MenusException.HAS_NO_PERMISSION_CREATE;
+    }
+
+    private async getAllMenu(storeId: number, excludeMenuId: number = 0) {
+        // 제외할 메뉴 ID 필요없이 모든 메뉴를 가져올경우 excludeMenuId를 0으로 지정
+        return await this.entityManager
+            .createQueryBuilder(Menu, 'menus')
+            .select(
+                'menus.menu_picture_url AS menuPictureUrl, menus.id AS menuId, menus.name, menus.sale_rate AS discountRate, menus.price',
+            )
+            .where(`menus.id != ${excludeMenuId} AND store_id = ${storeId}`)
+            .getRawMany();
+    }
+
+    private async measureDistance(x1: number, x2: number, y1: number, y2: number) {
+        return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+    }
+
+    private async getNoticeItems(): Promise<string[]> {
+        return this.configService.get<string[]>('notice.noticeItems', []);
+    }
 
     private async createMockMenuData() {
         const names = ['돈까스', '돈까스세트', '돈까스세트메밀국수', '돈까스세트메밀국수우동'];
@@ -34,35 +91,44 @@ export class MenusService implements OnModuleInit {
 
         const imageUrl = ['menuImage1', 'menuImage2', 'menuImage3', 'menuImage4'];
 
-        const popularities = [1, 0, 0, 1];
-
-        const status = ['Open', 'Close', 'Open', 'Close'];
-
-        const countryOfOrigin = ['국내산 쌀', '국내산 고기', '국내산 메밀면', '국내산 우동면'];
-
         const descriptions = ['설명1', '설명2', '설명3', '설명4'];
 
-        const storeId = [1, 2, 3, 4];
+        const storeId = [1, 2, 3, 1];
 
         let i = 0;
 
-        for (const name of names) {
-            const storeInfo = await this.storesRepository.findOne({ id: storeId[i] }, {}, { id: true });
-            const mockMenu = new Menu({
-                name,
-                saleRate: sale_rates[i],
-                price: prices[i],
-                menuPictureUrl: imageUrl[i],
-                popularity: Boolean(popularities[i]),
-                status: status[i],
-                expiredDate: new Date(),
-                viewCount: 0,
-                countryOfOrigin: countryOfOrigin[i],
-                description: descriptions[i],
-                store: storeInfo ? storeInfo : null,
+        const isExist = await this.usersRepository.exist({
+            name: '이사장',
+        });
+
+        if (!isExist) {
+            const newOwner = new User({
+                fId: 'owner0002',
+                name: '이사장',
+                role: Roles.OWNER,
+                phone: '010-5678-5678',
             });
-            i++;
-            await this.meunusRepository.create(mockMenu);
+
+            const user = await this.usersRepository.create(newOwner);
+
+            for (const name of names) {
+                const storeInfo = await this.storesRepository.findOne({ id: storeId[i] }, {}, { id: true });
+                const mockMenu = new Menu({
+                    name,
+                    saleRate: sale_rates[i],
+                    price: prices[i],
+                    tag: null,
+                    menuPictureUrl: imageUrl[i],
+                    popularity: null,
+                    status: MenuStatus.SALE,
+                    expiredDate: null,
+                    description: descriptions[i],
+                    viewCount: 0,
+                    store: storeInfo ? storeInfo : null,
+                });
+                i++;
+                await this.meunusRepository.create(mockMenu);
+            }
         }
     }
 }

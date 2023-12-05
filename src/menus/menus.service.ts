@@ -13,6 +13,7 @@ import { CreateMenuArgs } from './interface/create-menu.interface';
 import { FindDetailOneMenu } from './interface/find-detail-one-menu.interface';
 import { MenusException } from 'src/global/exception/menus-exception';
 import { StoresException } from 'src/global/exception/stores-exception';
+import { FindSimpleOneMenu } from './interface/find-simple-one-menu.interface';
 
 @Injectable()
 export class MenusService implements OnModuleInit {
@@ -63,7 +64,7 @@ export class MenusService implements OnModuleInit {
         if (user?.role != role) throw MenusException.HAS_NO_PERMISSION_CREATE;
     }
 
-    private async getAllMenu(storeId: number, excludeMenuId: number = 0) {
+    private async getAllMenu(storeId: number, excludeMenuId: number = 0): Promise<FindSimpleOneMenu[]> {
         // 제외할 메뉴 ID 필요없이 모든 메뉴를 가져올경우 excludeMenuId를 0으로 지정
         return await this.entityManager
             .createQueryBuilder(Menu, 'menus')
@@ -75,7 +76,7 @@ export class MenusService implements OnModuleInit {
             .getRawMany();
     }
 
-    private async measureDistance(x1: number, x2: number, y1: number, y2: number) {
+    private async measureDistance(x1: number, x2: number, y1: number, y2: number): Promise<number> {
         return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
     }
 

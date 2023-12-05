@@ -36,7 +36,7 @@ export class MenusService implements OnModuleInit {
                 'menus.menu_picture_url AS mainMenuPictureUrl, menus.tag, menus.description, menus.name, menus.sale_rate AS discountRate, menus.price, menus.view_count AS viewCount',
             )
             .addSelect(
-                'stores.id AS storeId, stores.name AS storeName, stores.address AS storeAddress, stores.phone, stores.latitude AS storeLatitude, stores.longitude AS storeLongitude, stores.country_of_origin AS countryOfOrigin',
+                'stores.id AS storeId, stores.cooking_time AS cookingTime, stores.name AS storeName, stores.address AS storeAddress, stores.phone, stores.latitude AS storeLatitude, stores.longitude AS storeLongitude, stores.country_of_origin AS countryOfOrigin',
             )
             .where(`menus.id = ${menuId}`)
             .getRawOne();
@@ -50,7 +50,7 @@ export class MenusService implements OnModuleInit {
             distance,
             anotherMenus: anotherMenus ? anotherMenus : null, // 다른 메뉴가 없을 경우 null로 전송
             notice,
-        }; // TODO pickUpTime 값 추가
+        };
         return menuDetailList;
     }
 
@@ -71,6 +71,7 @@ export class MenusService implements OnModuleInit {
                 'menus.menu_picture_url AS menuPictureUrl, menus.id AS menuId, menus.name, menus.sale_rate AS discountRate, menus.price',
             )
             .where(`menus.id != ${excludeMenuId} AND store_id = ${storeId}`)
+            .orderBy('discountRate', 'DESC')
             .getRawMany();
     }
 

@@ -14,6 +14,7 @@ import { FindDetailOneMenu } from './interface/find-detail-one-menu.interface';
 import { MenusException } from 'src/global/exception/menus-exception';
 import { StoresException } from 'src/global/exception/stores-exception';
 import { FindSimpleOneMenu } from './interface/find-simple-one-menu.interface';
+import { UpdateMenuArgs } from './interface/update-menu.interface';
 
 @Injectable()
 export class MenusService implements OnModuleInit {
@@ -31,7 +32,7 @@ export class MenusService implements OnModuleInit {
 
     async create(user: User, args: CreateMenuArgs) {
         const storeId: number = args.storeId;
-        const storeData: Store = await this.storesRepository.findOne({ id: storeId }, {}, {});
+        const storeData: Store = await this.storesRepository.findOne({ id: storeId });
         if (!storeData) {
             throw StoresException.ENTITY_NOT_FOUND;
         }
@@ -49,12 +50,17 @@ export class MenusService implements OnModuleInit {
         return (await this.meunusRepository.create(newMenu)).id;
     }
 
+    async update(menuId: number, args: UpdateMenuArgs) {
+        await this.validateMenuId(menuId);
+        return this.meunusRepository.findOneAndUpdate({ id: menuId }, { ...args });
+    }
+
     async findDetailOne(menuId: number, lat: number, lon: number): Promise<FindDetailOneMenu> {
         const data = await this.entityManager
             .createQueryBuilder(Menu, 'menus')
             .leftJoinAndSelect(Store, 'stores', 'stores.id = menus.store_id')
             .select(
-                'menus.menu_picture_url AS mainMenuPictureUrl, menus.tag, menus.description, menus.name, menus.sale_rate AS discountRate, menus.price, menus.view_count AS viewCount',
+                'menus.menu_picture_url AS mainMenuPictureUrl, menus.description, menus.name, menus.sale_rate AS discountRate, menus.price, menus.view_count AS viewCount',
             )
             .addSelect(
                 'stores.id AS storeId, stores.cooking_time AS cookingTime, stores.name AS storeName, stores.address AS storeAddress, stores.phone, stores.latitude AS storeLatitude, stores.longitude AS storeLongitude, stores.country_of_origin AS countryOfOrigin',
@@ -63,7 +69,7 @@ export class MenusService implements OnModuleInit {
             .getRawOne();
         if (!data) throw MenusException.ENTITY_NOT_FOUND;
         const anotherMenus = await this.getAllMenu(data.storeId, menuId);
-        const distance: number = await this.measureDistance(data.storeLatitude, lat, data.storeLongitude, lon);
+        const distance: number = await this.measureDistance(data.storeLatitude, lat, data.storeLongitude, lon); // TODO. 정말로 삭제할건지?
         const notice = await this.getNoticeItems();
         delete data.storeId; // 필요없는 값이므로 삭제
         const menuDetailList = {
@@ -73,6 +79,10 @@ export class MenusService implements OnModuleInit {
             notice,
         };
         return menuDetailList;
+    }
+    private async validateMenuId(menuId: number) {
+        const isExist = await this.meunusRepository.exist({ id: menuId });
+        if (!isExist) throw MenusException.ENTITY_NOT_FOUND;
     }
 
     private async validateMenuName(store: Store, menuName: string) {

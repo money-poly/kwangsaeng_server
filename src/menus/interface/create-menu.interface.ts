@@ -1,7 +1,11 @@
+import { MenuStatus } from '../enum/menu-status.enum';
+
 export interface CreateMenuArgs {
+    storeId: number;
+    image?: string;
     name: string;
-    sale_rate: number;
-    price: number;
     description: string;
-    expiredDate: Date;
+    status: MenuStatus;
+    price: number;
+    discountRate: number;
 }

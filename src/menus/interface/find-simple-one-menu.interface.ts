@@ -5,6 +5,6 @@ export interface FindSimpleOneMenu {
     menuId: Pick<Menu, 'id'>;
     name: Pick<Menu, 'name'>;
     description: Pick<Menu, 'description'>;
-    discountRate: Pick<Menu, 'saleRate'>;
+    discountRate: Pick<Menu, 'discountRate'>;
     price: Pick<Menu, 'price'>;
 }

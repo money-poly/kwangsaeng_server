@@ -1,10 +1,10 @@
 import { MenuStatus } from '../enum/menu-status.enum';
 
 export interface UpdateMenuArgs {
-    image?: string;
+    menuPictureUrl?: string;
     name?: string;
     description?: string;
     status?: MenuStatus;
     price?: number;
-    sellingPrice?: number;
+    discountRate?: number;
 }

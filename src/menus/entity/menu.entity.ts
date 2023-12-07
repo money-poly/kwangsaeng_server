@@ -9,7 +9,7 @@ export class Menu extends AbstractEntity<Menu> {
     name: string;
 
     @Column({ comment: 'price 컬럼 기준으로의 할인율' })
-    saleRate: number;
+    discountRate: number;
 
     @Column({ comment: '메뉴의 할인 전 가격' })
     price: number;

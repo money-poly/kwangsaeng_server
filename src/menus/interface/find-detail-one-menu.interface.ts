@@ -6,7 +6,7 @@ export interface FindDetailOneMenu {
     mainMenuPictureUrl: Pick<Menu, 'menuPictureUrl'>;
     description: Pick<Menu, 'description'>;
     name: Pick<Menu, 'name'>;
-    discountRate: Pick<Menu, 'saleRate'>;
+    discountRate: Pick<Menu, 'discountRate'>;
     price: Pick<Menu, 'price'>;
     viewCount: Pick<Menu, 'viewCount'>;
     storeNmae: Pick<Store, 'name'>;

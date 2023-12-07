@@ -8,13 +8,12 @@ import { MenusModule } from './menus/menus.module';
 import databaseConfiguration from './global/config/database.configuration';
 import { AuthModule } from './auth/auth.module';
 import dynamoConfiguration from './global/config/dynamo.configuration';
-import noticeConfiguration from './global/config/notice.configuration';
 
 @Module({
     imports: [
         ConfigModule.forRoot({
             isGlobal: true,
-            load: [databaseConfiguration, dynamoConfiguration, noticeConfiguration],
+            load: [databaseConfiguration, dynamoConfiguration],
             envFilePath: __dirname + `/../src/global/config/envs/.${process.env.NODE_ENV}.env`,
             validationSchema,
         }),

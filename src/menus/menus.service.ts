@@ -15,6 +15,7 @@ import { MenusException } from 'src/global/exception/menus-exception';
 import { StoresException } from 'src/global/exception/stores-exception';
 import { FindSimpleOneMenu } from './interface/find-simple-one-menu.interface';
 import { UpdateMenuArgs } from './interface/update-menu.interface';
+import { CAUTION_TEXT } from 'src/global/common/caution.constant';
 
 @Injectable()
 export class MenusService implements OnModuleInit {
@@ -36,9 +37,9 @@ export class MenusService implements OnModuleInit {
         if (!storeData) {
             throw StoresException.ENTITY_NOT_FOUND;
         }
+
         await this.validateMenuName(storeData, args.name);
         await this.validateUserRole(user, Roles.OWNER);
-
         const inputData = {
             name: args.name,
         };
@@ -73,14 +74,12 @@ export class MenusService implements OnModuleInit {
             .getRawOne();
         if (!data) throw MenusException.ENTITY_NOT_FOUND;
         const anotherMenus = await this.getAllMenu(data.storeId, menuId);
-        const distance: number = await this.measureDistance(data.storeLatitude, lat, data.storeLongitude, lon); // TODO. 정말로 삭제할건지?
-        const notice = await this.getNoticeItems();
+        const caution = CAUTION_TEXT;
         delete data.storeId; // 필요없는 값이므로 삭제
         const menuDetailList = {
             ...data,
-            distance,
             anotherMenus: anotherMenus ? anotherMenus : null, // 다른 메뉴가 없을 경우 null로 전송
-            notice,
+            caution,
         };
         return menuDetailList;
     }
@@ -113,10 +112,6 @@ export class MenusService implements OnModuleInit {
 
     private async measureDistance(x1: number, x2: number, y1: number, y2: number): Promise<number> {
         return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-    }
-
-    private async getNoticeItems(): Promise<string[]> {
-        return this.configService.get<string[]>('notice.noticeItems', []);
     }
 
     private async createMockMenuData() {

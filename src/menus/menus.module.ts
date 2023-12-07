@@ -4,7 +4,6 @@ import { MenusController } from './menus.controller';
 import { Menu } from './entity/menu.entity';
 import { Store } from 'src/stores/entity/store.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { StoresService } from 'src/stores/stores.service';
 import { StoresRepository } from 'src/stores/stores.repository';
 import { MenusRepository } from './menus.repository';
 import { UsersRepository } from 'src/users/users.repository';
@@ -22,4 +21,3 @@ import { DynamoSchema } from 'src/stores/dynamo.schema';
     exports: [MenusService],
 })
 export class MenusModule {}
-//

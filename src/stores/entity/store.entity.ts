@@ -32,7 +32,7 @@ export class Store extends SoftDeleteEntity<Store> {
     description: string;
 
     @Column({ nullable: true, comment: '가게 평균 조리 시간' })
-    cokkingTime: string;
+    cookingTime: string;
 
     @Column({ nullable: true, comment: '운영시간' })
     operationHours: string;

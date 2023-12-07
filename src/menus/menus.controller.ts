@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { MenusService } from 'src/menus/menus.service';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { CurrentUser } from 'src/global/decorator/current-user.decorator';
@@ -27,5 +27,11 @@ export class MenusController {
     @UseGuards(AuthGuard)
     async update(@Param('id') id: number, @Body() dto: UpdateMenuDto) {
         return await this.menusService.update(id, dto);
+    }
+
+    @Delete('/:id')
+    @UseGuards(AuthGuard)
+    async delete(@Param('id') id: number) {
+        return await this.menusService.delete(id);
     }
 }

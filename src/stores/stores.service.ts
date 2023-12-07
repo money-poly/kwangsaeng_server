@@ -76,7 +76,7 @@ export class StoresService implements OnModuleInit {
             .addSelect('menus.id')
             .addSelect('menus.name')
             .addSelect('menus.menu_picture_url')
-            .addSelect('menus.sale_rate')
+            .addSelect('menus.discount_rate')
             .addSelect('menus.price')
             .getRawMany();
         for (const data of dataList) {

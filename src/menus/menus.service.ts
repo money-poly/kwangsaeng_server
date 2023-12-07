@@ -55,12 +55,16 @@ export class MenusService implements OnModuleInit {
         return this.meunusRepository.findOneAndUpdate({ id: menuId }, { ...args });
     }
 
+    async delete(menuId: number) {
+        return this.meunusRepository.findOneAndDelete({ id: menuId });
+    }
+
     async findDetailOne(menuId: number, lat: number, lon: number): Promise<FindDetailOneMenu> {
         const data = await this.entityManager
             .createQueryBuilder(Menu, 'menus')
             .leftJoinAndSelect(Store, 'stores', 'stores.id = menus.store_id')
             .select(
-                'menus.menu_picture_url AS mainMenuPictureUrl, menus.description, menus.name, menus.sale_rate AS discountRate, menus.price, menus.view_count AS viewCount',
+                'menus.menu_picture_url AS mainMenuPictureUrl, menus.description, menus.name, menus.discount_rate AS discountRate, menus.price, menus.view_count AS viewCount',
             )
             .addSelect(
                 'stores.id AS storeId, stores.cooking_time AS cookingTime, stores.name AS storeName, stores.address AS storeAddress, stores.phone, stores.latitude AS storeLatitude, stores.longitude AS storeLongitude, stores.country_of_origin AS countryOfOrigin',
@@ -80,6 +84,7 @@ export class MenusService implements OnModuleInit {
         };
         return menuDetailList;
     }
+
     private async validateMenuId(menuId: number) {
         const isExist = await this.meunusRepository.exist({ id: menuId });
         if (!isExist) throw MenusException.ENTITY_NOT_FOUND;
@@ -99,7 +104,7 @@ export class MenusService implements OnModuleInit {
         return await this.entityManager
             .createQueryBuilder(Menu, 'menus')
             .select(
-                'menus.menu_picture_url AS menuPictureUrl, menus.id AS menuId, menus.name, menus.sale_rate AS discountRate, menus.price',
+                'menus.menu_picture_url AS menuPictureUrl, menus.id AS menuId, menus.name, menus.discount_rate AS discountRate, menus.price',
             )
             .where(`menus.id != ${excludeMenuId} AND store_id = ${storeId}`)
             .orderBy('discountRate', 'DESC')
@@ -147,7 +152,7 @@ export class MenusService implements OnModuleInit {
                 const storeInfo = await this.storesRepository.findOne({ id: storeId[i] }, {}, { id: true });
                 const mockMenu = new Menu({
                     name,
-                    saleRate: sale_rates[i],
+                    discountRate: sale_rates[i],
                     price: prices[i],
                     menuPictureUrl: imageUrl[i],
                     popularity: null,

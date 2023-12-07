@@ -1,23 +1,29 @@
-import { IsEnum, IsNumber, IsString } from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 import { MenuStatus } from '../enum/menu-status.enum';
 import { UpdateMenuArgs } from '../interface/update-menu.interface';
 
 export class UpdateMenuDto implements UpdateMenuArgs {
+    @IsOptional()
     @IsString()
-    image?: string;
+    menuPictureUrl?: string;
 
+    @IsOptional()
     @IsString()
     name?: string;
 
+    @IsOptional()
     @IsEnum(MenuStatus)
     status?: MenuStatus;
 
+    @IsOptional()
     @IsNumber()
     price?: number;
 
+    @IsOptional()
     @IsNumber()
-    sellingPrice?: number;
+    discountRate?: number;
 
+    @IsOptional()
     @IsString()
     description?: string;
 }

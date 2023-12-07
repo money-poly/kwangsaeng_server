@@ -8,13 +8,13 @@ export class Menu extends AbstractEntity<Menu> {
     @Column({ comment: '메뉴 이름' })
     name: string;
 
-    @Column({ name: 'sale_rate', comment: 'price 컬럼 기준으로의 할인율' })
+    @Column({ comment: 'price 컬럼 기준으로의 할인율' })
     saleRate: number;
 
     @Column({ comment: '메뉴의 할인 전 가격' })
     price: number;
 
-    @Column({ name: 'count', comment: '판매 예정 개수', default: 0 })
+    @Column({ comment: '판매 예정 개수', default: 0 })
     count: number;
 
     @Column({ comment: '메뉴 사진 URL', nullable: true })
@@ -26,10 +26,10 @@ export class Menu extends AbstractEntity<Menu> {
     @Column({ type: 'enum', enum: MenuStatus, comment: '메뉴 상태' })
     status: MenuStatus;
 
-    @Column({ name: 'expired_date', comment: '메뉴 유통기한', nullable: true })
+    @Column({ comment: '메뉴 유통기한', nullable: true })
     expiredDate: Date;
 
-    @Column({ name: 'view_count', comment: '조회수', default: 0 })
+    @Column({ comment: '조회수', default: 0 })
     viewCount: number;
 
     @Column({ comment: '메뉴에 관한 설명' })

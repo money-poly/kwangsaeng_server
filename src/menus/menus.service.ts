@@ -37,18 +37,14 @@ export class MenusService implements OnModuleInit {
         if (!storeData) {
             throw StoresException.ENTITY_NOT_FOUND;
         }
-
-        await this.validateMenuName(storeData, args.name);
+        await this.validateMenuName(storeData.id, args.name);
         await this.validateUserRole(user, Roles.OWNER);
-        const inputData = {
-            name: args.name,
-        };
         const newMenu = new Menu({
             ...args,
             store: storeData,
-        }); // TODO: 메뉴 request body 컬럼 논의중
-
-        return (await this.meunusRepository.create(newMenu)).id;
+        });
+        const createdId = (await this.meunusRepository.create(newMenu)).id;
+        return { menuId: createdId };
     }
 
     async update(menuId: number, args: UpdateMenuArgs) {
@@ -57,6 +53,7 @@ export class MenusService implements OnModuleInit {
     }
 
     async delete(menuId: number) {
+        await this.validateMenuId(menuId);
         return this.meunusRepository.findOneAndDelete({ id: menuId });
     }
 
@@ -70,12 +67,11 @@ export class MenusService implements OnModuleInit {
             .addSelect(
                 'stores.id AS storeId, stores.cooking_time AS cookingTime, stores.name AS storeName, stores.address AS storeAddress, stores.phone, stores.latitude AS storeLatitude, stores.longitude AS storeLongitude, stores.country_of_origin AS countryOfOrigin',
             )
-            .where(`menus.id = ${menuId}`)
+            .where('menus.id = :menuId', { menuId })
             .getRawOne();
         if (!data) throw MenusException.ENTITY_NOT_FOUND;
         const anotherMenus = await this.getAllMenu(data.storeId, menuId);
         const caution = CAUTION_TEXT;
-        delete data.storeId; // 필요없는 값이므로 삭제
         const menuDetailList = {
             ...data,
             anotherMenus: anotherMenus ? anotherMenus : null, // 다른 메뉴가 없을 경우 null로 전송
@@ -89,8 +85,12 @@ export class MenusService implements OnModuleInit {
         if (!isExist) throw MenusException.ENTITY_NOT_FOUND;
     }
 
-    private async validateMenuName(store: Store, menuName: string) {
-        const isExist = await this.meunusRepository.exist({ name: menuName, store: store });
+    private async validateMenuName(storeId: number, menuName: string) {
+        const isExist = await this.entityManager
+            .createQueryBuilder(Menu, 'menus')
+            .where('menus.store_id = :storeId', { storeId })
+            .andWhere('menus.name = :menuName', { menuName })
+            .getRawOne();
         if (isExist) throw MenusException.ALREADY_EXIST_MENU_NAME;
     }
 
@@ -107,6 +107,7 @@ export class MenusService implements OnModuleInit {
             )
             .where(`menus.id != ${excludeMenuId} AND store_id = ${storeId}`)
             .orderBy('discountRate', 'DESC')
+            .orderBy('')
             .getRawMany();
     }
 

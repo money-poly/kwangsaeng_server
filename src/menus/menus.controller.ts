@@ -25,7 +25,7 @@ export class MenusController {
 
     @Put('/:id')
     @UseGuards(AuthGuard)
-    async update(@Param() menuId: number, @Body() dto: UpdateMenuDto) {
-        return await this.menusService.update(menuId, dto);
+    async update(@Param('id') id: number, @Body() dto: UpdateMenuDto) {
+        return await this.menusService.update(id, dto);
     }
 }

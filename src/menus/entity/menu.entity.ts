@@ -1,10 +1,10 @@
-import { AbstractEntity } from 'src/global/common/abstract.entity';
+import { SoftDeleteEntity } from 'src/global/common/abstract.entity';
 import { Store } from 'src/stores/entity/store.entity';
 import { Column, Entity, ManyToOne } from 'typeorm';
 import { MenuStatus } from '../enum/menu-status.enum';
 
 @Entity({ name: 'menus' })
-export class Menu extends AbstractEntity<Menu> {
+export class Menu extends SoftDeleteEntity<Menu> {
     @Column({ comment: '메뉴 이름' })
     name: string;
 

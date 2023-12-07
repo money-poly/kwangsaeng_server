@@ -49,7 +49,8 @@ export class MenusService implements OnModuleInit {
 
     async update(menuId: number, args: UpdateMenuArgs) {
         await this.validateMenuId(menuId);
-        return this.meunusRepository.findOneAndUpdate({ id: menuId }, { ...args });
+        this.meunusRepository.findOneAndUpdate({ id: menuId }, { ...args });
+        return this.findDetailOne(menuId);
     }
 
     async delete(menuId: number) {
@@ -57,7 +58,7 @@ export class MenusService implements OnModuleInit {
         return this.meunusRepository.findOneAndDelete({ id: menuId });
     }
 
-    async findDetailOne(menuId: number, lat: number, lon: number): Promise<FindDetailOneMenu> {
+    async findDetailOne(menuId: number): Promise<FindDetailOneMenu> {
         const data = await this.entityManager
             .createQueryBuilder(Menu, 'menus')
             .leftJoinAndSelect(Store, 'stores', 'stores.id = menus.store_id')

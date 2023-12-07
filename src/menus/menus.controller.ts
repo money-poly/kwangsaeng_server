@@ -11,10 +11,9 @@ import { UpdateMenuDto } from './dto/update-menu.dto';
 export class MenusController {
     constructor(private readonly menusService: MenusService) {}
 
-    @Get('/detail')
-    async findDetailOne(@Body() dto: FindOneMenuDto) {
-        const { id, lat, lon } = dto;
-        return this.menusService.findDetailOne(id, lat, lon);
+    @Get('/detail/:id')
+    async findDetailOne(@Param('id') id: number) {
+        return this.menusService.findDetailOne(id);
     }
 
     @Post()

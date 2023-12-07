@@ -70,7 +70,7 @@ export class MenusService implements OnModuleInit {
             .where('menus.id = :menuId', { menuId })
             .getRawOne();
         if (!data) throw MenusException.ENTITY_NOT_FOUND;
-        const anotherMenus = await this.getAllMenu(data.storeId, menuId);
+        const anotherMenus = await this.getThreeMenuInStore(data.storeId, menuId);
         const caution = CAUTION_TEXT;
         const menuDetailList = {
             ...data,
@@ -98,16 +98,30 @@ export class MenusService implements OnModuleInit {
         if (user?.role != role) throw MenusException.HAS_NO_PERMISSION_CREATE;
     }
 
-    private async getAllMenu(storeId: number, excludeMenuId: number = 0): Promise<FindSimpleOneMenu[]> {
+    private async getAllMenusInStore(storeId: number, excludeMenuId: number = 0): Promise<FindSimpleOneMenu[]> {
         // 제외할 메뉴 ID 필요없이 모든 메뉴를 가져올경우 excludeMenuId를 0으로 지정
         return await this.entityManager
             .createQueryBuilder(Menu, 'menus')
             .select(
                 'menus.menu_picture_url AS menuPictureUrl, menus.id AS menuId, menus.name, menus.discount_rate AS discountRate, menus.price',
             )
-            .where(`menus.id != ${excludeMenuId} AND store_id = ${storeId}`)
+            .where('menus.id != :excludeMenuId AND store_id = :storeId', { excludeMenuId, storeId })
             .orderBy('discountRate', 'DESC')
-            .orderBy('')
+            .addOrderBy('price', 'DESC')
+            .getRawMany();
+    }
+
+    private async getThreeMenuInStore(storeId: number, excludeMenuId: number = 0): Promise<FindSimpleOneMenu[]> {
+        // 제외할 메뉴 ID 필요없이 모든 메뉴를 가져올경우 excludeMenuId를 0으로 지정
+        return await this.entityManager
+            .createQueryBuilder(Menu, 'menus')
+            .select(
+                'menus.menu_picture_url AS menuPictureUrl, menus.id AS menuId, menus.name, menus.discount_rate AS discountRate, menus.price',
+            )
+            .where('menus.id != :excludeMenuId AND store_id = :storeId', { excludeMenuId, storeId })
+            .orderBy('discountRate', 'DESC')
+            .addOrderBy('price', 'DESC')
+            .limit(3)
             .getRawMany();
     }
 

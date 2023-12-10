@@ -1,7 +1,7 @@
-name: Deploy to App Runner - Image based # Name of the workflow
+name: Deploy to App Runner - Image based 
 on:
   push:
-    branches: [  ks-25-seller_local_login ] # Trigger workflow on git push to main branch
+    branches: [ develop ] # Trigger workflow on git push to main branch
   workflow_dispatch: # Allow manual invocation of the workflow
 jobs:  
   deploy:
@@ -40,16 +40,19 @@ jobs:
         id: deploy-apprunner
         uses: awslabs/amazon-app-runner-deploy@main
         env: 
-          DEV_SERVER_PORT: ${{ secrets.DEV_SERVER_PORT }}
-          DEV_DATABASE_TYPE: ${{ secrets.DEV_DATABASE_TYPE }}
-          DEV_DATABASE_HOST: ${{ secrets.DEV_DATABASE_HOST }}
-          DEV_DATABASE_PORT: ${{ secrets.DEV_DATABASE_PORT }}
-          DEV_DATABASE_USERNAME: ${{ secrets.DEV_DATABASE_USERNAME }}
-          DEV_DATABASE_PASSWORD: ${{ secrets.DEV_DATABASE_PASSWORD }}
-          DEV_DATABASE_NAME: ${{ secrets.DEV_DATABASE_NAME }}
-          DEV_DATABASE_SYNC: ${{ secrets.DEV_DATABASE_SYNC }}     
+          SERVER_PORT: ${{ secrets.DEV_SERVER_PORT }}
+          DATABASE_TYPE: ${{ secrets.DEV_DATABASE_TYPE }}
+          DATABASE_HOST: ${{ secrets.DEV_DATABASE_HOST }}
+          DATABASE_PORT: ${{ secrets.DEV_DATABASE_PORT }}
+          DATABASE_USERNAME: ${{ secrets.DEV_DATABASE_USERNAME }}
+          DATABASE_PASSWORD: ${{ secrets.DEV_DATABASE_PASSWORD }}
+          DATABASE_NAME: ${{ secrets.DEV_DATABASE_NAME }}
+          DATABASE_SYNC: ${{ secrets.DEV_DATABASE_SYNC }}
+          DYNAMODB_ACCESS_KEY: ${{ secrets.DEV_DYNAMODB_ACCESS_KEY }}
+          DYNAMODB_SECRET_KEY: ${{ secrets.DEV_DYNAMODB_SECRET_KEY }}
+          DYNAMODB_REGION: ${{ secrets.DEV_DYNAMODB_REGION }}  
         with:
-          service: app-runner-image-deploy-service
+          service: dev-app-runner-kwangsaeng
           image: ${{ steps.build-image.outputs.image }}          
           access-role-arn: ${{ secrets.ROLE_ARN }}
           runtime: NODEJS_16          
@@ -57,15 +60,18 @@ jobs:
           cpu : 1
           memory : 2
           port: 3000
-          copy-env-vars: / 
-            DEV_SERVER_PORT
-            DEV_DATABASE_TYPE
-            DEV_DATABASE_HOST
-            DEV_DATABASE_PORT
-            DEV_DATABASE_USERNAME
-            DEV_DATABASE_PASSWORD
-            DEV_DATABASE_NAME
-            DEV_DATABASE_SYNC
+          copy-env-vars: |
+            SERVER_PORT
+            DATABASE_TYPE
+            DATABASE_HOST
+            DATABASE_PORT
+            DATABASE_USERNAME
+            DATABASE_PASSWORD
+            DATABASE_NAME
+            DATABASE_SYNC
+            DYNAMODB_ACCESS_KEY
+            DYNAMODB_SECRET_KEY
+            DYNAMODB_REGION
           wait-for-service-stability: true
       
       - name: App Runner output

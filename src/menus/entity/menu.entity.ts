@@ -29,7 +29,7 @@ export class Menu extends SoftDeleteEntity<Menu> {
     @Column({ comment: '메뉴 유통기한', nullable: true })
     expiredDate: Date;
 
-    @Column({ comment: '조회수', default: 0 })
+    @Column({ name: 'view_count', comment: '조회수', default: 0 })
     viewCount: number;
 
     @Column({ comment: '메뉴에 관한 설명' })

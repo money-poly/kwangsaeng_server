@@ -31,6 +31,9 @@ export class Store extends SoftDeleteEntity<Store> {
     @Column({ nullable: true, comment: '가게 소개글' })
     description: string;
 
+    @Column({ nullable: true, comment: '가게 평균 조리 시간' })
+    cookingTime: string;
+
     @Column({ nullable: true, comment: '운영시간' })
     operationHours: string;
 
@@ -39,6 +42,9 @@ export class Store extends SoftDeleteEntity<Store> {
 
     @Column({ type: 'enum', enum: StoreStatus, default: StoreStatus.OPEN })
     status: string;
+
+    @Column({ type: 'json', name: 'country_of_origin', comment: '원산지 표기', nullable: true })
+    countryOfOrigin: object[];
 
     @ManyToOne(() => User, (user) => user.stores, { onDelete: 'CASCADE' })
     user: User;

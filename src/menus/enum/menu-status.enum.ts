@@ -1,4 +1,5 @@
 export enum MenuStatus {
-    SALE_ON = 'sale_on',
-    SALE_OFF = 'sale_off',
+    SALE = '판매중',
+    HIDDEN = '숨김',
+    STAY = '유지',
 }

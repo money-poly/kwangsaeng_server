@@ -1,9 +1,22 @@
-import { IsDateString, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { CreateMenuArgs } from '../interface/create-menu.interface';
+import { MenuStatus } from '../enum/menu-status.enum';
 
-export class CreateMenuDto {
+export class CreateMenuDto implements CreateMenuArgs {
+    @IsNumber()
+    @IsNotEmpty()
+    storeId: number;
+
+    @IsString()
+    menuPictureUrl?: string;
+
     @IsString()
     @IsNotEmpty()
     name: string;
+
+    @IsEnum(MenuStatus)
+    @IsNotEmpty()
+    status: MenuStatus;
 
     @IsNumber()
     @IsNotEmpty()
@@ -11,11 +24,8 @@ export class CreateMenuDto {
 
     @IsNumber()
     @IsNotEmpty()
-    saleRate: number;
+    discountRate: number;
 
     @IsString()
     description: string;
-
-    @IsDateString()
-    expiredDate: Date;
 }

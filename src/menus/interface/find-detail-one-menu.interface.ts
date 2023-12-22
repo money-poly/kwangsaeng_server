@@ -8,14 +8,14 @@ export interface FindDetailOneMenu {
     name: Pick<Menu, 'name'>;
     discountRate: Pick<Menu, 'discountRate'>;
     price: Pick<Menu, 'price'>;
-    viewCount: Pick<Menu, 'viewCount'>;
+    //viewCount: Pick<Menu, 'viewCount'>;
     storeNmae: Pick<Store, 'name'>;
-    storeAddress: Pick<Store, 'address'>;
-    phone: Pick<Store, 'phone'>;
+    //storeAddress: Pick<Store, 'address'>;
+    //phone: Pick<Store, 'phone'>;
     expiredDate: null;
-    storeLatitude: Pick<Store, 'latitude'>;
-    storeLongitude: Pick<Store, 'longitude'>;
-    countryOfOrigin: Pick<Store, 'countryOfOrigin'>;
+    //storeLatitude: Pick<Store, 'latitude'>;
+    //storeLongitude: Pick<Store, 'longitude'>;
+    //countryOfOrigin: Pick<Store, 'countryOfOrigin'>;
     anotherMenus: FindSimpleOneMenu[];
     notice: string[];
 }

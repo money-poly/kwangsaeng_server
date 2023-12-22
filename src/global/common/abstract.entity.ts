@@ -19,3 +19,12 @@ export class SoftDeleteEntity<T> extends AbstractEntity<T> {
     @DeleteDateColumn()
     deletedDate: Date;
 }
+
+export class WithoutTimestampEntity<T> {
+    constructor(entity: Partial<T>) {
+        Object.assign(this, entity);
+    }
+
+    @PrimaryGeneratedColumn()
+    id: number;
+}

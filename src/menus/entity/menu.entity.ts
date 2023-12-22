@@ -1,17 +1,21 @@
 import { SoftDeleteEntity } from 'src/global/common/abstract.entity';
 import { Store } from 'src/stores/entity/store.entity';
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToOne } from 'typeorm';
 import { MenuStatus } from '../enum/menu-status.enum';
+import { MenuView } from './menu-view.entity';
 
 @Entity({ name: 'menus' })
 export class Menu extends SoftDeleteEntity<Menu> {
     @Column({ comment: '메뉴 이름' })
     name: string;
 
-    @Column({ comment: 'price 컬럼 기준으로의 할인율' })
+    @Column({ comment: '할인율', nullable: true })
     discountRate: number;
 
-    @Column({ comment: '메뉴의 할인 전 가격' })
+    @Column({ comment: '판매가' })
+    salePrice: number;
+
+    @Column({ comment: '정가' })
     price: number;
 
     @Column({ comment: '판매 예정 개수', default: 0 })
@@ -26,15 +30,18 @@ export class Menu extends SoftDeleteEntity<Menu> {
     @Column({ type: 'enum', enum: MenuStatus, comment: '메뉴 상태' })
     status: MenuStatus;
 
+    @Column({ type: 'json', comment: '원산지 표기', nullable: true })
+    countryOfOrigin: string;
+
     @Column({ comment: '메뉴 유통기한', nullable: true })
     expiredDate: Date;
-
-    @Column({ name: 'view_count', comment: '조회수', default: 0 })
-    viewCount: number;
 
     @Column({ comment: '메뉴에 관한 설명' })
     description: string;
 
     @ManyToOne(() => Store, (store) => store.menus, { cascade: ['soft-remove'] })
     store: Store;
+
+    @OneToOne(() => MenuView)
+    view: MenuView;
 }

@@ -1,12 +1,12 @@
 import { UserStatus } from '../enum/user-status.enum';
-import { Column, Entity, OneToMany } from 'typeorm';
+import { Column, Entity, OneToOne } from 'typeorm';
 import { SoftDeleteEntity } from 'src/global/common/abstract.entity';
 import { Store } from 'src/stores/entity/store.entity';
 import { Roles } from '../enum/roles.enum';
 
 @Entity({ name: 'users' })
 export class User extends SoftDeleteEntity<User> {
-    @Column({ name: 'f_id', comment: 'firebase uid', unique: true })
+    @Column({ comment: 'firebase uid', unique: true })
     fId: string;
 
     @Column({ comment: '유저 이름' })
@@ -18,18 +18,12 @@ export class User extends SoftDeleteEntity<User> {
     @Column({ type: 'enum', enum: Roles, default: Roles.USER, comment: '역할' })
     role: Roles;
 
-    @Column({ type: 'decimal', precision: 13, scale: 10, comment: '위도', default: null })
-    latitude: number;
-
-    @Column({ type: 'decimal', precision: 13, scale: 10, comment: '경도', default: null })
-    longitude: number;
-
     @Column({ type: 'enum', enum: UserStatus, default: UserStatus.ACTIVATE, comment: '유저 상태' })
     status: string;
 
-    @Column({ name: 'pass_auth', comment: 'Pass 인증 유무', default: false })
-    passAuth: boolean;
+    @Column({ comment: '문자 인증 유무', default: false })
+    isAuth: boolean;
 
-    @OneToMany(() => Store, (store) => store.user)
-    stores: Store[];
+    @OneToOne(() => Store, (store) => store.user)
+    store: Store;
 }

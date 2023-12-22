@@ -1,54 +1,40 @@
+import { BusinessDetail } from './business-detail.entity';
 import { SoftDeleteEntity } from 'src/global/common/abstract.entity';
-import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToMany, OneToOne } from 'typeorm';
 import { Menu } from 'src/menus/entity/menu.entity';
-import { StoreCategory } from '../enum/store-category.enum';
 import { StoreStatus } from '../enum/store-status.enum';
 import { User } from 'src/users/entity/user.entity';
+import { StoreDetail } from './store-detail.entity';
+import { Category } from 'src/categories/entity/category.entity';
+import { StoreApprove } from './store-approve.entity';
 
 @Entity({ name: 'stores' })
 export class Store extends SoftDeleteEntity<Store> {
     @Column({ comment: '가게 이름', unique: true })
     name: string;
 
-    @Column({ type: 'enum', enum: StoreCategory, comment: '음식 카테고리' })
-    category: StoreCategory;
-
-    @Column()
-    address: string;
-
-    @Column({ type: 'decimal', precision: 6, scale: 4, comment: '가게 위도' })
-    latitude: number;
-
-    @Column({ type: 'decimal', precision: 7, scale: 4, comment: '가게 경도' })
-    longitude: number;
-
-    @Column({ nullable: true, comment: '가게 소개 사진' })
-    storePictureUrl: string;
-
-    @Column({ nullable: true, comment: '가게 전화번호' })
-    phone: string;
-
-    @Column({ nullable: true, comment: '가게 소개글' })
-    description: string;
-
-    @Column({ nullable: true, comment: '가게 평균 조리 시간' })
-    cookingTime: string;
-
-    @Column({ nullable: true, comment: '운영시간' })
-    operationHours: string;
-
-    @Column({ nullable: true, comment: '고정 휴무일' })
-    closedDays: string;
-
-    @Column({ type: 'enum', enum: StoreStatus, default: StoreStatus.OPEN })
+    @Column({ type: 'enum', enum: StoreStatus, default: StoreStatus.CLOSED })
     status: string;
 
-    @Column({ type: 'json', name: 'country_of_origin', comment: '원산지 표기', nullable: true })
-    countryOfOrigin: object[];
-
-    @ManyToOne(() => User, (user) => user.stores, { onDelete: 'CASCADE' })
+    @OneToOne(() => User, (user) => user.store, { onDelete: 'CASCADE', lazy: true })
+    @JoinColumn()
     user: User;
 
-    @OneToMany(() => Menu, (menu) => menu.store, { cascade: true })
+    @OneToOne(() => StoreApprove, (approve) => approve.store, { cascade: ['insert'] })
+    approve: StoreApprove;
+
+    @OneToOne(() => StoreDetail, (detail) => detail.store, { cascade: ['insert'] })
+    detail: StoreDetail;
+
+    @OneToOne(() => BusinessDetail, (businessDetail) => businessDetail.store, { cascade: ['insert'] })
+    businessDetail: BusinessDetail;
+
+    @OneToMany(() => Menu, (menu) => menu.store)
     menus: Menu[];
+
+    @ManyToMany(() => Category, (category) => category.store, {
+        cascade: ['insert'],
+    })
+    @JoinTable({ name: 'store_categories' })
+    categories: Category[];
 }

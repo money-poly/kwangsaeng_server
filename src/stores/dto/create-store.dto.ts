@@ -1,25 +1,62 @@
-import { IsEnum, IsLatitude, IsLongitude, IsNotEmpty, IsString } from 'class-validator';
-import { StoreCategory } from '../enum/store-category.enum';
-import { CreateStoreArgs } from '../interfaces/create-store.interface';
+import {
+    ArrayNotEmpty,
+    IsLatitude,
+    IsLongitude,
+    IsNotEmpty,
+    IsNotIn,
+    IsNumber,
+    IsString,
+    Length,
+    ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 
-export class CreateStoreDto implements CreateStoreArgs {
+class OperationTimes {
+    @IsString()
+    @Length(5, 5)
+    startedAt: string;
+
+    @IsString()
+    @Length(5, 5)
+    endedAt: string;
+}
+
+export class CreateStoreDto {
     @IsString()
     @IsNotEmpty()
     name: string;
 
+    @IsString()
     @IsNotEmpty()
-    @IsEnum(StoreCategory)
-    category: StoreCategory;
+    businessNum: string;
+
+    @ArrayNotEmpty()
+    @IsNotIn([1, 2], {
+        each: true,
+    })
+    categories: number[];
 
     @IsString()
     @IsNotEmpty()
     address: string;
 
+    @IsString()
+    @IsNotEmpty()
+    phone: string;
+
     @IsNotEmpty()
     @IsLatitude()
-    latitude: number;
+    lat: number;
 
     @IsNotEmpty()
     @IsLongitude()
-    longitude: number;
+    lon: number;
+
+    @IsNotEmpty()
+    @IsNumber()
+    cookingTime: number;
+
+    @ValidateNested()
+    @Type(() => OperationTimes)
+    operationTimes: OperationTimes;
 }

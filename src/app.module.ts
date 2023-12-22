@@ -8,6 +8,8 @@ import { MenusModule } from './menus/menus.module';
 import databaseConfiguration from './global/config/database.configuration';
 import { AuthModule } from './auth/auth.module';
 import dynamoConfiguration from './global/config/dynamo.configuration';
+import { CategoriesModule } from './categories/categories.module';
+import { InitializeService } from './initialize.service';
 
 @Module({
     imports: [
@@ -22,7 +24,8 @@ import dynamoConfiguration from './global/config/dynamo.configuration';
         StoresModule,
         MenusModule,
         AuthModule,
+        CategoriesModule,
     ],
-    providers: [Logger],
+    providers: [Logger, InitializeService],
 })
 export class AppModule {}

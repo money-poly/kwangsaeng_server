@@ -8,7 +8,7 @@ export class TransformMenuPipe implements PipeTransform {
     constructor(private readonly menusService: MenusService) {}
 
     async transform(value: number) {
-        const menu = await this.menusService.findOneMenu({
+        const menu = await this.menusService.findOne({
             id: value,
         });
 

@@ -14,7 +14,7 @@ export class CreateMenuValidationPipe implements PipeTransform {
     }
 
     async validationName(id: number, name: string) {
-        const exist = await this.menusService.existMenu({
+        const exist = await this.menusService.exist({
             where: {
                 name,
                 store: {

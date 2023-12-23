@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MenusRepository } from './menus.repository';
 import { EntityManager, FindManyOptions, FindOptionsWhere } from 'typeorm';
@@ -16,6 +16,7 @@ import { StoresException } from 'src/global/exception/stores-exception';
 import { FindSimpleOneMenu } from './interface/find-simple-one-menu.interface';
 import { UpdateMenuArgs } from './interface/update-menu.interface';
 import { CAUTION_TEXT } from 'src/global/common/caution.constant';
+import { StoreDetail } from 'src/stores/entity/store-detail.entity';
 
 @Injectable()
 export class MenusService {
@@ -29,72 +30,69 @@ export class MenusService {
 
     async create(user: User, args: CreateMenuArgs) {
         const storeId: number = args.storeId;
-        const storeData: Store = await this.storesRepository.findOne({ id: storeId });
+        const storeData: Store = await this.storesRepository.findOneStore({ id: storeId });
         if (!storeData) {
             throw StoresException.ENTITY_NOT_FOUND;
         }
         await this.validateUserRole(user, Roles.OWNER);
-        const newMenu = new Menu({
-            ...args,
-            store: storeData,
-        });
-        const createdId = (await this.menusRepository.create(newMenu)).id;
+        const createdId = await this.menusRepository.create(storeData, args);
         return { menuId: createdId };
     }
 
-    async update(menuId: number, args: UpdateMenuArgs) {
-        await this.validateMenuId(menuId);
-        this.menusRepository.findOneAndUpdate({ id: menuId }, { ...args });
-        return this.findDetailOne(menuId);
+    async update(menu: Menu, args: UpdateMenuArgs) {
+        await this.menusRepository.update(menu, { ...args });
+        return await this.findDetailOne(menu);
     }
 
-    async delete(menuId: number) {
-        await this.validateMenuId(menuId);
-        return this.menusRepository.findOneAndDelete({ id: menuId });
+    async delete(menu: Menu) {
+        return this.menusRepository.delete(menu);
     }
 
-    async findOneMenu(where: FindOptionsWhere<Menu>) {
-        return await this.menusRepository.findOneMenu(where);
-    }
-
-    async findDetailOne(menuId: number): Promise<FindDetailOneMenu> {
+    async findDetailOne(menu: Menu, loc?): Promise<FindDetailOneMenu> {
         const data = await this.entityManager
             .createQueryBuilder(Menu, 'menus')
             .leftJoinAndSelect(Store, 'stores', 'stores.id = menus.store_id')
+            .leftJoinAndSelect(StoreDetail, 'store_detail', 'store_detail.store_id = menus.store_id')
             .select(
-                'menus.menu_picture_url AS mainMenuPictureUrl, menus.description, menus.name, menus.discount_rate AS discountRate, menus.price, menus.view_count AS viewCount',
+                'menus.menu_picture_url AS mainMenuPictureUrl, menus.description, menus.name AS name, menus.discount_rate AS discountRate, menus.price, menus.sale_price AS sellingPrice, menus.country_of_origin AS countryOfOrigin',
             )
+            .addSelect('stores.id AS storeId, stores.name AS storeName')
             .addSelect(
-                'stores.id AS storeId, stores.cooking_time AS cookingTime, stores.name AS storeName, stores.address AS storeAddress, stores.phone, stores.latitude AS storeLatitude, stores.longitude AS storeLongitude, stores.country_of_origin AS countryOfOrigin',
+                'store_detail.address AS storeAddress, store_detail.phone, store_detail.lat AS lat, store_detail.lon AS lon',
             )
-            .where('menus.id = :menuId', { menuId })
+            .where('menus.id = :id', { id: menu.id })
             .getRawOne();
-        if (!data) throw MenusException.ENTITY_NOT_FOUND;
-        const anotherMenus = await this.getThreeMenuInStore(data.storeId, menuId);
+        const view = await this.menusRepository.findView(menu);
+        const anotherMenus = await this.getMenusInStore(data.storeId, menu.id, 3);
         const caution = CAUTION_TEXT;
         const menuDetailList = {
             ...data,
             anotherMenus: anotherMenus ? anotherMenus : null, // 다른 메뉴가 없을 경우 null로 전송
+            ...view,
             caution,
         };
         return menuDetailList;
     }
 
-    async existMenu(where: FindManyOptions<Menu>) {
-        return await this.menusRepository.existMenu(where);
+    async findOne(where: FindOptionsWhere<Menu>) {
+        return await this.menusRepository.findOne(where);
     }
 
-    private async validateMenuId(menuId: number) {
-        const isExist = await this.menusRepository.exist({ id: menuId });
-        if (!isExist) throw MenusException.ENTITY_NOT_FOUND;
+    async exist(where: FindManyOptions<Menu>) {
+        return await this.menusRepository.exist(where);
     }
 
     private async validateUserRole(user: User, role: Roles) {
         if (user?.role != role) throw MenusException.HAS_NO_PERMISSION_CREATE;
     }
 
-    private async getAllMenusInStore(storeId: number, excludeMenuId: number = 0): Promise<FindSimpleOneMenu[]> {
+    private async getMenusInStore(
+        storeId: number,
+        excludeMenuId: number = 0,
+        limit: number = 10,
+    ): Promise<FindSimpleOneMenu[]> {
         // 제외할 메뉴 ID 필요없이 모든 메뉴를 가져올경우 excludeMenuId를 0으로 지정
+        // limit으로 필요한 데이터의 개수 보내주기(기본값 10으로 설정)
         return await this.entityManager
             .createQueryBuilder(Menu, 'menus')
             .select(
@@ -103,25 +101,13 @@ export class MenusService {
             .where('menus.id != :excludeMenuId AND store_id = :storeId', { excludeMenuId, storeId })
             .orderBy('discountRate', 'DESC')
             .addOrderBy('price', 'DESC')
+            .limit(limit)
             .getRawMany();
     }
 
-    private async getThreeMenuInStore(storeId: number, excludeMenuId: number = 0): Promise<FindSimpleOneMenu[]> {
-        // 제외할 메뉴 ID 필요없이 모든 메뉴를 가져올경우 excludeMenuId를 0으로 지정
-        return await this.entityManager
-            .createQueryBuilder(Menu, 'menus')
-            .select(
-                'menus.menu_picture_url AS menuPictureUrl, menus.id AS menuId, menus.name, menus.discount_rate AS discountRate, menus.price',
-            )
-            .where('menus.id != :excludeMenuId AND store_id = :storeId', { excludeMenuId, storeId })
-            .orderBy('discountRate', 'DESC')
-            .addOrderBy('price', 'DESC')
-            .limit(3)
-            .getRawMany();
-    }
-
-    private async measureDistance(x1: number, x2: number, y1: number, y2: number): Promise<number> {
-        return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+    private async measurePickUpTime(x1: number, x2: number, y1: number, y2: number): Promise<number> {
+        const distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+        return distance;
     }
 
     async initMockMenus() {
@@ -129,8 +115,6 @@ export class MenusService {
         const discountRates = [10, 20, 30, 40];
         const prices = [10000, 15000, 16000, 17000];
         const salePrices = [9000, 12000, 11200, 10200];
-        const counts = [1, 2, 3, 4];
-        const imageUrl = ['menuImage1', 'menuImage2', 'menuImage3', 'menuImage4'];
         const descriptions = ['설명1', '설명2', '설명3', '설명4'];
         const storeId = [1, 2, 3, 1];
         let i = 0;
@@ -147,21 +131,17 @@ export class MenusService {
             const user = await this.usersRepository.create(newOwner);
             for (const name of names) {
                 const storeInfo = await this.storesRepository.findOneStore({ id: storeId[i] }, { id: true }, {});
-                const mockMenu = new Menu({
+                const mockMenu: CreateMenuArgs = {
                     name,
                     discountRate: discountRates[i],
                     price: prices[i],
                     salePrice: salePrices[i],
-                    menuPictureUrl: imageUrl[i],
-                    popularity: null,
                     status: MenuStatus.SALE,
-                    count: counts[i],
-                    expiredDate: null,
                     description: descriptions[i],
-                    store: storeInfo ? storeInfo : null,
-                });
+                    storeId: storeInfo.id,
+                };
                 i++;
-                await this.menusRepository.create(mockMenu);
+                await this.menusRepository.create(storeInfo, { ...mockMenu });
             }
         }
     }

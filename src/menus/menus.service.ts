@@ -18,7 +18,7 @@ import { UpdateMenuArgs } from './interface/update-menu.interface';
 import { CAUTION_TEXT } from 'src/global/common/caution.constant';
 
 @Injectable()
-export class MenusService implements OnModuleInit {
+export class MenusService {
     constructor(
         private readonly meunusRepository: MenusRepository,
         private readonly entityManager: EntityManager,
@@ -26,10 +26,6 @@ export class MenusService implements OnModuleInit {
         private readonly storesRepository: StoresRepository,
         private readonly configService: ConfigService,
     ) {}
-
-    async onModuleInit() {
-        //await this.createMockMenuData();
-    }
 
     async create(user: User, args: CreateMenuArgs) {
         //const storeId: number = args.storeId;
@@ -130,42 +126,45 @@ export class MenusService implements OnModuleInit {
         return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
     }
 
-    private async createMockMenuData() {
-        //const names = ['돈까스', '돈까스세트', '돈까스세트메밀국수', '돈까스세트메밀국수우동'];
-        //const sale_rates = [10, 20, 30, 40];
-        //const prices = [10000, 15000, 16000, 17000];
-        //const imageUrl = ['menuImage1', 'menuImage2', 'menuImage3', 'menuImage4'];
-        //const descriptions = ['설명1', '설명2', '설명3', '설명4'];
-        //const storeId = [1, 2, 3, 1];
-        //let i = 0;
-        //const isExist = await this.usersRepository.exist({
-        //    name: '이사장',
-        //});
-        //if (!isExist) {
-        //    const newOwner = new User({
-        //        fId: 'owner0002',
-        //        name: '이사장',
-        //        role: Roles.OWNER,
-        //        phone: '010-5678-5678',
-        //    });
-        //    const user = await this.usersRepository.create(newOwner);
-        //    for (const name of names) {
-        //        const storeInfo = await this.storesRepository.findOne({ id: storeId[i] }, {}, { id: true });
-        //        const mockMenu = new Menu({
-        //            name,
-        //            discountRate: sale_rates[i],
-        //            price: prices[i],
-        //            menuPictureUrl: imageUrl[i],
-        //            popularity: null,
-        //            status: MenuStatus.SALE,
-        //            expiredDate: null,
-        //            description: descriptions[i],
-        //            viewCount: 0,
-        //            store: storeInfo ? storeInfo : null,
-        //        });
-        //        i++;
-        //        await this.meunusRepository.create(mockMenu);
-        //    }
-        //}
+    async initMockMenus() {
+        const names = ['돈까스', '돈까스세트', '돈까스세트메밀국수', '돈까스세트메밀국수우동'];
+        const discountRates = [10, 20, 30, 40];
+        const prices = [10000, 15000, 16000, 17000];
+        const salePrices = [9000, 12000, 11200, 10200];
+        const counts = [1, 2, 3, 4];
+        const imageUrl = ['menuImage1', 'menuImage2', 'menuImage3', 'menuImage4'];
+        const descriptions = ['설명1', '설명2', '설명3', '설명4'];
+        const storeId = [1, 2, 3, 1];
+        let i = 0;
+        const isExist = await this.usersRepository.exist({
+            name: '이사장',
+        });
+        if (!isExist) {
+            const newOwner = new User({
+                fId: 'owner0006',
+                name: '이사장',
+                role: Roles.OWNER,
+                phone: '010-5678-5678',
+            });
+            const user = await this.usersRepository.create(newOwner);
+            for (const name of names) {
+                const storeInfo = await this.storesRepository.findOneStore({ id: storeId[i] }, { id: true }, {});
+                const mockMenu = new Menu({
+                    name,
+                    discountRate: discountRates[i],
+                    price: prices[i],
+                    salePrice: salePrices[i],
+                    menuPictureUrl: imageUrl[i],
+                    popularity: null,
+                    status: MenuStatus.SALE,
+                    count: counts[i],
+                    expiredDate: null,
+                    description: descriptions[i],
+                    store: storeInfo ? storeInfo : null,
+                });
+                i++;
+                await this.meunusRepository.create(mockMenu);
+            }
+        }
     }
 }

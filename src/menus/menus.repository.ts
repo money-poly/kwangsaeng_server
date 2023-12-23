@@ -11,9 +11,8 @@ import {
 import { Menu } from './entity/menu.entity';
 import { MenuView } from './entity/menu-view.entity';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
-import { User } from 'src/users/entity/user.entity';
-import { CreateMenuDto } from './dto/create-menu.dto';
 import { CreateMenuArgs } from './interface/create-menu.interface';
+import { Store } from 'src/stores/entity/store.entity';
 
 @Injectable()
 export class MenusRepository {
@@ -39,6 +38,14 @@ export class MenusRepository {
         });
     }
 
+    async findView(menu: Menu) {
+        return await this.entityManager
+            .createQueryBuilder(MenuView, 'menus_view')
+            .select('menus_view.view_count AS viewCount')
+            .where('menus_view.menu_id = :id', { id: menu.id })
+            .getRawOne();
+    }
+
     async exist(where: FindManyOptions<Menu>) {
         return await this.menus.exist(where);
     }
@@ -55,15 +62,17 @@ export class MenusRepository {
         return await this.menus.delete(menu);
     }
 
-    async create(user: User, args: CreateMenuArgs) {
+    async create(store: Store, args: CreateMenuArgs) {
         const newMenu = this.menus.create({
             ...args,
-            view: this.menuView.create({
-                viewCount: 0,
-            }),
+            store,
         });
         await this.menus.save(newMenu);
-
+        const newMenuView = this.menuView.create({
+            viewCount: 0,
+            menu: newMenu,
+        });
+        await this.menuView.save(newMenuView);
         return newMenu.id;
     }
 }

@@ -1,7 +1,7 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MenusRepository } from './menus.repository';
-import { EntityManager } from 'typeorm';
+import { EntityManager, FindManyOptions, FindOptionsWhere } from 'typeorm';
 import { UsersRepository } from 'src/users/users.repository';
 import { StoresRepository } from 'src/stores/stores.repository';
 import { Store } from 'src/stores/entity/store.entity';
@@ -20,7 +20,7 @@ import { CAUTION_TEXT } from 'src/global/common/caution.constant';
 @Injectable()
 export class MenusService {
     constructor(
-        private readonly meunusRepository: MenusRepository,
+        private readonly menusRepository: MenusRepository,
         private readonly entityManager: EntityManager,
         private readonly usersRepository: UsersRepository,
         private readonly storesRepository: StoresRepository,
@@ -28,30 +28,33 @@ export class MenusService {
     ) {}
 
     async create(user: User, args: CreateMenuArgs) {
-        //const storeId: number = args.storeId;
-        //const storeData: Store = await this.storesRepository.findOne({ id: storeId });
-        //if (!storeData) {
-        //    throw StoresException.ENTITY_NOT_FOUND;
-        //}
-        //await this.validateMenuName(storeData.id, args.name);
-        //await this.validateUserRole(user, Roles.OWNER);
-        //const newMenu = new Menu({
-        //    ...args,
-        //    store: storeData,
-        //});
-        //const createdId = (await this.meunusRepository.create(newMenu)).id;
-        //return { menuId: createdId };
+        const storeId: number = args.storeId;
+        const storeData: Store = await this.storesRepository.findOne({ id: storeId });
+        if (!storeData) {
+            throw StoresException.ENTITY_NOT_FOUND;
+        }
+        await this.validateUserRole(user, Roles.OWNER);
+        const newMenu = new Menu({
+            ...args,
+            store: storeData,
+        });
+        const createdId = (await this.menusRepository.create(newMenu)).id;
+        return { menuId: createdId };
     }
 
     async update(menuId: number, args: UpdateMenuArgs) {
         await this.validateMenuId(menuId);
-        this.meunusRepository.findOneAndUpdate({ id: menuId }, { ...args });
+        this.menusRepository.findOneAndUpdate({ id: menuId }, { ...args });
         return this.findDetailOne(menuId);
     }
 
     async delete(menuId: number) {
         await this.validateMenuId(menuId);
-        return this.meunusRepository.findOneAndDelete({ id: menuId });
+        return this.menusRepository.findOneAndDelete({ id: menuId });
+    }
+
+    async findOneMenu(where: FindOptionsWhere<Menu>) {
+        return await this.menusRepository.findOneMenu(where);
     }
 
     async findDetailOne(menuId: number): Promise<FindDetailOneMenu> {
@@ -77,18 +80,13 @@ export class MenusService {
         return menuDetailList;
     }
 
-    private async validateMenuId(menuId: number) {
-        const isExist = await this.meunusRepository.exist({ id: menuId });
-        if (!isExist) throw MenusException.ENTITY_NOT_FOUND;
+    async existMenu(where: FindManyOptions<Menu>) {
+        return await this.menusRepository.existMenu(where);
     }
 
-    private async validateMenuName(storeId: number, menuName: string) {
-        const isExist = await this.entityManager
-            .createQueryBuilder(Menu, 'menus')
-            .where('menus.store_id = :storeId', { storeId })
-            .andWhere('menus.name = :menuName', { menuName })
-            .getRawOne();
-        if (isExist) throw MenusException.ALREADY_EXIST_MENU_NAME;
+    private async validateMenuId(menuId: number) {
+        const isExist = await this.menusRepository.exist({ id: menuId });
+        if (!isExist) throw MenusException.ENTITY_NOT_FOUND;
     }
 
     private async validateUserRole(user: User, role: Roles) {
@@ -163,7 +161,7 @@ export class MenusService {
                     store: storeInfo ? storeInfo : null,
                 });
                 i++;
-                await this.meunusRepository.create(mockMenu);
+                await this.menusRepository.create(mockMenu);
             }
         }
     }

@@ -8,4 +8,5 @@ export interface CreateMenuArgs {
     status: MenuStatus;
     price: number;
     discountRate: number;
+    salePrice: number;
 }

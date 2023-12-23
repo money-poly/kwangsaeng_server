@@ -26,6 +26,10 @@ export class CreateMenuDto implements CreateMenuArgs {
     @IsNotEmpty()
     discountRate: number;
 
+    @IsNumber()
+    @IsNotEmpty()
+    salePrice: number;
+
     @IsString()
     description: string;
 }

@@ -6,6 +6,8 @@ import { User } from 'src/users/entity/user.entity';
 import { FindOneMenuDto } from './dto/find-one-menu.dto';
 import { CreateMenuDto } from './dto/create-menu.dto';
 import { UpdateMenuDto } from './dto/update-menu.dto';
+import { CreateMenuValidationPipe } from './pipe/create-menu-validation.pipe';
+import { TransformMenuPipe } from './pipe/transform-menu.pipe';
 
 @Controller('menus')
 export class MenusController {
@@ -18,19 +20,19 @@ export class MenusController {
 
     @Post()
     @UseGuards(AuthGuard)
-    async create(@CurrentUser() user: User, @Body() dto: CreateMenuDto) {
+    async create(@CurrentUser() user: User, @Body(CreateMenuValidationPipe) dto: CreateMenuDto) {
         return await this.menusService.create(user, dto);
     }
 
     @Put('/:id')
     @UseGuards(AuthGuard)
-    async update(@Param('id') id: number, @Body() dto: UpdateMenuDto) {
+    async update(@Param('id', TransformMenuPipe) id: number, @Body() dto: UpdateMenuDto) {
         return await this.menusService.update(id, dto);
     }
 
     @Delete('/:id')
     @UseGuards(AuthGuard)
-    async delete(@Param('id') id: number) {
+    async delete(@Param('id', TransformMenuPipe) id: number) {
         return await this.menusService.delete(id);
     }
 }

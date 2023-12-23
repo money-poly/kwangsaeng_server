@@ -51,6 +51,10 @@ export class MenusRepository {
         });
     }
 
+    async delete(menu: Menu) {
+        return await this.menus.delete(menu);
+    }
+
     async create(user: User, args: CreateMenuArgs) {
         const newMenu = this.menus.create({
             ...args,

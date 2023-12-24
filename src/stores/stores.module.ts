@@ -13,6 +13,7 @@ import { BusinessDetail } from './entity/business-detail.entity';
 import { StoreApprove } from './entity/store-approve.entity';
 import { CategoriesModule } from 'src/categories/categories.module';
 import { UsersModule } from 'src/users/users.module';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
     imports: [
@@ -20,6 +21,7 @@ import { UsersModule } from 'src/users/users.module';
         DynamooseModule.forFeature([{ name: 'Store-Menu', schema: DynamoSchema }]),
         CategoriesModule,
         UsersModule,
+        HttpModule,
     ],
     controllers: [StoresController],
     providers: [StoresService, StoresRepository, UsersRepository],

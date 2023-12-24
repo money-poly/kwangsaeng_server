@@ -21,6 +21,10 @@ export class OwnerGuard implements CanActivate {
             id: storeId,
         });
 
+        if (!store) {
+            throw StoresException.ENTITY_NOT_FOUND;
+        }
+
         const owner = await store.user;
 
         if (owner.id != user.id) {

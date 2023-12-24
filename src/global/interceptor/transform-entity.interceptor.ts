@@ -34,12 +34,11 @@ export class TransformStoreInterceptor implements NestInterceptor {
         req.store = store;
 
         if (meta?.response?.excludeProperties) {
-            store = this.serialize(store, meta.response.excludeProperties);
-
             return next.handle().pipe(
-                map(() => ({
-                    ...store,
-                })),
+                map((data) => {
+                    const transformedData = this.serialize(data, meta.response.excludeProperties);
+                    return transformedData;
+                }),
             );
         } else {
             return next.handle();

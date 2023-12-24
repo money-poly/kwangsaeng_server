@@ -59,7 +59,7 @@ export class MenusRepository {
     }
 
     async delete(menu: Menu) {
-        return await this.menus.delete(menu);
+        await this.menus.delete({ id: menu.id });
     }
 
     async create(store: Store, args: CreateMenuArgs) {

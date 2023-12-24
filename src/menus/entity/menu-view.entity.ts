@@ -7,7 +7,7 @@ export class MenuView extends WithoutTimestampEntity<MenuView> {
     @Column()
     viewCount: number;
 
-    @OneToOne(() => Menu)
+    @OneToOne(() => Menu, (menu) => menu.view, { onDelete: 'CASCADE' })
     @JoinColumn()
     menu: Menu;
 }

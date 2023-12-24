@@ -76,7 +76,6 @@ export class MenusService {
             cookingTime: pickUpTimeStr,
             caution,
         };
-        // this.findManyForSeller()
         return menuDetailList;
     }
 

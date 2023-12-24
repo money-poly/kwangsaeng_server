@@ -49,6 +49,7 @@ export class MenusService {
     }
 
     async findDetailOne(menu: Menu, loc?): Promise<FindDetailOneMenu> {
+        const { lat, lon } = loc;
         const data = await this.entityManager
             .createQueryBuilder(Menu, 'menus')
             .leftJoinAndSelect(Store, 'stores', 'stores.id = menus.store_id')
@@ -58,20 +59,39 @@ export class MenusService {
             )
             .addSelect('stores.id AS storeId, stores.name AS storeName')
             .addSelect(
-                'store_detail.address AS storeAddress, store_detail.phone, store_detail.lat AS lat, store_detail.lon AS lon',
+                'store_detail.address AS storeAddress, store_detail.phone, store_detail.lat AS lat, store_detail.lon AS lon, store_detail.cooking_time AS cookingTime',
             )
             .where('menus.id = :id', { id: menu.id })
             .getRawOne();
         const view = await this.menusRepository.findView(menu);
         const anotherMenus = await this.getMenusInStore(data.storeId, menu.id, 3);
+        const pickUpTime = (await this.measurePickUpTime(lat, data.lat, lon, data.lon)) + data.cookingTime;
+        const pickUpTimeStr = pickUpTime.toString() + '~' + (pickUpTime + 8).toString(); // TODO 문자열으로 변환 앞단 <-> 뒷단 협의 필요
+        delete data.cookingTime;
         const caution = CAUTION_TEXT;
         const menuDetailList = {
             ...data,
             anotherMenus: anotherMenus ? anotherMenus : null, // 다른 메뉴가 없을 경우 null로 전송
             ...view,
+            cookingTime: pickUpTimeStr,
             caution,
         };
+        // this.findManyForSeller()
         return menuDetailList;
+    }
+
+    async findManyForSeller(storeId: number) {
+        const data = await this.entityManager
+            .createQueryBuilder(Menu, 'menus')
+            .select(
+                'menus.id, menus.name, menus.discount_rate AS discountRate, menus.sale_price AS sellingPrice, menus.price, menus.menu_picture_url AS menuPictureUrl, menus.status',
+            )
+            .addOrderBy(`menus.status = "${MenuStatus.SALE}"`, 'DESC')
+            .addOrderBy(`menus.status = "${MenuStatus.SOLDOUT}"`, 'DESC')
+            .addOrderBy(`menus.status = "${MenuStatus.HIDDEN}"`, 'DESC')
+            .where('menus.store_id = :storeId', { storeId })
+            .getRawMany();
+        return data;
     }
 
     async findOne(where: FindOptionsWhere<Menu>) {
@@ -106,17 +126,36 @@ export class MenusService {
     }
 
     private async measurePickUpTime(x1: number, x2: number, y1: number, y2: number): Promise<number> {
-        const distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-        return distance;
+        const distance: number = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+        let time: number;
+        if (distance < 200) {
+            time = 5;
+        } else if (distance < 500) {
+            time = 15;
+        } else if (distance < 1000) {
+            time = 23;
+        } else {
+            time = -1; // TODO 시간대별로 변경사항 존재
+        }
+        return time;
     }
 
     async initMockMenus() {
-        const names = ['돈까스', '돈까스세트', '돈까스세트메밀국수', '돈까스세트메밀국수우동'];
-        const discountRates = [10, 20, 30, 40];
-        const prices = [10000, 15000, 16000, 17000];
-        const salePrices = [9000, 12000, 11200, 10200];
-        const descriptions = ['설명1', '설명2', '설명3', '설명4'];
-        const storeId = [1, 2, 3, 1];
+        const names = [
+            '돈까스',
+            '돈까스세트',
+            '돈까스세트메밀국수',
+            '돈까스세트메밀국수우동',
+            '로제돈까스',
+            '로제돈까스 우동',
+            '초밥',
+            '오렌지 치즈 샐러드(M)',
+        ];
+        const discountRates = [10, 20, 30, 40, 10, 20, 30, 40];
+        const prices = [10000, 15000, 16000, 17000, 12000, 14000, 17000, 15000];
+        const salePrices = [9000, 12000, 11200, 10200, 10233, 22000, 15000, 13000];
+        const descriptions = ['설명1', '설명2', '설명3', '설명4', '설명5', '설명6', '설명7', '설명8'];
+        const storeId = [1, 2, 3, 1, 1, 2, 1, 1];
         let i = 0;
         const isExist = await this.usersRepository.exist({
             name: '이사장',

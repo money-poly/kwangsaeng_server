@@ -8,14 +8,15 @@ import { UpdateMenuDto } from './dto/update-menu.dto';
 import { CreateMenuValidationPipe } from './pipe/create-menu-validation.pipe';
 import { TransformMenuPipe } from './pipe/transform-menu.pipe';
 import { Menu } from './entity/menu.entity';
+import { FindOneMenuDto } from './dto/find-one-menu.dto';
 
 @Controller('menus')
 export class MenusController {
     constructor(private readonly menusService: MenusService) {}
 
     @Get('/detail/:id')
-    async findDetailOne(@Param('id', TransformMenuPipe) menu: Menu) {
-        return this.menusService.findDetailOne(menu);
+    async findDetailOne(@Param('id', TransformMenuPipe) menu: Menu, @Body() loc: FindOneMenuDto) {
+        return this.menusService.findDetailOne(menu, loc);
     }
 
     @Post()
@@ -34,5 +35,10 @@ export class MenusController {
     @UseGuards(AuthGuard)
     async delete(@Param('id', TransformMenuPipe) menu: Menu) {
         return await this.menusService.delete(menu);
+    }
+
+    @Get('/seller/:storeId')
+    async findManyForSeller(@Param('storeId') storeId: number) {
+        return await this.menusService.findManyForSeller(storeId);
     }
 }

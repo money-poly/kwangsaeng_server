@@ -45,6 +45,6 @@ export class Menu extends SoftDeleteEntity<Menu> {
     @ManyToOne(() => Store, (store) => store.menus, { cascade: ['soft-remove'] })
     store: Store;
 
-    @OneToOne(() => MenuView)
+    @OneToOne(() => MenuView, (view) => view.menu, { cascade: ['insert'] })
     view: MenuView;
 }

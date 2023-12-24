@@ -22,6 +22,7 @@
         "docker:build": "docker-compose -f local-compose.yml --env-file src/global/config/envs/.local.env build"
     },
     "dependencies": {
+        "@nestjs/axios": "^3.0.1",
         "@nestjs/common": "^10.0.0",
         "@nestjs/config": "^3.1.1",
         "@nestjs/core": "^10.0.0",
@@ -29,6 +30,7 @@
         "@nestjs/mapped-types": "*",
         "@nestjs/platform-express": "^10.0.0",
         "@nestjs/typeorm": "^10.0.0",
+        "axios": "^1.6.2",
         "class-transformer": "^0.5.1",
         "class-validator": "^0.14.0",
         "dynamoose": "^3.2.1",

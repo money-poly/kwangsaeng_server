@@ -1,4 +1,4 @@
-import { EntityManager, FindManyOptions, FindOptionsWhere } from 'typeorm';
+import { EntityManager, FindManyOptions, FindOptionsRelations, FindOptionsSelect, FindOptionsWhere } from 'typeorm';
 import { UsersRepository } from './../users/users.repository';
 import { Injectable } from '@nestjs/common';
 import { StoresRepository } from './stores.repository';
@@ -15,7 +15,7 @@ import { StoreDetail } from './entity/store-detail.entity';
 import { FindStoreWithLocationDto } from './dto/find-store-with-location.dto';
 import { StoreApprove } from './entity/store-approve.entity';
 import { StoreStatus } from './enum/store-status.enum';
-
+import { UpdateStoreDto } from './dto/update-store.dto';
 @Injectable()
 export class StoresService {
     constructor(
@@ -36,14 +36,42 @@ export class StoresService {
 
     async toggleStoreStatus(store: Store) {
         if (store.status == StoreStatus.OPEN) {
-            return await this.storesRepository.updateStore(store, { status: StoreStatus.CLOSED });
+            await this.storesRepository.updateStore(store, { status: StoreStatus.CLOSED });
         } else {
-            return await this.storesRepository.updateStore(store, { status: StoreStatus.OPEN });
+            await this.storesRepository.updateStore(store, { status: StoreStatus.OPEN });
         }
+
+        return await this.storesRepository.findOneStore(
+            { id: store.id },
+            {
+                status: true,
+            },
+        );
     }
 
-    async findOneStore(where: FindOptionsWhere<Store>) {
-        return await this.storesRepository.findOneStore(where);
+    async updateStore(store: Store, dto: UpdateStoreDto) {
+        Object.assign(store, {
+            name: dto.name ?? store.name,
+            detail: {
+                ...store.detail,
+                address: dto.address ?? store.detail.address,
+                addressDetail: dto.addressDetail ?? store.detail.addressDetail,
+                description: dto.description ?? store.detail.description,
+                operationTimes: dto.operationTimes ?? store.detail.operationTimes,
+                phone: dto.phone ?? store.detail.phone,
+                storePictureUrl: dto.storePictureUrl ?? store.detail.storePictureUrl,
+            },
+        });
+
+        return await this.storesRepository.saveStore(store);
+    }
+
+    async findOneStore(
+        where: FindOptionsWhere<Store>,
+        select?: FindOptionsSelect<Store>,
+        relations?: FindOptionsRelations<Store>,
+    ) {
+        return await this.storesRepository.findOneStore(where, select, relations);
     }
 
     async approve(store: Store) {
@@ -177,9 +205,8 @@ export class StoresService {
         const dtos: CreateStoreDto[] = [
             {
                 name: '고씨네',
-                lat: 37.6193,
-                lon: 127.0575,
                 address: '서울특별시 노원구 월계동 광운로 17-5',
+                addressDetail: '1층',
                 businessNum: '123-456-789',
                 categories: [2],
                 cookingTime: 20,
@@ -191,8 +218,6 @@ export class StoresService {
             },
             {
                 name: '서민초밥',
-                lat: 37.6158,
-                lon: 127.0636,
                 address: '서울특별시 노원구 석계로3길 17-1',
                 businessNum: '123-456-789',
                 categories: [2],
@@ -205,9 +230,8 @@ export class StoresService {
             },
             {
                 name: '후문식당',
-                lat: 37.6201,
-                lon: 127.0613,
                 address: '서울특별시 노원구 석계로13길 25-1',
+                addressDetail: '가든빌딩 지층 101호',
                 businessNum: '123-456-789',
                 categories: [2],
                 cookingTime: 15,
@@ -219,9 +243,8 @@ export class StoresService {
             },
             {
                 name: '베트남노상식당 광운대점',
-                lat: 37.6216,
-                lon: 127.0611,
-                address: '서울 노원구 광운로 46 (월계동, 대동아파트) 대동아파트상가 112, 113호',
+                address: '서울 노원구 광운로 46',
+                addressDetail: '대동아파트상가 112, 113호',
                 businessNum: '123-456-789',
                 categories: [2],
                 cookingTime: 15,
@@ -233,9 +256,8 @@ export class StoresService {
             },
             {
                 name: '맛닭꼬 광운대점',
-                lat: 37.6229,
-                lon: 127.0598,
-                address: '서울 노원구 광운로 61 국민은행',
+                address: '서울 노원구 광운로 61',
+                addressDetail: '1층',
                 businessNum: '123-456-789',
                 categories: [2],
                 cookingTime: 15,

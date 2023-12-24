@@ -27,4 +27,6 @@ export abstract class StoresException {
     static HAS_NO_PERMISSIONS = new CommonException('권한이 없습니다.', 2005, HttpStatus.FORBIDDEN);
 
     static NOT_APPROVED = new CommonException('운영 승인되지 않은 가게입니다.', 2006, HttpStatus.FORBIDDEN);
+
+    static INVALID_ADDRESS = new CommonException('유효하지 않은 도로명 주소입니다.', 2007, HttpStatus.BAD_REQUEST);
 }

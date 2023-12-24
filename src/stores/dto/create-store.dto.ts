@@ -1,17 +1,16 @@
 import {
     ArrayNotEmpty,
-    IsLatitude,
-    IsLongitude,
     IsNotEmpty,
     IsNotIn,
     IsNumber,
+    IsOptional,
     IsString,
     Length,
     ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-class OperationTimes {
+export class OperationTimes {
     @IsString()
     @Length(5, 5)
     startedAt: string;
@@ -41,16 +40,12 @@ export class CreateStoreDto {
     address: string;
 
     @IsString()
+    @IsOptional()
+    addressDetail?: string;
+
+    @IsString()
     @IsNotEmpty()
     phone: string;
-
-    @IsNotEmpty()
-    @IsLatitude()
-    lat: number;
-
-    @IsNotEmpty()
-    @IsLongitude()
-    lon: number;
 
     @IsNotEmpty()
     @IsNumber()

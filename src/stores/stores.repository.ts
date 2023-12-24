@@ -39,6 +39,10 @@ export class StoresRepository {
         return await this.categoryService.findSubs(superId);
     }
 
+    async saveStore(store: Store) {
+        return await this.stores.save(store);
+    }
+
     async findOneStore(
         where: FindOptionsWhere<Store>,
         select?: FindOptionsSelect<Store>,
@@ -61,10 +65,6 @@ export class StoresRepository {
 
     async updateStore(store: Store, partialEntity: QueryDeepPartialEntity<Store>) {
         await this.stores.update(store.id, partialEntity);
-
-        return await this.stores.findOneBy({
-            id: store.id,
-        });
     }
 
     async approve(entity: StoreApprove) {
@@ -72,7 +72,7 @@ export class StoresRepository {
             isApproved: true,
         });
 
-        return await this.entityManager
+        await this.entityManager
             .createQueryBuilder(StoreApprove, 'a')
             .leftJoinAndSelect(Store, 's', 's.id = a.store_id')
             .select('a.id AS id')
@@ -96,8 +96,7 @@ export class StoresRepository {
             }),
             detail: this.storeDetails.create({
                 address: dto.address,
-                lat: dto.lat,
-                lon: dto.lon,
+                addressDetail: dto.addressDetail ?? null,
                 phone: dto.phone,
                 cookingTime: dto.cookingTime,
                 operationTimes: dto.operationTimes,
@@ -109,12 +108,5 @@ export class StoresRepository {
         });
 
         await this.stores.save(newStore);
-
-        return await this.stores.findOne({
-            where: {
-                name: dto.name,
-            },
-            relations: ['detail'],
-        });
     }
 }

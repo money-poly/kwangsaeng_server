@@ -23,7 +23,7 @@ export class Store extends SoftDeleteEntity<Store> {
     @OneToOne(() => StoreApprove, (approve) => approve.store, { cascade: ['insert'] })
     approve: StoreApprove;
 
-    @OneToOne(() => StoreDetail, (detail) => detail.store, { cascade: ['insert'] })
+    @OneToOne(() => StoreDetail, (detail) => detail.store, { cascade: ['insert', 'update'] })
     detail: StoreDetail;
 
     @OneToOne(() => BusinessDetail, (businessDetail) => businessDetail.store, { cascade: ['insert'] })

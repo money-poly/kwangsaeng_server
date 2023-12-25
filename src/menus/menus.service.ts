@@ -155,6 +155,16 @@ export class MenusService {
         const salePrices = [9000, 12000, 11200, 10200, 10233, 22000, 15000, 13000];
         const descriptions = ['설명1', '설명2', '설명3', '설명4', '설명5', '설명6', '설명7', '설명8'];
         const storeId = [1, 2, 3, 1, 1, 2, 1, 1];
+        const countryOfOrigins = [
+            {
+                ingredient: '닭가슴살',
+                origin: '국내산',
+            },
+            {
+                ingredient: '김치',
+                origin: '호주산',
+            },
+        ];
         let i = 0;
         const isExist = await this.usersRepository.exist({
             name: '이사장',
@@ -177,6 +187,7 @@ export class MenusService {
                     status: MenuStatus.SALE,
                     description: descriptions[i],
                     storeId: storeInfo.id,
+                    countryOfOrigin: countryOfOrigins,
                 };
                 i++;
                 await this.menusRepository.create(storeInfo, { ...mockMenu });

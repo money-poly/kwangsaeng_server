@@ -39,9 +39,6 @@ export class Menu extends SoftDeleteEntity<Menu> {
     @Column({ comment: '메뉴에 관한 설명' })
     description: string;
 
-    @Column({ comment: '메뉴 순서', nullable: true })
-    order: number;
-
     @ManyToOne(() => Store, (store) => store.menus, { cascade: ['soft-remove'] })
     store: Store;
 

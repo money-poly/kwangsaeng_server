@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { MenusService } from 'src/menus/menus.service';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { CurrentUser } from 'src/global/decorator/current-user.decorator';
@@ -38,7 +38,7 @@ export class MenusController {
     }
 
     @Get('/seller/:storeId')
-    async findManyForSeller(@Param('storeId') storeId: number) {
-        return await this.menusService.findManyForSeller(storeId);
+    async findManyForSeller(@Param('storeId') storeId: number, @Query('status') status: string) {
+        return await this.menusService.findManyForSeller(storeId, status);
     }
 }

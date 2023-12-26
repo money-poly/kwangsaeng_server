@@ -83,7 +83,23 @@ export class MenusService {
         return menuDetailList;
     }
 
-    async findManyForSeller(storeId: number) {
+    async findManyForSeller(storeId: number, status?: string) {
+        let where = `menus.store_id = "${storeId}"`;
+        switch (status) {
+            case undefined: // status가 비어있는경우 -> 메뉴 전체 조회
+                break;
+            case 'sale':
+                where += ` AND menus.status = "판매중"`;
+                break;
+            case 'soldout':
+                where += ` AND menus.status = "품절"`;
+                break;
+            case 'hidden':
+                where += ` AND menus.status = "숨김"`;
+                break;
+            default:
+                throw MenusException.STATUS_NOT_FOUND;
+        }
         const data = await this.entityManager
             .createQueryBuilder(Menu, 'menus')
             .select(
@@ -92,7 +108,7 @@ export class MenusService {
             .addOrderBy(`menus.status = "${MenuStatus.SALE}"`, 'DESC')
             .addOrderBy(`menus.status = "${MenuStatus.SOLDOUT}"`, 'DESC')
             .addOrderBy(`menus.status = "${MenuStatus.HIDDEN}"`, 'DESC')
-            .where('menus.store_id = :storeId', { storeId })
+            .where(where)
             .getRawMany();
         return data;
     }

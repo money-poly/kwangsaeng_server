@@ -17,6 +17,7 @@ import { FindSimpleOneMenu } from './interface/find-simple-one-menu.interface';
 import { UpdateMenuArgs } from './interface/update-menu.interface';
 import { CAUTION_TEXT } from 'src/global/common/caution.constant';
 import { StoreDetail } from 'src/stores/entity/store-detail.entity';
+import { FindOneMenuDto } from './dto/find-one-menu.dto';
 
 @Injectable()
 export class MenusService {
@@ -48,8 +49,7 @@ export class MenusService {
         return this.menusRepository.delete(menu);
     }
 
-    async findDetailOne(menu: Menu, loc?): Promise<FindDetailOneMenu> {
-        const { lat, lon } = loc;
+    async findDetailOne(menu: Menu, loc?: FindOneMenuDto): Promise<FindDetailOneMenu> {
         const data = await this.entityManager
             .createQueryBuilder(Menu, 'menus')
             .leftJoinAndSelect(Store, 'stores', 'stores.id = menus.store_id')
@@ -65,15 +65,19 @@ export class MenusService {
             .getRawOne();
         const view = await this.menusRepository.findView(menu);
         const anotherMenus = await this.getMenusInStore(data.storeId, menu.id, 3);
-        const pickUpTime = (await this.measurePickUpTime(lat, data.lat, lon, data.lon)) + data.cookingTime;
-        const pickUpTimeStr = pickUpTime.toString() + '~' + (pickUpTime + 8).toString(); // TODO 문자열으로 변환 앞단 <-> 뒷단 협의 필요
+        let pickUpTimeStr = null;
+        if (loc) {
+            const { lat, lon } = loc;
+            const pickUpTime = (await this.measurePickUpTime(lat, data.lat, lon, data.lon)) + data.cookingTime;
+            pickUpTimeStr = pickUpTime.toString() + '~' + (pickUpTime + 8).toString();
+        }
         delete data.cookingTime;
         const caution = CAUTION_TEXT;
         const menuDetailList = {
             ...data,
             anotherMenus: anotherMenus ? anotherMenus : null, // 다른 메뉴가 없을 경우 null로 전송
             ...view,
-            cookingTime: pickUpTimeStr,
+            cookingTime: pickUpTimeStr ? pickUpTimeStr : null, // 사용자의 거리값을 안 보냈을 경우(update 시) null로 전송
             caution,
         };
         return menuDetailList;

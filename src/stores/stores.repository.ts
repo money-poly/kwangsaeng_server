@@ -17,6 +17,7 @@ import { User } from 'src/users/entity/user.entity';
 import { CategoriesService } from 'src/categories/categories.service';
 import { Category } from 'src/categories/entity/category.entity';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
+import { Menu } from 'src/menus/entity/menu.entity';
 
 @Injectable()
 export class StoresRepository {
@@ -108,5 +109,18 @@ export class StoresRepository {
         });
 
         await this.stores.save(newStore);
+    }
+
+    async addOrder(store: Store, menu: Menu) {
+        let newOrder;
+        const storeDetail = await this.storeDetails.findOne({ where: { store: { id: store.id } } });
+        storeDetail.menuOrders
+            ? (newOrder = { menuOrders: storeDetail.menuOrders + '-' + menu.id })
+            : (newOrder = { menuOrders: menu.id });
+        const newProduct = {
+            ...storeDetail,
+            ...newOrder,
+        };
+        await this.storeDetails.save(newProduct);
     }
 }

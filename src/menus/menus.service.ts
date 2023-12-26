@@ -37,6 +37,8 @@ export class MenusService {
         }
         await this.validateUserRole(user, Roles.OWNER);
         const createdId = await this.menusRepository.create(storeData, args);
+        const menuData: Menu = await this.menusRepository.findOne({ id: createdId });
+        await this.storesRepository.addOrder(storeData, menuData);
         return { menuId: createdId };
     }
 

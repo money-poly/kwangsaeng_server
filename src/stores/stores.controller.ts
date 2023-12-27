@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Put, UseGuards } from '@nestjs/common';
 import { StoresService } from './stores.service';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
@@ -14,6 +14,7 @@ import { UpdateStoreDto } from './dto/update-store.dto';
 import { TransformStoreInterceptor } from 'src/global/interceptor/transform-entity.interceptor';
 import { CurrentStore } from 'src/global/decorator/current-store.decorator';
 import { UseEntityTransformer } from 'src/global/decorator/entity-transformer.decorator';
+import { CAUTION_TEXT } from 'src/global/common/caution.constant';
 
 @Controller('stores')
 export class StoresController {
@@ -52,6 +53,12 @@ export class StoresController {
     @UseEntityTransformer<Store>(TransformStoreInterceptor)
     async approve(@CurrentStore() store: Store) {
         return await this.storesService.approve(store);
+    }
+
+    @Get(':storeId')
+    async findOneStore(@Param('storeId') storeId: number) {
+        const store = await this.storesService.findStore(storeId);
+        return { ...store, caution: CAUTION_TEXT };
     }
 
     @Put('/:storeId')

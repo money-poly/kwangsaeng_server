@@ -48,9 +48,10 @@ export class MenusController {
         return await this.menusService.findManyForSeller(store, status);
     }
 
-    @Put('/order/:store')
+    @Put('/order/:storeId')
     @UseEntityTransformer<Store>(TransformStoreInterceptor)
     async updateOrder(@CurrentStore() store: Store, @Body() dto: UpdateMenuOrderDto) {
+        console.log(store);
         return await this.menusService.updateOrder(store, dto);
     }
 }

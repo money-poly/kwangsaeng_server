@@ -18,7 +18,6 @@ import { CurrentStore } from 'src/global/decorator/current-store.decorator';
 @Controller('menus')
 export class MenusController {
     constructor(private readonly menusService: MenusService) {}
-
     @Get('/detail/:id')
     async findDetailOne(@Param('id', TransformMenuPipe) menu: Menu, @Body() loc: FindOneMenuDto) {
         return this.menusService.findDetailOne(menu, loc);
@@ -52,5 +51,10 @@ export class MenusController {
     @UseEntityTransformer<Store>(TransformStoreInterceptor)
     async updateOrder(@CurrentStore() store: Store, @Body() dto: UpdateMenuOrderDto) {
         return await this.menusService.updateOrder(store, dto);
+    }
+
+    @Get('/max-discount')
+    async findMaxDiscount() {
+        return await this.menusService.findMaxDiscount();
     }
 }

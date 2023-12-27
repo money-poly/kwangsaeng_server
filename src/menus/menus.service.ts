@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MenusRepository } from './menus.repository';
-import { EntityManager, FindManyOptions, FindOptionsWhere } from 'typeorm';
+import { EntityManager, FindManyOptions, FindOptionsWhere, createQueryBuilder } from 'typeorm';
 import { UsersRepository } from 'src/users/users.repository';
 import { StoresRepository } from 'src/stores/stores.repository';
 import { Store } from 'src/stores/entity/store.entity';
@@ -19,6 +19,7 @@ import { CAUTION_TEXT } from 'src/global/common/caution.constant';
 import { StoreDetail } from 'src/stores/entity/store-detail.entity';
 import { FindOneMenuDto } from './dto/find-one-menu.dto';
 import { UpdateMenuOrderDto } from './dto/update-order.dto';
+import { Category } from 'src/categories/entity/category.entity';
 
 @Injectable()
 export class MenusService {
@@ -121,12 +122,69 @@ export class MenusService {
         return await this.storesRepository.updateOrder(store, newOrder);
     }
 
+    async findMaxDiscount() {
+        let refindedData = [];
+        const subQuery = await this.entityManager
+            .createQueryBuilder(Store, 's')
+            .leftJoinAndSelect(Menu, 'm', 's.id = m.store_id')
+            .select('s.id')
+            .addSelect('MAX(discount_rate) AS discount_rate')
+            .where(`s.status = "open"`)
+            .andWhere(`m.status = "판매중"`)
+            .groupBy('s.id')
+            .getQuery();
+
+        const dataList = await this.entityManager
+            .createQueryBuilder(Store, 's')
+            .leftJoinAndSelect(StoreDetail, 'sd', 's.id = sd.store_id')
+            .leftJoinAndSelect(Menu, 'm', 's.id = m.store_id')
+            .leftJoin('store_categories', 'sc', 's.id = sc.stores_id') // store_categories 테이블과의 조인
+            .leftJoinAndSelect(Category, 'c', 'sc.categories_id = c.id')
+            .select('c.name', 'category')
+            .addSelect('s.name', 'storeName')
+            .addSelect('m.id', 'menuId')
+            .addSelect('m.name', 'menuName')
+            .addSelect('m.price', 'price')
+            .addSelect('m.sale_price', 'sellingPrice')
+            .addSelect('m.discount_rate', 'discountRate')
+            .addSelect('m.menu_picture_url', 'menuPictureUrl')
+            .where('(s.id, m.discount_rate) IN (' + subQuery + ')')
+            .orderBy('c.name')
+            .addOrderBy('m.discount_rate', 'DESC')
+            .addOrderBy('m.created_date')
+            .getRawMany();
+        let prevCategory;
+        for (const data of dataList) {
+            if (prevCategory != data.category) {
+                prevCategory = data.category;
+                refindedData.push(this.processDetailMenu(data));
+                // category, discount_rate, create_date순으로 정렬되어 있기 때문에, 반복문이 돌아가면서 카테고리가 변경됐을 경우 첫 번째 data가
+                // 그 카테고리 내에서 가장 할인율이 높고 등록된지 오래된 메뉴
+            }
+        }
+        return refindedData;
+    }
+
     async findOne(where: FindOptionsWhere<Menu>) {
         return await this.menusRepository.findOne(where);
     }
 
     async exist(where: FindManyOptions<Menu>) {
         return await this.menusRepository.exist(where);
+    }
+
+    private processDetailMenu(data) {
+        const store = { storeName: data.storeName };
+        const menu = {
+            id: data.menuId,
+            menuPictureUrl: data.menuPictureUrl,
+            name: data.menuName,
+            price: data.price,
+            discountRate: data.discountRate,
+            sellingPrice: data.sellingPrice,
+        };
+        const pushData = { category: data.category, store, menu };
+        return pushData;
     }
 
     private async validateUserRole(user: User, role: Roles) {

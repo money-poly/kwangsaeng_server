@@ -54,7 +54,7 @@ export class MenusController {
     }
 
     @Get('/max-discount')
-    async findMaxDiscount() {
-        return await this.menusService.findMaxDiscount();
+    async findMaxDiscount(@Body() dto: FindOneMenuDto) {
+        return await this.menusService.findMaxDiscount(dto);
     }
 }

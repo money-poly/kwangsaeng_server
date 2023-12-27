@@ -122,7 +122,7 @@ export class MenusService {
         return await this.storesRepository.updateOrder(store, newOrder);
     }
 
-    async findMaxDiscount() {
+    async findMaxDiscount(dto: FindOneMenuDto) {
         let refindedData = [];
         const subQuery = await this.entityManager
             .createQueryBuilder(Store, 's')
@@ -138,7 +138,7 @@ export class MenusService {
             .createQueryBuilder(Store, 's')
             .leftJoinAndSelect(StoreDetail, 'sd', 's.id = sd.store_id')
             .leftJoinAndSelect(Menu, 'm', 's.id = m.store_id')
-            .leftJoin('store_categories', 'sc', 's.id = sc.stores_id') // store_categories 테이블과의 조인
+            .leftJoin('store_categories', 'sc', 's.id = sc.stores_id')
             .leftJoinAndSelect(Category, 'c', 'sc.categories_id = c.id')
             .select('c.name', 'category')
             .addSelect('s.name', 'storeName')
@@ -149,6 +149,11 @@ export class MenusService {
             .addSelect('m.discount_rate', 'discountRate')
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
             .where('(s.id, m.discount_rate) IN (' + subQuery + ')')
+            .andWhere('ST_Distance_Sphere(POINT(:lon, :lat), POINT(sd.lon, sd.lat)) <= :range', {
+                lon: dto.lon,
+                lat: dto.lat,
+                range: 3000,
+            })
             .orderBy('c.name')
             .addOrderBy('m.discount_rate', 'DESC')
             .addOrderBy('m.created_date')
@@ -158,8 +163,8 @@ export class MenusService {
             if (prevCategory != data.category) {
                 prevCategory = data.category;
                 refindedData.push(this.processDetailMenu(data));
-                // category, discount_rate, create_date순으로 정렬되어 있기 때문에, 반복문이 돌아가면서 카테고리가 변경됐을 경우 첫 번째 data가
-                // 그 카테고리 내에서 가장 할인율이 높고 등록된지 오래된 메뉴
+                // category, discount_rate, create_date순으로 정렬되어 있기 때문에,
+                // 반복문이 돌아가면서 카테고리가 변경됐을 경우 첫 번째 data가 그 카테고리 내에서 가장 할인율이 높고 등록된지 오래된 메뉴
             }
         }
         return refindedData;

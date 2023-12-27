@@ -93,7 +93,7 @@ export class StoresRepository {
             businessDetail: this.businessDetails.create({
                 address: dto.address,
                 businessNum: dto.businessNum,
-                name: dto.name,
+                name: dto.businessLeaderName,
             }),
             detail: this.storeDetails.create({
                 address: dto.address,

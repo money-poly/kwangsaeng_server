@@ -27,6 +27,10 @@ export class CreateStoreDto {
 
     @IsString()
     @IsNotEmpty()
+    businessLeaderName: string;
+
+    @IsString()
+    @IsNotEmpty()
     businessNum: string;
 
     @ArrayNotEmpty()

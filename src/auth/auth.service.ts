@@ -13,7 +13,6 @@ import { SignUpDto } from './dto/sign-up.dto';
 import { ReissueTokensDto } from './dto/reissue-token.dto';
 import { SignInDto } from './dto/sign-in.dto';
 import { UsersException } from 'src/global/exception/users-exception';
-import { jwtConstants } from 'src/global/config/jwtConstants';
 
 @Injectable()
 export class AuthService {
@@ -66,8 +65,12 @@ export class AuthService {
 
         const payload = { ...user };
 
-        const accessToken = this.generateToken(payload, jwtConstants.ACCESS_SECRET, jwtConstants.ACCESS_EXPIRES);
-        const refreshToken = this.generateToken(payload, jwtConstants.REFRESH_SECRET, jwtConstants.REFRESH_EXPIRES);
+        const accessToken = this.generateToken(payload, process.env.JWT_ACCESS_SECRET, process.env.JWT_ACCESS_EXPIRES);
+        const refreshToken = this.generateToken(
+            payload,
+            process.env.JWT_REFRESH_SECRET,
+            process.env.JWT_REFRESH_EXPIRES,
+        );
 
         const accessTokenExp = this.getExpiredTime(accessToken);
         const refreshTokenExp = this.getExpiredTime(refreshToken);

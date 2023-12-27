@@ -4,7 +4,6 @@ import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { User } from 'src/users/entity/user.entity';
 import { AuthException } from 'src/global/exception/auth-exception';
-import { jwtConstants } from 'src/global/config/jwtConstants';
 
 interface RequestUser extends Request {
     user: User;
@@ -37,7 +36,7 @@ export class AuthGuard implements CanActivate {
     }
 
     private validateToken(token: string) {
-        const secretKey = jwtConstants.ACCESS_SECRET;
+        const secretKey = process.env.JWT_ACCESS_SECRET;
 
         try {
             const verify = this.jwtService.verify(token, { secret: secretKey });

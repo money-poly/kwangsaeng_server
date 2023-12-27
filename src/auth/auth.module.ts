@@ -8,14 +8,13 @@ import { Token } from './entity/token.entity';
 import { User } from 'src/users/entity/user.entity';
 import { TokensRepository } from './auth.repository';
 import { UsersRepository } from 'src/users/users.repository';
-import { jwtConstants } from 'src/global/config/jwtConstants';
 
 @Module({
     imports: [
         UsersModule,
         JwtModule.register({
             global: true,
-            secret: jwtConstants.ACCESS_SECRET,
+            secret: process.env.JWT_ACCESS_SECRET,
         }),
         TypeOrmModule.forFeature([Token, User]),
     ],

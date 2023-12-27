@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { MenusService } from 'src/menus/menus.service';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { CurrentUser } from 'src/global/decorator/current-user.decorator';
@@ -9,6 +9,11 @@ import { CreateMenuValidationPipe } from './pipe/create-menu-validation.pipe';
 import { TransformMenuPipe } from './pipe/transform-menu.pipe';
 import { Menu } from './entity/menu.entity';
 import { FindOneMenuDto } from './dto/find-one-menu.dto';
+import { UpdateMenuOrderDto } from './dto/update-order.dto';
+import { UseEntityTransformer } from 'src/global/decorator/entity-transformer.decorator';
+import { Store } from 'src/stores/entity/store.entity';
+import { TransformStoreInterceptor } from 'src/global/interceptor/transform-entity.interceptor';
+import { CurrentStore } from 'src/global/decorator/current-store.decorator';
 
 @Controller('menus')
 export class MenusController {
@@ -38,7 +43,14 @@ export class MenusController {
     }
 
     @Get('/seller/:storeId')
-    async findManyForSeller(@Param('storeId') storeId: number) {
-        return await this.menusService.findManyForSeller(storeId);
+    @UseEntityTransformer<Store>(TransformStoreInterceptor)
+    async findManyForSeller(@CurrentStore() store: Store, @Query('status') status: string) {
+        return await this.menusService.findManyForSeller(store, status);
+    }
+
+    @Put('/order/:storeId')
+    @UseEntityTransformer<Store>(TransformStoreInterceptor)
+    async updateOrder(@CurrentStore() store: Store, @Body() dto: UpdateMenuOrderDto) {
+        return await this.menusService.updateOrder(store, dto);
     }
 }

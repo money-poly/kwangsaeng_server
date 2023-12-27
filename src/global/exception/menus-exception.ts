@@ -7,7 +7,7 @@ export abstract class MenusException {
         3000,
         HttpStatus.UNPROCESSABLE_ENTITY,
     );
-
     static HAS_NO_PERMISSION_CREATE = new CommonException('메뉴 생성 권한이 없습니다.', 3001, HttpStatus.FORBIDDEN);
     static ENTITY_NOT_FOUND = new CommonException('존재하지 않는 메뉴입니다.', 3002, HttpStatus.NOT_FOUND);
+    static STATUS_NOT_FOUND = new CommonException('식별되지않은 메뉴 상태입니다.', 3003, HttpStatus.NOT_FOUND);
 }

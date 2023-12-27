@@ -31,16 +31,13 @@ export class Menu extends SoftDeleteEntity<Menu> {
     status: MenuStatus;
 
     @Column({ type: 'json', comment: '원산지 표기', nullable: true })
-    countryOfOrigin: string;
+    countryOfOrigin: { ingredient: string; origin: string }[];
 
     @Column({ comment: '메뉴 유통기한', nullable: true })
     expiredDate: Date;
 
     @Column({ comment: '메뉴에 관한 설명' })
     description: string;
-
-    @Column({ comment: '메뉴 순서', nullable: true })
-    order: number;
 
     @ManyToOne(() => Store, (store) => store.menus, { cascade: ['soft-remove'] })
     store: Store;

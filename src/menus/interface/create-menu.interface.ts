@@ -7,6 +7,7 @@ export interface CreateMenuArgs {
     description: string;
     status: MenuStatus;
     price: number;
+    countryOfOrigin?: { ingredient: string; origin: string }[];
     discountRate: number;
     salePrice: number;
 }

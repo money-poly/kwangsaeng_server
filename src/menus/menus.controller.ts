@@ -9,6 +9,11 @@ import { CreateMenuValidationPipe } from './pipe/create-menu-validation.pipe';
 import { TransformMenuPipe } from './pipe/transform-menu.pipe';
 import { Menu } from './entity/menu.entity';
 import { FindOneMenuDto } from './dto/find-one-menu.dto';
+import { UpdateMenuOrderDto } from './dto/update-order.dto';
+import { UseEntityTransformer } from 'src/global/decorator/entity-transformer.decorator';
+import { Store } from 'src/stores/entity/store.entity';
+import { TransformStoreInterceptor } from 'src/global/interceptor/transform-entity.interceptor';
+import { CurrentStore } from 'src/global/decorator/current-store.decorator';
 
 @Controller('menus')
 export class MenusController {
@@ -38,7 +43,14 @@ export class MenusController {
     }
 
     @Get('/seller/:storeId')
-    async findManyForSeller(@Param('storeId') storeId: number, @Query('status') status: string) {
-        return await this.menusService.findManyForSeller(storeId, status);
+    @UseEntityTransformer<Store>(TransformStoreInterceptor)
+    async findManyForSeller(@CurrentStore() store: Store, @Query('status') status: string) {
+        return await this.menusService.findManyForSeller(store, status);
+    }
+
+    @Put('/order/:store')
+    @UseEntityTransformer<Store>(TransformStoreInterceptor)
+    async updateOrder(@CurrentStore() store: Store, @Body() dto: UpdateMenuOrderDto) {
+        return await this.menusService.updateOrder(store, dto);
     }
 }

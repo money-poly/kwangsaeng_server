@@ -51,7 +51,6 @@ export class MenusController {
     @Put('/order/:storeId')
     @UseEntityTransformer<Store>(TransformStoreInterceptor)
     async updateOrder(@CurrentStore() store: Store, @Body() dto: UpdateMenuOrderDto) {
-        console.log(store);
         return await this.menusService.updateOrder(store, dto);
     }
 }

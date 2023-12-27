@@ -115,7 +115,7 @@ export class StoresRepository {
         let newOrder;
         const storeDetail = await this.storeDetails.findOne({ where: { store: { id: store.id } } });
         storeDetail.menuOrders
-            ? (newOrder = { menuOrders: storeDetail.menuOrders + '-' + menu.id })
+            ? (newOrder = { menuOrders: menu.id + '-' + storeDetail.menuOrders })
             : (newOrder = { menuOrders: menu.id });
         const newProduct = {
             ...storeDetail,

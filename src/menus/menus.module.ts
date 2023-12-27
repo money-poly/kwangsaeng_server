@@ -15,12 +15,14 @@ import { StoreDetail } from 'src/stores/entity/store-detail.entity';
 import { BusinessDetail } from 'src/stores/entity/business-detail.entity';
 import { StoreApprove } from 'src/stores/entity/store-approve.entity';
 import { CategoriesModule } from 'src/categories/categories.module';
+import { StoresModule } from 'src/stores/stores.module';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([Menu, Store, User, MenuView, StoreDetail, BusinessDetail, StoreApprove]),
         DynamooseModule.forFeature([{ name: 'Store-Menu', schema: DynamoSchema }]),
         CategoriesModule,
+        StoresModule,
     ],
     controllers: [MenusController],
     providers: [MenusService, MenusRepository, StoresRepository, UsersRepository],

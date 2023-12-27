@@ -123,4 +123,14 @@ export class StoresRepository {
         };
         await this.storeDetails.save(newProduct);
     }
+
+    async updateOrder(store: Store, order: string) {
+        const storeDetail = await this.storeDetails.findOne({ where: { store: { id: store.id } } });
+        const newOrder = { menuOrders: order };
+        const newProduct = {
+            ...storeDetail,
+            ...newOrder,
+        };
+        await this.storeDetails.save(newProduct);
+    }
 }

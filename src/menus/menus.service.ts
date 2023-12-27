@@ -18,6 +18,7 @@ import { UpdateMenuArgs } from './interface/update-menu.interface';
 import { CAUTION_TEXT } from 'src/global/common/caution.constant';
 import { StoreDetail } from 'src/stores/entity/store-detail.entity';
 import { FindOneMenuDto } from './dto/find-one-menu.dto';
+import { UpdateMenuOrderDto } from './dto/update-order.dto';
 
 @Injectable()
 export class MenusService {
@@ -85,8 +86,8 @@ export class MenusService {
         return menuDetailList;
     }
 
-    async findManyForSeller(storeId: number, status?: string) {
-        let where = `menus.store_id = "${storeId}"`;
+    async findManyForSeller(store: Store, status?: string) {
+        let where = `menus.store_id = "${store.id}"`;
         switch (status) {
             case undefined: // status가 비어있는경우 -> 메뉴 전체 조회
                 break;
@@ -113,6 +114,11 @@ export class MenusService {
             .where(where)
             .getRawMany();
         return data;
+    }
+
+    async updateOrder(store: Store, dto: UpdateMenuOrderDto) {
+        const newOrder = dto.order.join('-');
+        return await this.storesRepository.updateOrder(store, newOrder);
     }
 
     async findOne(where: FindOptionsWhere<Menu>) {

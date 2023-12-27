@@ -46,4 +46,4 @@ lerna-debug.log*
 !.vscode/extensions.json
 
 # AWS
-.aws
+.AWS

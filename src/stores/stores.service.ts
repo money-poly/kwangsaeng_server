@@ -247,7 +247,8 @@ export class StoresService {
             {
                 name: '베트남노상식당 광운대점',
                 businessLeaderName: '김대표',
-                address: '서울 노원구 광운로 46 (월계동, 대동아파트) 대동아파트상가 112, 113호',
+                address: '서울 노원구 광운로 46',
+                addressDetail: '대동아파트상가 112, 113호',
                 businessNum: '123-456-789',
                 categories: [2],
                 cookingTime: 15,
@@ -260,7 +261,7 @@ export class StoresService {
             {
                 name: '맛닭꼬 광운대점',
                 businessLeaderName: '김대표',
-                address: '서울 노원구 광운로 61 국민은행',
+                address: '서울 노원구 광운로 61',
                 businessNum: '123-456-789',
                 categories: [2],
                 cookingTime: 15,

@@ -4,7 +4,7 @@ import { WithoutTimestampEntity } from 'src/global/common/abstract.entity';
 
 @Entity({ name: 'business_detail' })
 export class BusinessDetail extends WithoutTimestampEntity<BusinessDetail> {
-    @Column({ comment: '대표자 성명', unique: true })
+    @Column({ comment: '대표자 성명' })
     name: string;
 
     @Column({ comment: '도로명 주소' })

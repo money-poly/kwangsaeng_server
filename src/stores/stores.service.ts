@@ -16,6 +16,7 @@ import { FindStoreWithLocationDto } from './dto/find-store-with-location.dto';
 import { StoreApprove } from './entity/store-approve.entity';
 import { StoreStatus } from './enum/store-status.enum';
 import { UpdateStoreDto } from './dto/update-store.dto';
+import { Category } from 'src/categories/entity/category.entity';
 @Injectable()
 export class StoresService {
     constructor(
@@ -58,6 +59,7 @@ export class StoresService {
                 addressDetail: dto.addressDetail ?? store.detail.addressDetail,
                 description: dto.description ?? store.detail.description,
                 operationTimes: dto.operationTimes ?? store.detail.operationTimes,
+                cookingTime: dto.cookingTime ?? store.detail.cookingTime,
                 phone: dto.phone ?? store.detail.phone,
                 storePictureUrl: dto.storePictureUrl ?? store.detail.storePictureUrl,
             },
@@ -86,6 +88,59 @@ export class StoresService {
         }
 
         return await this.storesRepository.approve(approve);
+    }
+
+    async findStore(storeId: number) {
+        const store = await this.findOneStore(
+            {
+                id: storeId,
+                approve: {
+                    isApproved: true,
+                },
+            },
+            {
+                id: true,
+                name: true,
+                status: true,
+                categories: {
+                    name: true,
+                },
+                detail: {
+                    address: true,
+                    addressDetail: true,
+                    lat: true,
+                    lon: true,
+                    phone: true,
+                    cookingTime: true,
+                    operationTimes: {
+                        startedAt: true,
+                        endedAt: true,
+                    },
+                    menuOrders: true,
+                },
+                menus: {
+                    id: true,
+                    name: true,
+                    menuPictureUrl: true,
+                    discountRate: true,
+                    salePrice: true,
+                    price: true,
+                    countryOfOrigin: true,
+                    description: true,
+                },
+            },
+            {
+                categories: true,
+                detail: true,
+                menus: true,
+            },
+        );
+
+        if (!store) {
+            throw StoresException.ENTITY_NOT_FOUND;
+        }
+
+        return store;
     }
 
     async findStoresWithLocation(dto: FindStoreWithLocationDto) {
@@ -205,10 +260,11 @@ export class StoresService {
         const dtos: CreateStoreDto[] = [
             {
                 name: '고씨네',
+                businessLeaderName: '김대표',
                 address: '서울특별시 노원구 월계동 광운로 17-5',
                 addressDetail: '1층',
                 businessNum: '123-456-789',
-                categories: [2],
+                categories: [3],
                 cookingTime: 20,
                 operationTimes: {
                     startedAt: '11:00',
@@ -218,9 +274,10 @@ export class StoresService {
             },
             {
                 name: '서민초밥',
+                businessLeaderName: '김대표',
                 address: '서울특별시 노원구 석계로3길 17-1',
                 businessNum: '123-456-789',
-                categories: [2],
+                categories: [3],
                 cookingTime: 35,
                 operationTimes: {
                     startedAt: '10:00',
@@ -230,10 +287,11 @@ export class StoresService {
             },
             {
                 name: '후문식당',
+                businessLeaderName: '김대표',
                 address: '서울특별시 노원구 석계로13길 25-1',
                 addressDetail: '가든빌딩 지층 101호',
                 businessNum: '123-456-789',
-                categories: [2],
+                categories: [3],
                 cookingTime: 15,
                 operationTimes: {
                     startedAt: '09:00',
@@ -243,10 +301,11 @@ export class StoresService {
             },
             {
                 name: '베트남노상식당 광운대점',
+                businessLeaderName: '김대표',
                 address: '서울 노원구 광운로 46',
                 addressDetail: '대동아파트상가 112, 113호',
                 businessNum: '123-456-789',
-                categories: [2],
+                categories: [3],
                 cookingTime: 15,
                 operationTimes: {
                     startedAt: '09:00',
@@ -256,10 +315,10 @@ export class StoresService {
             },
             {
                 name: '맛닭꼬 광운대점',
+                businessLeaderName: '김대표',
                 address: '서울 노원구 광운로 61',
-                addressDetail: '1층',
                 businessNum: '123-456-789',
-                categories: [2],
+                categories: [3],
                 cookingTime: 15,
                 operationTimes: {
                     startedAt: '09:00',

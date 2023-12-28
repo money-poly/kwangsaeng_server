@@ -93,7 +93,7 @@ export class StoresRepository {
             businessDetail: this.businessDetails.create({
                 address: dto.address,
                 businessNum: dto.businessNum,
-                name: dto.name,
+                name: dto.businessLeaderName,
             }),
             detail: this.storeDetails.create({
                 address: dto.address,
@@ -109,6 +109,11 @@ export class StoresRepository {
         });
 
         await this.stores.save(newStore);
+    }
+
+    async findOrder(store: Store) {
+        const storeDetailData = await this.storeDetails.findOne({ where: { store: { id: store.id } } });
+        return storeDetailData.menuOrders;
     }
 
     async addOrder(store: Store, menu: Menu) {

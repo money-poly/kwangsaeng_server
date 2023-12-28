@@ -12,4 +12,14 @@ export const validationSchema = Joi.object({
     DATABASE_PASSWORD: Joi.string().required(),
     DATABASE_NAME: Joi.string().required(),
     DATABASE_SYNC: Joi.boolean().required().default(false),
+
+    DYNAMODB_ACCESS_KEY: Joi.string().required(),
+    DYNAMODB_SECRET_KEY: Joi.string().required(),
+    DYNAMODB_REGION: Joi.string().required(),
+
+    // JWT
+    JWT_ACCESS_SECRET: Joi.string().required(),
+    JWT_ACCESS_EXPIRES: Joi.string().required(),
+    JWT_REFRESH_SECRET: Joi.string().required(),
+    JWT_REFRESH_EXPIRES: Joi.string().required(),
 });

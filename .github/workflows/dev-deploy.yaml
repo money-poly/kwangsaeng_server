@@ -50,7 +50,11 @@ jobs:
           DATABASE_SYNC: ${{ secrets.DEV_DATABASE_SYNC }}
           DYNAMODB_ACCESS_KEY: ${{ secrets.DEV_DYNAMODB_ACCESS_KEY }}
           DYNAMODB_SECRET_KEY: ${{ secrets.DEV_DYNAMODB_SECRET_KEY }}
-          DYNAMODB_REGION: ${{ secrets.DEV_DYNAMODB_REGION }}  
+          DYNAMODB_REGION: ${{ secrets.DEV_DYNAMODB_REGION }}
+          JWT_ACCESS_SECRET: ${{ secrets.JWT_ACCESS_SECRET }}
+          JWT_ACCESS_EXPIRES: ${{ secrets.JWT_ACCESS_EXPIRES }}
+          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
+          JWT_REFRESH_EXPIRES: ${{ secrets.JWT_REFRESH_EXPIRES }}
         with:
           service: dev-app-runner-kwangsaeng
           image: ${{ steps.build-image.outputs.image }}          
@@ -72,6 +76,10 @@ jobs:
             DYNAMODB_ACCESS_KEY
             DYNAMODB_SECRET_KEY
             DYNAMODB_REGION
+            JWT_ACCESS_SECRET
+            JWT_ACCESS_EXPIRES
+            JWT_REFRESH_SECRET
+            JWT_REFRESH_EXPIRES
           wait-for-service-stability: true
       
       - name: App Runner output

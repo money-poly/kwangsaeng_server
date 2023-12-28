@@ -104,6 +104,15 @@ export class MenusService {
             default:
                 throw MenusException.STATUS_NOT_FOUND;
         }
+
+        let orderBy = '';
+        const processingOrder = (await this.storesRepository.findOrder(store)).split('-');
+        while (processingOrder.length > 1) {
+            const menuId = processingOrder.pop();
+            orderBy += `menus.id = ${menuId} DESC, `;
+        } // 맨 마지막 순서(processingOrder[0])은 콤마와 DESC를 빼줘야하므로 분리
+        orderBy += `id = ${processingOrder[0]}`;
+
         const data = await this.entityManager
             .createQueryBuilder(Menu, 'menus')
             .select(
@@ -113,6 +122,7 @@ export class MenusService {
             .addOrderBy(`menus.status = "${MenuStatus.SOLDOUT}"`, 'DESC')
             .addOrderBy(`menus.status = "${MenuStatus.HIDDEN}"`, 'DESC')
             .where(where)
+            .orderBy(orderBy, 'DESC')
             .getRawMany();
         return data;
     }
@@ -281,7 +291,9 @@ export class MenusService {
                     countryOfOrigin: countryOfOrigins,
                 };
                 i++;
-                await this.menusRepository.create(storeInfo, { ...mockMenu });
+                const createdId = await this.menusRepository.create(storeInfo, { ...mockMenu });
+                const menuData: Menu = await this.menusRepository.findOne({ id: createdId });
+                await this.storesRepository.addOrder(storeInfo, menuData);
             }
         }
     }

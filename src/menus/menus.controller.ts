@@ -15,6 +15,8 @@ import { Store } from 'src/stores/entity/store.entity';
 import { TransformStoreInterceptor } from 'src/global/interceptor/transform-entity.interceptor';
 import { CurrentStore } from 'src/global/decorator/current-store.decorator';
 import { FindAsLocationDto } from './dto/find-as-loaction.dto';
+import { MenuFilterType } from './enum/discounted-menu-filter-type.enum';
+import { MenuStatus } from './enum/menu-status.enum';
 
 @Controller('menus')
 export class MenusController {
@@ -44,7 +46,7 @@ export class MenusController {
 
     @Get('/seller/:storeId')
     @UseEntityTransformer<Store>(TransformStoreInterceptor)
-    async findManyForSeller(@CurrentStore() store: Store, @Query('status') status: string) {
+    async findManyForSeller(@CurrentStore() store: Store, @Query('status') status: MenuStatus) {
         return await this.menusService.findManyForSeller(store, status);
     }
 
@@ -60,7 +62,7 @@ export class MenusController {
     }
 
     @Get('/discounted')
-    async findManyDiscount(@Body() dto: FindAsLocationDto) {
-        return await this.menusService.findManyDiscount(dto);
+    async findManyDiscount(@Query('type') type: MenuFilterType, @Body() dto: FindAsLocationDto) {
+        return await this.menusService.findManyDiscount(type, dto);
     }
 }

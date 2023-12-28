@@ -23,6 +23,7 @@ import { Category } from 'src/categories/entity/category.entity';
 import { FindAsLocationDto } from './dto/find-as-loaction.dto';
 import { MenuFilterType } from './enum/discounted-menu-filter-type.enum';
 import { StoreStatus } from 'src/stores/enum/store-status.enum';
+import e from 'express';
 
 @Injectable()
 export class MenusService {
@@ -179,6 +180,70 @@ export class MenusService {
 
     async findManyDiscount(type: MenuFilterType, dto: FindAsLocationDto) {
         let refindedData = [];
+        let orderBy;
+        switch (type) {
+            case MenuFilterType.DISTANCE:
+                orderBy = `ST_Distance_Sphere(POINT(${dto.lon}, ${dto.lat}), POINT(sd.lon, sd.lat))`;
+                break;
+            case MenuFilterType.LAST:
+                orderBy = 'm.created_date';
+                break;
+            case MenuFilterType.NAME:
+                orderBy = 'm.name';
+                break;
+            default:
+                throw MenusException.FILTER_TYPE_NOT_FOUND;
+        }
+
+        const dataList = await this.entityManager
+            .createQueryBuilder(Menu, 'm')
+            .leftJoinAndSelect(Store, 's', 'm.store_id = s.id')
+            .leftJoinAndSelect(StoreDetail, 'sd', 's.id = sd.store_id')
+            .leftJoinAndSelect('store_categories', 'sc', 'm.store_id = sc.stores_id')
+            .leftJoinAndSelect(Category, 'c', 'sc.categories_id = c.id')
+            .leftJoinAndSelect('menu_views', 'mv', 'm.id = mv.menu_id')
+            .select('c.name', 'category')
+            .addSelect('s.name', 'storeName')
+            .addSelect('m.id', 'menuId')
+            .addSelect('m.name', 'menuName')
+            .addSelect('m.price', 'price')
+            .addSelect('m.sale_price', 'sellingPrice')
+            .addSelect('m.discount_rate', 'discountRate')
+            .addSelect('m.menu_picture_url', 'menuPictureUrl')
+            .addSelect('mv.view_count', 'viewCount')
+            .where(`s.status = "${StoreStatus.OPEN}"`)
+            .andWhere(`m.status = "${MenuStatus.SALE}"`)
+            .andWhere('m.discount_rate > 0')
+            .orderBy('c.name')
+            .addOrderBy(orderBy, 'ASC')
+            .getRawMany();
+
+        let prevCategory = dataList[0].category;
+        let prevArray = [];
+        const allMenus = [];
+        for (const data of dataList) {
+            const menu = {
+                menuId: data.menuId,
+                menuName: data.menuName,
+                discountRate: data.discountRate,
+                sellingPrice: data.sellingPrice,
+                storeName: data.storeName,
+                menuPictureUrl: data.menuPictureUrl,
+                view: data.viewCount,
+            };
+            allMenus.push(menu);
+            if (prevCategory !== data.category) {
+                refindedData.push({ category: prevCategory, menus: prevArray });
+                prevCategory = data.category;
+                prevArray = [menu];
+            } else {
+                prevArray.push(menu);
+            }
+        }
+        refindedData.push({ category: prevCategory, menus: prevArray });
+        // 위에서 카테고리가 변경될때만 push해줬으므로 마지막 카테고리는 반영안됨. 그러므로 마지막에 별도로 push
+        refindedData.unshift({ category: '전체', menus: allMenus });
+        return refindedData;
     }
 
     async findOne(where: FindOptionsWhere<Menu>) {
@@ -190,6 +255,20 @@ export class MenusService {
     }
 
     private processDetailMenu(data) {
+        const menu = {
+            id: data.menuId,
+            menuPictureUrl: data.menuPictureUrl,
+            name: data.menuName,
+            price: data.price,
+            discountRate: data.discountRate,
+            sellingPrice: data.sellingPrice,
+        };
+        const store = { name: data.storeName, menu };
+        const pushData = { category: data.category, store };
+        return pushData;
+    }
+
+    private processDiscountedMenus(data) {
         const menu = {
             id: data.menuId,
             menuPictureUrl: data.menuPictureUrl,

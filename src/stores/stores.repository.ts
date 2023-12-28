@@ -111,6 +111,11 @@ export class StoresRepository {
         await this.stores.save(newStore);
     }
 
+    async findOrder(store: Store) {
+        const storeDetailData = await this.storeDetails.findOne({ where: { store: { id: store.id } } });
+        return storeDetailData.menuOrders;
+    }
+
     async addOrder(store: Store, menu: Menu) {
         let newOrder;
         const storeDetail = await this.storeDetails.findOne({ where: { store: { id: store.id } } });

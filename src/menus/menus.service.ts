@@ -105,24 +105,18 @@ export class MenusService {
                 throw MenusException.STATUS_NOT_FOUND;
         }
 
-        let orderBy = '';
-        const processingOrder = (await this.storesRepository.findOrder(store)).split('-');
-        while (processingOrder.length > 1) {
-            const menuId = processingOrder.pop();
-            orderBy += `menus.id = ${menuId} DESC, `;
-        } // 맨 마지막 순서(processingOrder[0])은 콤마와 DESC를 빼줘야하므로 분리
-        orderBy += `id = ${processingOrder[0]}`;
+        const orderBy = await this.storesRepository.processOrderBy(store);
 
         const data = await this.entityManager
             .createQueryBuilder(Menu, 'menus')
             .select(
                 'menus.id, menus.name, menus.discount_rate AS discountRate, menus.sale_price AS sellingPrice, menus.price, menus.menu_picture_url AS menuPictureUrl, menus.status',
             )
-            .addOrderBy(`menus.status = "${MenuStatus.SALE}"`, 'DESC')
+            .where(where)
+            .orderBy(`menus.status = "${MenuStatus.SALE}"`, 'DESC')
             .addOrderBy(`menus.status = "${MenuStatus.SOLDOUT}"`, 'DESC')
             .addOrderBy(`menus.status = "${MenuStatus.HIDDEN}"`, 'DESC')
-            .where(where)
-            .orderBy(orderBy, 'DESC')
+            .addOrderBy(orderBy, 'DESC')
             .getRawMany();
         return data;
     }

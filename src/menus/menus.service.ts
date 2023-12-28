@@ -20,6 +20,7 @@ import { StoreDetail } from 'src/stores/entity/store-detail.entity';
 import { FindOneMenuDto } from './dto/find-one-menu.dto';
 import { UpdateMenuOrderDto } from './dto/update-order.dto';
 import { Category } from 'src/categories/entity/category.entity';
+import { FindAsLocationDto } from './dto/find-as-loaction.dto';
 
 @Injectable()
 export class MenusService {
@@ -126,7 +127,7 @@ export class MenusService {
         return await this.storesRepository.updateOrder(store, newOrder);
     }
 
-    async findMaxDiscount(dto: FindOneMenuDto) {
+    async findMaxDiscount(dto: FindAsLocationDto) {
         let refindedData = [];
         const subQuery = await this.entityManager
             .createQueryBuilder(Store, 's')
@@ -173,6 +174,8 @@ export class MenusService {
         }
         return refindedData;
     }
+
+    async findManyDiscount(dto: FindAsLocationDto) {}
 
     async findOne(where: FindOptionsWhere<Menu>) {
         return await this.menusRepository.findOne(where);

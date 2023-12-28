@@ -1,6 +1,6 @@
 import { IsLatitude, IsLongitude, IsNotEmpty } from 'class-validator';
 
-export class FindOneMenuDto {
+export class FindAsLocationDto {
     @IsLatitude()
     @IsNotEmpty()
     lat: number;

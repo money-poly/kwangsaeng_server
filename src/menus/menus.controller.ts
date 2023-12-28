@@ -14,6 +14,7 @@ import { UseEntityTransformer } from 'src/global/decorator/entity-transformer.de
 import { Store } from 'src/stores/entity/store.entity';
 import { TransformStoreInterceptor } from 'src/global/interceptor/transform-entity.interceptor';
 import { CurrentStore } from 'src/global/decorator/current-store.decorator';
+import { FindAsLocationDto } from './dto/find-as-loaction.dto';
 
 @Controller('menus')
 export class MenusController {
@@ -54,7 +55,12 @@ export class MenusController {
     }
 
     @Get('/max-discount')
-    async findMaxDiscount(@Body() dto: FindOneMenuDto) {
+    async findMaxDiscount(@Body() dto: FindAsLocationDto) {
         return await this.menusService.findMaxDiscount(dto);
+    }
+
+    @Get('/discounted')
+    async findManyDiscount(@Body() dto: FindAsLocationDto) {
+        return await this.menusService.findManyDiscount(dto);
     }
 }

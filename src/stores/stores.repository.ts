@@ -116,6 +116,17 @@ export class StoresRepository {
         return storeDetailData.menuOrders;
     }
 
+    async processOrderBy(store: Store) {
+        let orderBy = '';
+        const processingOrder = (await this.findOrder(store)).split('-');
+        while (processingOrder.length > 1) {
+            const menuId = processingOrder.pop();
+            orderBy += `menus.id = ${menuId} DESC, `;
+        } // 맨 마지막 순서(processingOrder[0])은 콤마와 DESC를 빼줘야하므로 분리
+        orderBy += `id = ${processingOrder[0]}`;
+        return orderBy;
+    }
+
     async addOrder(store: Store, menu: Menu) {
         let newOrder;
         const storeDetail = await this.storeDetails.findOne({ where: { store: { id: store.id } } });

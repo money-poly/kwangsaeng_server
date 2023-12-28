@@ -21,6 +21,8 @@ import { FindOneMenuDto } from './dto/find-one-menu.dto';
 import { UpdateMenuOrderDto } from './dto/update-order.dto';
 import { Category } from 'src/categories/entity/category.entity';
 import { FindAsLocationDto } from './dto/find-as-loaction.dto';
+import { MenuFilterType } from './enum/discounted-menu-filter-type.enum';
+import { StoreStatus } from 'src/stores/enum/store-status.enum';
 
 @Injectable()
 export class MenusService {
@@ -88,19 +90,19 @@ export class MenusService {
         return menuDetailList;
     }
 
-    async findManyForSeller(store: Store, status?: string) {
+    async findManyForSeller(store: Store, status?: MenuStatus) {
         let where = `menus.store_id = "${store.id}"`;
         switch (status) {
             case undefined: // status가 비어있는경우 -> 메뉴 전체 조회
                 break;
-            case 'sale':
-                where += ` AND menus.status = "판매중"`;
+            case MenuStatus.SALE:
+                where += ` AND menus.status = "${MenuStatus.SALE}"`;
                 break;
-            case 'soldout':
-                where += ` AND menus.status = "품절"`;
+            case MenuStatus.SOLDOUT:
+                where += ` AND menus.status = "${MenuStatus.SOLDOUT}"`;
                 break;
-            case 'hidden':
-                where += ` AND menus.status = "숨김"`;
+            case MenuStatus.HIDDEN:
+                where += ` AND menus.status = "${MenuStatus.HIDDEN}"`;
                 break;
             default:
                 throw MenusException.STATUS_NOT_FOUND;
@@ -134,15 +136,15 @@ export class MenusService {
             .leftJoinAndSelect(Menu, 'm', 's.id = m.store_id')
             .select('s.id')
             .addSelect('MAX(discount_rate) AS discount_rate')
-            .where(`s.status = "open"`)
-            .andWhere(`m.status = "판매중"`)
+            .where(`s.status = "${StoreStatus.OPEN}"`)
+            .andWhere(`m.status = "${MenuStatus.SALE}"`)
             .groupBy('s.id')
             .getQuery();
 
         const dataList = await this.entityManager
             .createQueryBuilder(Store, 's')
-            .leftJoinAndSelect(StoreDetail, 'sd', 's.id = sd.store_id')
             .leftJoinAndSelect(Menu, 'm', 's.id = m.store_id')
+            .leftJoinAndSelect(StoreDetail, 'sd', 's.id = sd.store_id')
             .leftJoin('store_categories', 'sc', 's.id = sc.stores_id')
             .leftJoinAndSelect(Category, 'c', 'sc.categories_id = c.id')
             .select('c.name', 'category')
@@ -175,7 +177,9 @@ export class MenusService {
         return refindedData;
     }
 
-    async findManyDiscount(dto: FindAsLocationDto) {}
+    async findManyDiscount(type: MenuFilterType, dto: FindAsLocationDto) {
+        let refindedData = [];
+    }
 
     async findOne(where: FindOptionsWhere<Menu>) {
         return await this.menusRepository.findOne(where);
@@ -186,7 +190,6 @@ export class MenusService {
     }
 
     private processDetailMenu(data) {
-        const store = { storeName: data.storeName };
         const menu = {
             id: data.menuId,
             menuPictureUrl: data.menuPictureUrl,
@@ -195,7 +198,8 @@ export class MenusService {
             discountRate: data.discountRate,
             sellingPrice: data.sellingPrice,
         };
-        const pushData = { category: data.category, store, menu };
+        const store = { name: data.storeName, menu };
+        const pushData = { category: data.category, store };
         return pushData;
     }
 

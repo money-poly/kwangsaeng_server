@@ -10,12 +10,14 @@ import { AuthModule } from './auth/auth.module';
 import dynamoConfiguration from './global/config/dynamo.configuration';
 import { CategoriesModule } from './categories/categories.module';
 import { InitializeService } from './initialize.service';
+import { SmsModule } from './sms/sms.module';
+import twilioConfiguration from './global/config/twilio.configuration';
 
 @Module({
     imports: [
         ConfigModule.forRoot({
             isGlobal: true,
-            load: [databaseConfiguration, dynamoConfiguration],
+            load: [databaseConfiguration, dynamoConfiguration, twilioConfiguration],
             envFilePath: __dirname + `/../src/global/config/envs/.${process.env.NODE_ENV}.env`,
             validationSchema,
         }),
@@ -25,6 +27,7 @@ import { InitializeService } from './initialize.service';
         MenusModule,
         AuthModule,
         CategoriesModule,
+        SmsModule,
     ],
     providers: [Logger, InitializeService],
 })

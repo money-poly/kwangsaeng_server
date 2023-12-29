@@ -5,10 +5,16 @@ import { TokensModel } from './model/auth.model';
 import { SignUpDto } from './dto/sign-up.dto';
 import { SignInDto } from './dto/sign-in.dto';
 import { ReissueTokensDto } from './dto/reissue-token.dto';
+import { SmsService } from 'src/sms/sms.service';
+import { SendVerifiactionCodeDto } from './dto/send-verification-code.dto';
+import { VerifyCodeDto } from './dto/verify-code.dto';
 
 @Controller('auth')
 export class AuthController {
-    constructor(private authService: AuthService) {}
+    constructor(
+        private authService: AuthService,
+        private readonly smsService: SmsService,
+    ) {}
 
     @Post('signUp/:roles')
     signUp(@Param('roles') role: Roles, @Body() dto: SignUpDto): Promise<TokensModel> {
@@ -23,5 +29,16 @@ export class AuthController {
     @Post('reissue')
     reissueTokens(@Body() dto: ReissueTokensDto): Promise<TokensModel> {
         return this.authService.issueTokens(dto);
+    }
+
+    // TODO: 승건님이 계정 업그레이드 하면 => 개발 완료 => 문서화
+    @Post('verification/send')
+    sendVerificationCode(@Body() dto: SendVerifiactionCodeDto) {
+        return this.smsService.sendVerificationCode(dto);
+    }
+
+    @Post('verification/verify')
+    verifyCode(@Body() dto: VerifyCodeDto) {
+        return this.smsService.checkVerificationCode(dto);
     }
 }

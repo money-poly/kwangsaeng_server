@@ -1,4 +1,4 @@
-import { IsLatitude, IsLongitude, IsNotEmpty, IsNumber } from 'class-validator';
+import { IsLatitude, IsLongitude, IsNotEmpty, IsString } from 'class-validator';
 
 export class FindStoreWithLocationDto {
     @IsLatitude()
@@ -9,7 +9,7 @@ export class FindStoreWithLocationDto {
     @IsNotEmpty()
     lon: number;
 
-    @IsNumber()
+    @IsString()
     @IsNotEmpty()
     range: number;
 }

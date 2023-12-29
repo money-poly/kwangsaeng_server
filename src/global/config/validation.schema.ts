@@ -22,4 +22,9 @@ export const validationSchema = Joi.object({
     JWT_ACCESS_EXPIRES: Joi.string().required(),
     JWT_REFRESH_SECRET: Joi.string().required(),
     JWT_REFRESH_EXPIRES: Joi.string().required(),
+
+    // TWILIO
+    TWILIO_SID: Joi.string().required(),
+    TWILIO_AUTH_TOKEN: Joi.string().required(),
+    TWILIO_VERIFY_SERVICE_SID: Joi.string().required(),
 });

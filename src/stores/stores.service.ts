@@ -16,7 +16,6 @@ import { FindStoreWithLocationDto } from './dto/find-store-with-location.dto';
 import { StoreApprove } from './entity/store-approve.entity';
 import { StoreStatus } from './enum/store-status.enum';
 import { UpdateStoreDto } from './dto/update-store.dto';
-import { Category } from 'src/categories/entity/category.entity';
 @Injectable()
 export class StoresService {
     constructor(
@@ -88,6 +87,21 @@ export class StoresService {
         }
 
         return await this.storesRepository.approve(approve);
+    }
+
+    async onMapFindStore(storeId: number) {
+        const qb = await this.entityManager
+            .createQueryBuilder(Store, 's')
+            .leftJoinAndSelect(StoreDetail, 'sd', 'sd.store_id = s.id')
+            .leftJoinAndSelect(Menu, 'm', 'm.store_id = s.id')
+            .select('s.name AS name')
+            .addSelect('sd.store_picture_url AS storePictureUrl')
+            .addSelect('sd.description AS description')
+            .addSelect('IFNULL(MAX(m.discount_rate), 0) maxDiscount')
+            .where('s.id = :storeId', { storeId })
+            .getRawOne();
+
+        return qb;
     }
 
     async findStore(storeId: number) {
@@ -337,5 +351,24 @@ export class StoresService {
                 i++;
             }
         }
+    }
+
+    async basicInfo(storeId: number) {
+        let query =
+            'SELECT s.name AS name, s.status, bd.name AS businessLeaderName, c.name AS category, sd.store_picture_url AS storePictureUrl, ';
+        query += 'COUNT(m.id) AS totalMenuCount, IFNULL(SUM(m.sale_price < price), 0) discountMenuCount ';
+        query += 'FROM stores AS s ';
+        query += 'LEFT JOIN store_detail sd ON sd.store_id = s.id ';
+        query += 'LEFT JOIN business_detail bd ON bd.store_id = s.id ';
+        query += 'LEFT JOIN store_categories sc ON sc.stores_id = s.id ';
+        query += 'LEFT JOIN categories c ON sc.categories_id = c.id ';
+        query += 'LEFT JOIN menus m ON m.store_id = s.id ';
+        query += 'WHERE s.id = ? ';
+        query += 'group by s.name, s.status, bd.name, c.name, sd.store_picture_url';
+        // TODO: tags 추가
+
+        const sql = await this.entityManager.query(query, [storeId]);
+
+        return sql[0];
     }
 }

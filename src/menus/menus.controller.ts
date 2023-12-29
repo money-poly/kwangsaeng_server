@@ -45,12 +45,14 @@ export class MenusController {
     }
 
     @Get('/seller/:storeId')
+    @UseGuards(AuthGuard)
     @UseEntityTransformer<Store>(TransformStoreInterceptor)
     async findManyForSeller(@CurrentStore() store: Store, @Query('status') status: MenuStatus) {
         return await this.menusService.findManyForSeller(store, status);
     }
 
     @Put('/order/:storeId')
+    @UseGuards(AuthGuard)
     @UseEntityTransformer<Store>(TransformStoreInterceptor)
     async updateOrder(@CurrentStore() store: Store, @Body() dto: UpdateMenuOrderDto) {
         return await this.menusService.updateOrder(store, dto);

@@ -39,7 +39,7 @@ export class Menu extends SoftDeleteEntity<Menu> {
     @Column({ comment: '메뉴에 관한 설명' })
     description: string;
 
-    @ManyToOne(() => Store, (store) => store.menus, { cascade: ['soft-remove'] })
+    @ManyToOne(() => Store, (store) => store.menus, { onDelete: 'CASCADE', cascade: ['soft-remove'] })
     store: Store;
 
     @OneToOne(() => MenuView, (view) => view.menu, { cascade: ['insert'] })

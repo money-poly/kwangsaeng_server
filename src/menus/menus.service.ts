@@ -126,7 +126,7 @@ export class MenusService {
     }
 
     async updateOrder(store: Store, dto: UpdateMenuOrderDto) {
-        const newOrder = dto.order.join('-');
+        const newOrder = dto.order;
         return await this.storesRepository.updateOrder(store, newOrder);
     }
 

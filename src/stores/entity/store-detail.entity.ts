@@ -38,8 +38,12 @@ export class StoreDetail extends AbstractEntity<StoreDetail> {
     @Column({ nullable: true, comment: '고정 휴무일' })
     closedDays: string;
 
-    @Column({ nullable: true, comment: '메뉴 순서(menuId)' })
-    menuOrders: string;
+    @Column({
+        type: 'simple-array',
+        nullable: true,
+        comment: '메뉴 순서(menuId)',
+    })
+    menuOrders: number[];
 
     @OneToOne(() => Tag, { nullable: true })
     @JoinColumn()

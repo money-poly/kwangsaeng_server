@@ -117,7 +117,7 @@ export class StoresRepository {
     }
 
     async processOrderBy(store: Store) {
-        let orderBy = 'FIELD(';
+        let orderBy = 'FIELD(m.id, ';
         const processingOrder = await this.findOrder(store);
         while (processingOrder.length > 1) {
             const menuId = processingOrder.pop();

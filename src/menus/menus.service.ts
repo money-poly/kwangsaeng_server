@@ -166,6 +166,9 @@ export class MenusService {
             .addOrderBy('m.discount_rate', 'DESC')
             .addOrderBy('m.created_date')
             .getRawMany();
+        if (!dataList.length) {
+            throw MenusException.ANY_MENUS_NOT_FOUND;
+        }
         let prevCategory;
         for (const data of dataList) {
             if (prevCategory != data.category) {
@@ -217,6 +220,9 @@ export class MenusService {
             .orderBy('c.name')
             .addOrderBy(orderBy, 'ASC')
             .getRawMany();
+        if (!dataList.length) {
+            throw MenusException.ANY_MENUS_NOT_FOUND;
+        }
 
         let prevCategory = dataList[0].category;
         let prevArray = [];
@@ -255,20 +261,6 @@ export class MenusService {
     }
 
     private processDetailMenu(data) {
-        const menu = {
-            id: data.menuId,
-            menuPictureUrl: data.menuPictureUrl,
-            name: data.menuName,
-            price: data.price,
-            discountRate: data.discountRate,
-            sellingPrice: data.sellingPrice,
-        };
-        const store = { name: data.storeName, menu };
-        const pushData = { category: data.category, store };
-        return pushData;
-    }
-
-    private processDiscountedMenus(data) {
         const menu = {
             id: data.menuId,
             menuPictureUrl: data.menuPictureUrl,

@@ -14,11 +14,13 @@ import { UseEntityTransformer } from 'src/global/decorator/entity-transformer.de
 import { Store } from 'src/stores/entity/store.entity';
 import { TransformStoreInterceptor } from 'src/global/interceptor/transform-entity.interceptor';
 import { CurrentStore } from 'src/global/decorator/current-store.decorator';
+import { FindAsLocationDto } from './dto/find-as-loaction.dto';
+import { MenuFilterType } from './enum/discounted-menu-filter-type.enum';
+import { MenuStatus } from './enum/menu-status.enum';
 
 @Controller('menus')
 export class MenusController {
     constructor(private readonly menusService: MenusService) {}
-
     @Get('/detail/:id')
     async findDetailOne(@Param('id', TransformMenuPipe) menu: Menu, @Body() loc: FindOneMenuDto) {
         return this.menusService.findDetailOne(menu, loc);
@@ -44,7 +46,7 @@ export class MenusController {
 
     @Get('/seller/:storeId')
     @UseEntityTransformer<Store>(TransformStoreInterceptor)
-    async findManyForSeller(@CurrentStore() store: Store, @Query('status') status: string) {
+    async findManyForSeller(@CurrentStore() store: Store, @Query('status') status: MenuStatus) {
         return await this.menusService.findManyForSeller(store, status);
     }
 
@@ -52,5 +54,15 @@ export class MenusController {
     @UseEntityTransformer<Store>(TransformStoreInterceptor)
     async updateOrder(@CurrentStore() store: Store, @Body() dto: UpdateMenuOrderDto) {
         return await this.menusService.updateOrder(store, dto);
+    }
+
+    @Get('/max-discount')
+    async findMaxDiscount(@Body() dto: FindAsLocationDto) {
+        return await this.menusService.findMaxDiscount(dto);
+    }
+
+    @Get('/discounted')
+    async findManyDiscount(@Query('type') type: MenuFilterType, @Body() dto: FindAsLocationDto) {
+        return await this.menusService.findManyDiscount(type, dto);
     }
 }

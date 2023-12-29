@@ -116,20 +116,29 @@ export class StoresRepository {
         return storeDetailData.menuOrders;
     }
 
+    async processOrderBy(store: Store) {
+        let orderBy = 'FIELD(';
+        const processingOrder = await this.findOrder(store);
+        while (processingOrder.length > 1) {
+            const menuId = processingOrder.pop();
+            orderBy += menuId + ', ';
+        }
+        orderBy += processingOrder[0] + `)`; // 맨 마지막 id는 콤마를 붙여주면 안되니 별도로 추가
+        return orderBy;
+    }
+
     async addOrder(store: Store, menu: Menu) {
-        let newOrder;
         const storeDetail = await this.storeDetails.findOne({ where: { store: { id: store.id } } });
-        storeDetail.menuOrders
-            ? (newOrder = { menuOrders: menu.id + '-' + storeDetail.menuOrders })
-            : (newOrder = { menuOrders: menu.id });
+        const newOrder = storeDetail.menuOrders ? storeDetail.menuOrders : [];
+        newOrder.unshift(menu.id);
         const newProduct = {
             ...storeDetail,
-            ...newOrder,
+            menuOrders: newOrder,
         };
         await this.storeDetails.save(newProduct);
     }
 
-    async updateOrder(store: Store, order: string) {
+    async updateOrder(store: Store, order: number[]) {
         const storeDetail = await this.storeDetails.findOne({ where: { store: { id: store.id } } });
         const newOrder = { menuOrders: order };
         const newProduct = {

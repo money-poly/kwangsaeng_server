@@ -25,4 +25,6 @@ export const validationSchema = Joi.object({
 
     // ALIGO
     ALIGO_API_KEY: Joi.string().required(),
+    ALIGO_USER_ID: Joi.string().required(),
+    ALIGO_SENDER: Joi.string().required(),
 });

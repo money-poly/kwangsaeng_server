@@ -1,86 +1,92 @@
-name: Deploy to App Runner - Image based 
+name: Deploy to App Runner - Image based
 on:
-  push:
-    branches: [ develop ] # Trigger workflow on git push to main branch
-  workflow_dispatch: # Allow manual invocation of the workflow
-jobs:  
-  deploy:
-    runs-on: ubuntu-latest
-    
-    steps:      
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          persist-credentials: false
-          
-      - name: Configure AWS credentials
-        id: aws-credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-northeast-1
+    push:
+        branches: [develop] # Trigger workflow on git push to main branch
+    workflow_dispatch: # Allow manual invocation of the workflow
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1        
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v3
+              with:
+                  persist-credentials: false
 
-      - name: Build, tag, and push image to Amazon ECR
-        id: build-image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: kwangsaeng
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"  
-          
-      - name: Deploy to App Runner
-        id: deploy-apprunner
-        uses: awslabs/amazon-app-runner-deploy@main
-        env: 
-          SERVER_PORT: ${{ secrets.DEV_SERVER_PORT }}
-          DATABASE_TYPE: ${{ secrets.DEV_DATABASE_TYPE }}
-          DATABASE_HOST: ${{ secrets.DEV_DATABASE_HOST }}
-          DATABASE_PORT: ${{ secrets.DEV_DATABASE_PORT }}
-          DATABASE_USERNAME: ${{ secrets.DEV_DATABASE_USERNAME }}
-          DATABASE_PASSWORD: ${{ secrets.DEV_DATABASE_PASSWORD }}
-          DATABASE_NAME: ${{ secrets.DEV_DATABASE_NAME }}
-          DATABASE_SYNC: ${{ secrets.DEV_DATABASE_SYNC }}
-          DYNAMODB_ACCESS_KEY: ${{ secrets.DEV_DYNAMODB_ACCESS_KEY }}
-          DYNAMODB_SECRET_KEY: ${{ secrets.DEV_DYNAMODB_SECRET_KEY }}
-          DYNAMODB_REGION: ${{ secrets.DEV_DYNAMODB_REGION }}
-          JWT_ACCESS_SECRET: ${{ secrets.JWT_ACCESS_SECRET }}
-          JWT_ACCESS_EXPIRES: ${{ secrets.JWT_ACCESS_EXPIRES }}
-          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
-          JWT_REFRESH_EXPIRES: ${{ secrets.JWT_REFRESH_EXPIRES }}
-        with:
-          service: dev-app-runner-kwangsaeng
-          image: ${{ steps.build-image.outputs.image }}          
-          access-role-arn: ${{ secrets.ROLE_ARN }}
-          runtime: NODEJS_16          
-          region: ap-northeast-1
-          cpu : 1
-          memory : 2
-          port: 3000
-          copy-env-vars: |
-            SERVER_PORT
-            DATABASE_TYPE
-            DATABASE_HOST
-            DATABASE_PORT
-            DATABASE_USERNAME
-            DATABASE_PASSWORD
-            DATABASE_NAME
-            DATABASE_SYNC
-            DYNAMODB_ACCESS_KEY
-            DYNAMODB_SECRET_KEY
-            DYNAMODB_REGION
-            JWT_ACCESS_SECRET
-            JWT_ACCESS_EXPIRES
-            JWT_REFRESH_SECRET
-            JWT_REFRESH_EXPIRES
-          wait-for-service-stability: true
-      
-      - name: App Runner output
-        run: echo "App runner output ${{ steps.deploy-apprunner.outputs.service-id }}"
+            - name: Configure AWS credentials
+              id: aws-credentials
+              uses: aws-actions/configure-aws-credentials@v1
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws-region: ap-northeast-1
+
+            - name: Login to Amazon ECR
+              id: login-ecr
+              uses: aws-actions/amazon-ecr-login@v1
+
+            - name: Build, tag, and push image to Amazon ECR
+              id: build-image
+              env:
+                  ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+                  ECR_REPOSITORY: kwangsaeng
+                  IMAGE_TAG: ${{ github.sha }}
+              run: |
+                  docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+                  docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+                  echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+            - name: Deploy to App Runner
+              id: deploy-apprunner
+              uses: awslabs/amazon-app-runner-deploy@main
+              env:
+                  SERVER_PORT: ${{ secrets.DEV_SERVER_PORT }}
+                  DATABASE_TYPE: ${{ secrets.DEV_DATABASE_TYPE }}
+                  DATABASE_HOST: ${{ secrets.DEV_DATABASE_HOST }}
+                  DATABASE_PORT: ${{ secrets.DEV_DATABASE_PORT }}
+                  DATABASE_USERNAME: ${{ secrets.DEV_DATABASE_USERNAME }}
+                  DATABASE_PASSWORD: ${{ secrets.DEV_DATABASE_PASSWORD }}
+                  DATABASE_NAME: ${{ secrets.DEV_DATABASE_NAME }}
+                  DATABASE_SYNC: ${{ secrets.DEV_DATABASE_SYNC }}
+                  DYNAMODB_ACCESS_KEY: ${{ secrets.DEV_DYNAMODB_ACCESS_KEY }}
+                  DYNAMODB_SECRET_KEY: ${{ secrets.DEV_DYNAMODB_SECRET_KEY }}
+                  DYNAMODB_REGION: ${{ secrets.DEV_DYNAMODB_REGION }}
+                  JWT_ACCESS_SECRET: ${{ secrets.JWT_ACCESS_SECRET }}
+                  JWT_ACCESS_EXPIRES: ${{ secrets.JWT_ACCESS_EXPIRES }}
+                  JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
+                  JWT_REFRESH_EXPIRES: ${{ secrets.JWT_REFRESH_EXPIRES }}
+                  ALIGO_API_KEY: ${{ secrets.ALIGO_API_KEY }}
+                  ALIGO_USER_ID: ${{ secrets.ALIGO_USER_ID }}
+                  ALIGO_SENDER: ${{ secrets.ALIGO_SENDER }}
+              with:
+                  service: dev-app-runner-kwangsaeng
+                  image: ${{ steps.build-image.outputs.image }}
+                  access-role-arn: ${{ secrets.ROLE_ARN }}
+                  runtime: NODEJS_16
+                  region: ap-northeast-1
+                  cpu: 1
+                  memory: 2
+                  port: 3000
+                  copy-env-vars: |
+                      SERVER_PORT
+                      DATABASE_TYPE
+                      DATABASE_HOST
+                      DATABASE_PORT
+                      DATABASE_USERNAME
+                      DATABASE_PASSWORD
+                      DATABASE_NAME
+                      DATABASE_SYNC
+                      DYNAMODB_ACCESS_KEY
+                      DYNAMODB_SECRET_KEY
+                      DYNAMODB_REGION
+                      JWT_ACCESS_SECRET
+                      JWT_ACCESS_EXPIRES
+                      JWT_REFRESH_SECRET
+                      JWT_REFRESH_EXPIRES
+                      ALIGO_API_KEY
+                      ALIGO_USER_ID
+                      ALIGO_SENDER
+                  wait-for-service-stability: true
+
+            - name: App Runner output
+              run: echo "App runner output ${{ steps.deploy-apprunner.outputs.service-id }}"

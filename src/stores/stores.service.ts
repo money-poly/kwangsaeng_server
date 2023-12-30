@@ -113,6 +113,7 @@ export class StoresService {
             .leftJoinAndSelect(StoreDetail, 'sd', 's.id = sd.store_id')
             .leftJoin('store_categories', 'sc', 's.id = sc.stores_id')
             .leftJoinAndSelect(Category, 'c', 'sc.categories_id = c.id')
+            .leftJoinAndSelect(User, 'u', 'u.id = s.user_id')
             .select('s.id', 'storeId')
             .addSelect('s.name', 'storeName')
             .addSelect('s.status', 'storeStatus')
@@ -121,7 +122,7 @@ export class StoresService {
             .addSelect('sd.address_detail', 'addressDetail')
             .addSelect('sd.lat', 'lat')
             .addSelect('sd.lon', 'lon')
-            .addSelect('sd.phone', 'phone')
+            .addSelect('u.phone', 'phone')
             .addSelect('sd.cooking_time', 'cookingTime')
             .addSelect('sd.operation_times', 'operationTimes')
             .addSelect('sd.menu_orders', 'menuOrders')
@@ -137,6 +138,9 @@ export class StoresService {
             .andWhere('sa.is_approved = :isApproved', { isApproved: 1 })
             .orderBy(orderBy, 'DESC')
             .getRawMany();
+        if (!dataList.length) {
+            throw StoresException.NOT_APPROVED;
+        }
 
         const menuList = [];
         for (const menu of dataList) {

@@ -17,6 +17,7 @@ import { StoreApprove } from './entity/store-approve.entity';
 import { StoreStatus } from './enum/store-status.enum';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { Category } from 'src/categories/entity/category.entity';
+import { FindStoreDetailDto } from './dto/find-store-detail.dto';
 @Injectable()
 export class StoresService {
     constructor(
@@ -104,7 +105,7 @@ export class StoresService {
         return qb;
     }
 
-    async findStore(storeId: number) {
+    async findStore(storeId: number, dto: FindStoreDetailDto) {
         const orderBy = await this.storesRepository.processOrderBy(await this.findOneStore({ id: storeId }));
         const dataList = await this.entityManager
             .createQueryBuilder(Menu, 'm')
@@ -134,8 +135,15 @@ export class StoresService {
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
             .addSelect('m.country_of_origin', 'countryOfOrigin')
             .addSelect('m.description', 'description')
+            .addSelect(
+                `CASE WHEN ST_Distance_Sphere(POINT(sd.lon, sd.lat), POINT(:lon, :lat)) <= 200 THEN 7
+        WHEN ST_Distance_Sphere(POINT(sd.lon, sd.lat), POINT(:lon, :lat)) <= 500 THEN 10
+        WHEN ST_Distance_Sphere(POINT(sd.lon, sd.lat), POINT(:lon, :lat)) <= 1000 THEN 15 ELSE 20
+        END AS pickupTime`,
+            )
             .where('s.id = :storeId', { storeId: storeId })
             .andWhere('sa.is_approved = :isApproved', { isApproved: 1 })
+            .setParameters({ lat: dto.lat, lon: dto.lon })
             .orderBy(orderBy, 'DESC')
             .getRawMany();
         if (!dataList.length) {
@@ -168,6 +176,7 @@ export class StoresService {
                 phone: dataList[0].phone,
                 cookingTime: dataList[0].cookingTime,
                 operationTimes: dataList[0].operationTimes,
+                pickupTime: dataList[0].pickupTime,
                 menuOrders: dataList[0].menuOrders,
             },
             menus: menuList,

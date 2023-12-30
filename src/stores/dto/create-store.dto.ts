@@ -47,10 +47,6 @@ export class CreateStoreDto {
     @IsOptional()
     addressDetail?: string;
 
-    @IsString()
-    @IsNotEmpty()
-    phone: string;
-
     @IsNotEmpty()
     @IsNumber()
     cookingTime: number;

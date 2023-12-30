@@ -8,6 +8,7 @@ import { Token } from './entity/token.entity';
 import { User } from 'src/users/entity/user.entity';
 import { TokensRepository } from './auth.repository';
 import { UsersRepository } from 'src/users/users.repository';
+import { SmsModule } from 'src/sms/sms.module';
 
 @Module({
     imports: [
@@ -17,6 +18,7 @@ import { UsersRepository } from 'src/users/users.repository';
             secret: process.env.JWT_ACCESS_SECRET,
         }),
         TypeOrmModule.forFeature([Token, User]),
+        SmsModule,
     ],
     controllers: [AuthController],
     providers: [AuthService, Logger, TokensRepository, UsersRepository],

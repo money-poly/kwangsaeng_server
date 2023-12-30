@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { StoresService } from './stores.service';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
@@ -30,15 +30,14 @@ export class StoresController {
     }
 
     @Get('/map/location')
-    async findStoresWithLocation(@Body() dto: FindStoreWithLocationDto) {
+    async findStoresWithLocation(@Query() dto: FindStoreWithLocationDto) {
         return await this.storesService.findStoresWithLocation(dto);
     }
 
-    // TODO: 메뉴 얼추 완성되면 디자인에 맞게 API 수정 필요
     @Get('/map/:storeId')
-    @UseEntityTransformer<Store>(TransformStoreInterceptor)
-    onMapFindOne(@CurrentStore() store: Store) {
-        return store;
+    @UseGuards(OperationGuard)
+    onMapFindOne(@Param('storeId', ParseIntPipe) storeId: number) {
+        return this.storesService.onMapFindStore(storeId);
     }
 
     @Patch('status/:storeId')
@@ -86,5 +85,11 @@ export class StoresController {
     })
     async updateStore(@CurrentStore() store: Store, @Body() dto: UpdateStoreDto) {
         return await this.storesService.updateStore(store, dto);
+    }
+
+    @Get('basic/:storeId')
+    @UseGuards(AuthGuard, OperationGuard, OwnerGuard)
+    async basicInfo(@Param('storeId', ParseIntPipe) storeId: number) {
+        return await this.storesService.basicInfo(storeId);
     }
 }

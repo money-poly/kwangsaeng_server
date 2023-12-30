@@ -15,6 +15,7 @@ import { TransformStoreInterceptor } from 'src/global/interceptor/transform-enti
 import { CurrentStore } from 'src/global/decorator/current-store.decorator';
 import { UseEntityTransformer } from 'src/global/decorator/entity-transformer.decorator';
 import { CAUTION_TEXT } from 'src/global/common/caution.constant';
+import { FindStoreDetailDto } from './dto/find-store-detail.dto';
 
 @Controller('stores')
 export class StoresController {
@@ -55,8 +56,8 @@ export class StoresController {
     }
 
     @Get(':storeId')
-    async findOneStore(@Param('storeId') storeId: number) {
-        const store = await this.storesService.findStore(storeId);
+    async findOneStore(@Param('storeId') storeId: number, @Query() dto: FindStoreDetailDto) {
+        const store = await this.storesService.findStore(storeId, dto);
         return { ...store, caution: CAUTION_TEXT };
     }
 

@@ -105,51 +105,69 @@ export class StoresService {
     }
 
     async findStore(storeId: number) {
-        const store = await this.findOneStore(
-            {
-                id: storeId,
-                approve: {
-                    isApproved: true,
-                },
-            },
-            {
-                id: true,
-                name: true,
-                status: true,
-                categories: {
-                    name: true,
-                },
-                detail: {
-                    address: true,
-                    addressDetail: true,
-                    lat: true,
-                    lon: true,
-                    phone: true,
-                    cookingTime: true,
-                    operationTimes: {
-                        startedAt: true,
-                        endedAt: true,
-                    },
-                    menuOrders: true,
-                },
-                menus: {
-                    id: true,
-                    name: true,
-                    menuPictureUrl: true,
-                    discountRate: true,
-                    salePrice: true,
-                    price: true,
-                    countryOfOrigin: true,
-                    description: true,
-                },
-            },
-            {
-                categories: true,
-                detail: true,
-                menus: true,
-            },
-        );
+        const orderBy = await this.storesRepository.processOrderBy(await this.findOneStore({ id: storeId }));
+        const dataList = await this.entityManager
+            .createQueryBuilder(Menu, 'm')
+            .leftJoinAndSelect(Store, 's', 's.id = m.store_id')
+            .leftJoinAndSelect(StoreApprove, 'sa', 's.id = sa.store_id')
+            .leftJoinAndSelect(StoreDetail, 'sd', 's.id = sd.store_id')
+            .leftJoin('store_categories', 'sc', 's.id = sc.stores_id')
+            .leftJoinAndSelect(Category, 'c', 'sc.categories_id = c.id')
+            .select('s.id', 'storeId')
+            .addSelect('s.name', 'storeName')
+            .addSelect('s.status', 'storeStatus')
+            .addSelect('c.name', 'category')
+            .addSelect('sd.address', 'address')
+            .addSelect('sd.address_detail', 'addressDetail')
+            .addSelect('sd.lat', 'lat')
+            .addSelect('sd.lon', 'lon')
+            .addSelect('sd.phone', 'phone')
+            .addSelect('sd.cooking_time', 'cookingTime')
+            .addSelect('sd.operation_times', 'operationTimes')
+            .addSelect('sd.menu_orders', 'menuOrders')
+            .addSelect('m.id', 'menuId')
+            .addSelect('m.name', 'menuName')
+            .addSelect('m.discount_rate', 'discountRate')
+            .addSelect('m.sale_price', 'salePrice')
+            .addSelect('m.price', 'price')
+            .addSelect('m.menu_picture_url', 'menuPictureUrl')
+            .addSelect('m.country_of_origin', 'countryOfOrigin')
+            .addSelect('m.description', 'description')
+            .where('s.id = :storeId', { storeId })
+            .andWhere('sa.is_approved = :isApproved', { isApproved: 1 })
+            .orderBy(orderBy, 'DESC')
+            .getRawMany();
 
+        const menuList = [];
+        for (const menu of dataList) {
+            const refinedMenuData = {
+                id: menu.menuId,
+                name: menu.menuName,
+                discountRate: menu.discountRate,
+                salePrice: menu.salePrice,
+                price: menu.price,
+                menuPictureUrl: menu.menuPictureUrl,
+                countryOfOrigin: menu.countryOfOrigin,
+                description: menu.description,
+            };
+            menuList.push(refinedMenuData);
+        }
+        const store = {
+            id: dataList[0].storeId,
+            name: dataList[0].storeName,
+            categories: [{ name: dataList[0].category }],
+            detail: {
+                address: dataList[0].address,
+                addressDetail: dataList[0].addressDetail,
+                lat: dataList[0].lat,
+                lon: dataList[0].lon,
+                phone: dataList[0].phone,
+                cookingTime: dataList[0].cookingTime,
+                operationTimes: dataList[0].operationTimes,
+                menuOrders: dataList[0].menuOrders,
+            },
+            menus: menuList,
+        };
         if (!store) {
             throw StoresException.ENTITY_NOT_FOUND;
         }

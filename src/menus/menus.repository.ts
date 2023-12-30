@@ -59,7 +59,7 @@ export class MenusRepository {
     }
 
     async delete(menu: Menu) {
-        await this.menus.delete({ id: menu.id });
+        await this.menus.softDelete({ id: menu.id });
     }
 
     async create(store: Store, args: CreateMenuArgs) {

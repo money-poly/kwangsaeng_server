@@ -92,18 +92,18 @@ export class MenusService {
     }
 
     async findManyForSeller(store: Store, status?: MenuStatus) {
-        let where = `menus.store_id = "${store.id}"`;
+        let where = `m.store_id = "${store.id}"`;
         switch (status) {
             case undefined: // status가 비어있는경우 -> 메뉴 전체 조회
                 break;
             case MenuStatus.SALE:
-                where += ` AND menus.status = "${MenuStatus.SALE}"`;
+                where += ` AND m.status = "${MenuStatus.SALE}"`;
                 break;
             case MenuStatus.SOLDOUT:
-                where += ` AND menus.status = "${MenuStatus.SOLDOUT}"`;
+                where += ` AND m.status = "${MenuStatus.SOLDOUT}"`;
                 break;
             case MenuStatus.HIDDEN:
-                where += ` AND menus.status = "${MenuStatus.HIDDEN}"`;
+                where += ` AND m.status = "${MenuStatus.HIDDEN}"`;
                 break;
             default:
                 throw MenusException.STATUS_NOT_FOUND;
@@ -112,14 +112,14 @@ export class MenusService {
         const orderBy = await this.storesRepository.processOrderBy(store);
 
         const data = await this.entityManager
-            .createQueryBuilder(Menu, 'menus')
+            .createQueryBuilder(Menu, 'm')
             .select(
-                'menus.id, menus.name, menus.discount_rate AS discountRate, menus.sale_price AS sellingPrice, menus.price, menus.menu_picture_url AS menuPictureUrl, menus.status',
+                'm.id, m.name, m.discount_rate AS discountRate, m.sale_price AS sellingPrice, m.price, m.menu_picture_url AS menuPictureUrl, m.status',
             )
             .where(where)
-            .orderBy(`menus.status = "${MenuStatus.SALE}"`, 'DESC')
-            .addOrderBy(`menus.status = "${MenuStatus.SOLDOUT}"`, 'DESC')
-            .addOrderBy(`menus.status = "${MenuStatus.HIDDEN}"`, 'DESC')
+            .orderBy(`m.status = "${MenuStatus.SALE}"`, 'DESC')
+            .addOrderBy(`m.status = "${MenuStatus.SOLDOUT}"`, 'DESC')
+            .addOrderBy(`m.status = "${MenuStatus.HIDDEN}"`, 'DESC')
             .addOrderBy(orderBy, 'DESC')
             .getRawMany();
         return data;
@@ -166,6 +166,9 @@ export class MenusService {
             .addOrderBy('m.discount_rate', 'DESC')
             .addOrderBy('m.created_date')
             .getRawMany();
+        if (!dataList.length) {
+            throw MenusException.ANY_MENUS_NOT_FOUND;
+        }
         let prevCategory;
         for (const data of dataList) {
             if (prevCategory != data.category) {
@@ -217,6 +220,9 @@ export class MenusService {
             .orderBy('c.name')
             .addOrderBy(orderBy, 'ASC')
             .getRawMany();
+        if (!dataList.length) {
+            throw MenusException.ANY_MENUS_NOT_FOUND;
+        }
 
         let prevCategory = dataList[0].category;
         let prevArray = [];
@@ -255,20 +261,6 @@ export class MenusService {
     }
 
     private processDetailMenu(data) {
-        const menu = {
-            id: data.menuId,
-            menuPictureUrl: data.menuPictureUrl,
-            name: data.menuName,
-            price: data.price,
-            discountRate: data.discountRate,
-            sellingPrice: data.sellingPrice,
-        };
-        const store = { name: data.storeName, menu };
-        const pushData = { category: data.category, store };
-        return pushData;
-    }
-
-    private processDiscountedMenus(data) {
         const menu = {
             id: data.menuId,
             menuPictureUrl: data.menuPictureUrl,

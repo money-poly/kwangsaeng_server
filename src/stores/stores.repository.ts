@@ -18,6 +18,7 @@ import { CategoriesService } from 'src/categories/categories.service';
 import { Category } from 'src/categories/entity/category.entity';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 import { Menu } from 'src/menus/entity/menu.entity';
+import { StoresException } from 'src/global/exception/stores-exception';
 
 @Injectable()
 export class StoresRepository {
@@ -112,7 +113,11 @@ export class StoresRepository {
 
     async findOrder(store: Store) {
         const storeDetailData = await this.storeDetails.findOne({ where: { store: { id: store.id } } });
-        return storeDetailData.menuOrders;
+        const order = storeDetailData.menuOrders;
+        if (!order) {
+            throw StoresException.ORDER_NOT_FOUND;
+        }
+        return order;
     }
 
     async processOrderBy(store: Store) {

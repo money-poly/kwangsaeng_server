@@ -29,4 +29,6 @@ export abstract class StoresException {
     static NOT_APPROVED = new CommonException('운영 승인되지 않은 가게입니다.', 2006, HttpStatus.FORBIDDEN);
 
     static INVALID_ADDRESS = new CommonException('유효하지 않은 도로명 주소입니다.', 2007, HttpStatus.BAD_REQUEST);
+
+    static ORDER_NOT_FOUND = new CommonException('메뉴의 순서를 찾을 수 없습니다.', 2008, HttpStatus.NOT_FOUND);
 }

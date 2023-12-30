@@ -16,6 +16,7 @@ import { FindStoreWithLocationDto } from './dto/find-store-with-location.dto';
 import { StoreApprove } from './entity/store-approve.entity';
 import { StoreStatus } from './enum/store-status.enum';
 import { UpdateStoreDto } from './dto/update-store.dto';
+import { Category } from 'src/categories/entity/category.entity';
 @Injectable()
 export class StoresService {
     constructor(
@@ -59,7 +60,6 @@ export class StoresService {
                 description: dto.description ?? store.detail.description,
                 operationTimes: dto.operationTimes ?? store.detail.operationTimes,
                 cookingTime: dto.cookingTime ?? store.detail.cookingTime,
-                phone: dto.phone ?? store.detail.phone,
                 storePictureUrl: dto.storePictureUrl ?? store.detail.storePictureUrl,
             },
         });
@@ -133,7 +133,7 @@ export class StoresService {
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
             .addSelect('m.country_of_origin', 'countryOfOrigin')
             .addSelect('m.description', 'description')
-            .where('s.id = :storeId', { storeId })
+            .where('s.id = :storeId', { storeId: storeId })
             .andWhere('sa.is_approved = :isApproved', { isApproved: 1 })
             .orderBy(orderBy, 'DESC')
             .getRawMany();
@@ -302,7 +302,6 @@ export class StoresService {
                     startedAt: '11:00',
                     endedAt: '24:00',
                 },
-                phone: '010-1234-5678',
             },
             {
                 name: '서민초밥',
@@ -315,7 +314,6 @@ export class StoresService {
                     startedAt: '10:00',
                     endedAt: '21:00',
                 },
-                phone: '010-1234-5678',
             },
             {
                 name: '후문식당',
@@ -329,7 +327,6 @@ export class StoresService {
                     startedAt: '09:00',
                     endedAt: '21:00',
                 },
-                phone: '010-1234-5678',
             },
             {
                 name: '베트남노상식당 광운대점',
@@ -343,7 +340,6 @@ export class StoresService {
                     startedAt: '09:00',
                     endedAt: '21:00',
                 },
-                phone: '010-1234-5678',
             },
             {
                 name: '맛닭꼬 광운대점',
@@ -356,7 +352,6 @@ export class StoresService {
                     startedAt: '09:00',
                     endedAt: '21:00',
                 },
-                phone: '010-1234-5678',
             },
         ];
 

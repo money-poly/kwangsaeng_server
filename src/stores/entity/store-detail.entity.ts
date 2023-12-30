@@ -23,9 +23,6 @@ export class StoreDetail extends AbstractEntity<StoreDetail> {
     @Column({ nullable: true, comment: '가게 소개글' })
     description: string;
 
-    @Column({ nullable: true, comment: '가게 전화번호' })
-    phone: string;
-
     @Column({ nullable: true, comment: '가게 소개 사진' })
     storePictureUrl: string;
 

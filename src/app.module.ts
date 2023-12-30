@@ -11,13 +11,14 @@ import dynamoConfiguration from './global/config/dynamo.configuration';
 import { CategoriesModule } from './categories/categories.module';
 import { InitializeService } from './initialize.service';
 import { SmsModule } from './sms/sms.module';
-import twilioConfiguration from './global/config/twilio.configuration';
+import { CacheModule } from './cache/cache.module';
+import aligoConfiguration from './global/config/aligo.configuration';
 
 @Module({
     imports: [
         ConfigModule.forRoot({
             isGlobal: true,
-            load: [databaseConfiguration, dynamoConfiguration, twilioConfiguration],
+            load: [databaseConfiguration, dynamoConfiguration, aligoConfiguration],
             envFilePath: __dirname + `/../src/global/config/envs/.${process.env.NODE_ENV}.env`,
             validationSchema,
         }),
@@ -28,6 +29,7 @@ import twilioConfiguration from './global/config/twilio.configuration';
         AuthModule,
         CategoriesModule,
         SmsModule,
+        CacheModule,
     ],
     providers: [Logger, InitializeService],
 })

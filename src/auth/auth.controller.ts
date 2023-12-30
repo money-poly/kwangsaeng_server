@@ -31,7 +31,6 @@ export class AuthController {
         return this.authService.issueTokens(dto);
     }
 
-    // TODO: 승건님이 계정 업그레이드 하면 => 개발 완료 => 문서화
     @Post('verification/send')
     sendVerificationCode(@Body() dto: SendVerifiactionCodeDto) {
         return this.smsService.sendVerificationCode(dto);

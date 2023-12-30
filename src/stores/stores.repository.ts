@@ -98,7 +98,6 @@ export class StoresRepository {
             detail: this.storeDetails.create({
                 address: dto.address,
                 addressDetail: dto.addressDetail ?? null,
-                phone: dto.phone,
                 cookingTime: dto.cookingTime,
                 operationTimes: dto.operationTimes,
             }),

@@ -1,11 +1,4 @@
-import { IsLatitude, IsLongitude, IsNotEmpty } from 'class-validator';
+import { PickType } from '@nestjs/mapped-types';
+import { FindAsLocationDto } from './find-as-loaction.dto';
 
-export class FindOneMenuDto {
-    @IsLatitude()
-    @IsNotEmpty()
-    lat: number;
-
-    @IsLongitude()
-    @IsNotEmpty()
-    lon: number;
-}
+export class FindOneMenuDetailDto extends PickType(FindAsLocationDto, ['lat', 'lon']) {}

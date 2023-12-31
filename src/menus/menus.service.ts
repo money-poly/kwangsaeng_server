@@ -17,13 +17,12 @@ import { FindSimpleOneMenu } from './interface/find-simple-one-menu.interface';
 import { UpdateMenuArgs } from './interface/update-menu.interface';
 import { CAUTION_TEXT } from 'src/global/common/caution.constant';
 import { StoreDetail } from 'src/stores/entity/store-detail.entity';
-import { FindOneMenuDto } from './dto/find-one-menu.dto';
+import { FindOneMenuDetailDto } from './dto/find-one-menu.dto';
 import { UpdateMenuOrderDto } from './dto/update-order.dto';
 import { Category } from 'src/categories/entity/category.entity';
 import { FindAsLocationDto } from './dto/find-as-loaction.dto';
 import { MenuFilterType } from './enum/discounted-menu-filter-type.enum';
 import { StoreStatus } from 'src/stores/enum/store-status.enum';
-import e from 'express';
 
 @Injectable()
 export class MenusService {
@@ -57,7 +56,7 @@ export class MenusService {
         return this.menusRepository.delete(menu);
     }
 
-    async findDetailOne(menu: Menu, loc?: FindOneMenuDto): Promise<FindDetailOneMenu> {
+    async findDetailOne(menu: Menu, loc?: FindOneMenuDetailDto): Promise<FindDetailOneMenu> {
         const data = await this.entityManager
             .createQueryBuilder(Menu, 'menus')
             .leftJoinAndSelect(Store, 'stores', 'stores.id = menus.store_id')

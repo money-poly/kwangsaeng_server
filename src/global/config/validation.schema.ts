@@ -13,9 +13,9 @@ export const validationSchema = Joi.object({
     DATABASE_NAME: Joi.string().required(),
     DATABASE_SYNC: Joi.boolean().required().default(false),
 
-    DYNAMODB_ACCESS_KEY: Joi.string().required(),
-    DYNAMODB_SECRET_KEY: Joi.string().required(),
-    DYNAMODB_REGION: Joi.string().required(),
+    AWS_ACCESS_KEY: Joi.string().required(),
+    AWS_SECRET_KEY: Joi.string().required(),
+    AWS_REGION: Joi.string().required(),
 
     // JWT
     JWT_ACCESS_SECRET: Joi.string().required(),

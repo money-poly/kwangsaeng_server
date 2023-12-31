@@ -15,9 +15,9 @@ import dynamoConfiguration from 'src/global/config/dynamo.configuration';
             inject: [dynamoConfiguration.KEY],
             useFactory: (config: ConfigType<typeof dynamoConfiguration>) => ({
                 aws: {
-                    accessKeyId: config.dynamoAccessKey,
-                    secretAccessKey: config.dynamoSecretKey,
-                    region: config.region,
+                    accessKeyId: config.awsAccessKey,
+                    secretAccessKey: config.awsSecretKey,
+                    region: config.awsRegion,
                 },
             }),
         }),

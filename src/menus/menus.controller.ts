@@ -80,4 +80,11 @@ export class MenusController {
     async findManyDiscount(@Query('type') type: MenuFilterType, @Query() dto: FindAsLocationDto) {
         return await this.menusService.findManyDiscount(type, dto);
     }
+
+    @Post('upload/:storeId')
+    @UseGuards(AuthGuard)
+    @UseInterceptors(FileInterceptor('file'))
+    async uploadImage(@UploadedFile() file: Express.MulterS3.File) {
+        return file.location;
+    }
 }

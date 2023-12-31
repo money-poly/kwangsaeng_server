@@ -1,7 +1,7 @@
 import { registerAs } from '@nestjs/config';
 
 export default registerAs('dynamo', () => ({
-    dynamoAccessKey: process.env.DYNAMODB_ACCESS_KEY.toString(),
-    dynamoSecretKey: process.env.DYNAMODB_SECRET_KEY.toString(),
-    region: process.env.DYNAMODB_REGION.toString(),
+    awsAccessKey: process.env.AWS_ACCESS_KEY.toString(),
+    awsSecretKey: process.env.AWS_SECRET_KEY.toString(),
+    awsRegion: process.env.AWS_REGION.toString(),
 }));

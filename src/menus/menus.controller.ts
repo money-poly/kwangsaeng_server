@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Param,
+    Post,
+    Put,
+    Query,
+    UploadedFile,
+    UseGuards,
+    UseInterceptors,
+} from '@nestjs/common';
 import { MenusService } from 'src/menus/menus.service';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { CurrentUser } from 'src/global/decorator/current-user.decorator';
@@ -8,7 +20,7 @@ import { UpdateMenuDto } from './dto/update-menu.dto';
 import { CreateMenuValidationPipe } from './pipe/create-menu-validation.pipe';
 import { TransformMenuPipe } from './pipe/transform-menu.pipe';
 import { Menu } from './entity/menu.entity';
-import { FindOneMenuDto } from './dto/find-one-menu.dto';
+import { FindOneMenuDetailDto } from './dto/find-one-menu.dto';
 import { UpdateMenuOrderDto } from './dto/update-order.dto';
 import { UseEntityTransformer } from 'src/global/decorator/entity-transformer.decorator';
 import { Store } from 'src/stores/entity/store.entity';
@@ -17,13 +29,14 @@ import { CurrentStore } from 'src/global/decorator/current-store.decorator';
 import { FindAsLocationDto } from './dto/find-as-loaction.dto';
 import { MenuFilterType } from './enum/discounted-menu-filter-type.enum';
 import { MenuStatus } from './enum/menu-status.enum';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('menus')
 export class MenusController {
     constructor(private readonly menusService: MenusService) {}
     @Get('/detail/:id')
-    async findDetailOne(@Param('id', TransformMenuPipe) menu: Menu, @Body() loc: FindOneMenuDto) {
-        return this.menusService.findDetailOne(menu, loc);
+    async findDetailOne(@Param('id', TransformMenuPipe) menu: Menu, @Query() dto: FindOneMenuDetailDto) {
+        return this.menusService.findDetailOne(menu, dto);
     }
 
     @Post()
@@ -59,12 +72,19 @@ export class MenusController {
     }
 
     @Get('/max-discount')
-    async findMaxDiscount(@Body() dto: FindAsLocationDto) {
+    async findMaxDiscount(@Query() dto: FindAsLocationDto) {
         return await this.menusService.findMaxDiscount(dto);
     }
 
     @Get('/discounted')
-    async findManyDiscount(@Query('type') type: MenuFilterType, @Body() dto: FindAsLocationDto) {
+    async findManyDiscount(@Query('type') type: MenuFilterType, @Query() dto: FindAsLocationDto) {
         return await this.menusService.findManyDiscount(type, dto);
+    }
+
+    @Post('upload/:storeId')
+    @UseGuards(AuthGuard)
+    @UseInterceptors(FileInterceptor('file'))
+    async uploadImage(@UploadedFile() file: Express.MulterS3.File) {
+        return file.location;
     }
 }

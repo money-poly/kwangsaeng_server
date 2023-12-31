@@ -14,6 +14,9 @@ import { StoreApprove } from './entity/store-approve.entity';
 import { CategoriesModule } from 'src/categories/categories.module';
 import { UsersModule } from 'src/users/users.module';
 import { HttpModule } from '@nestjs/axios';
+import { MulterModule } from '@nestjs/platform-express';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { multerS3Config } from 'src/global/config/multer-s3.config';
 
 @Module({
     imports: [
@@ -22,6 +25,11 @@ import { HttpModule } from '@nestjs/axios';
         CategoriesModule,
         UsersModule,
         HttpModule,
+        MulterModule.registerAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: (configService: ConfigService) => multerS3Config(configService),
+        }),
     ],
     controllers: [StoresController],
     providers: [StoresService, StoresRepository, UsersRepository],

@@ -16,11 +16,19 @@ import { BusinessDetail } from 'src/stores/entity/business-detail.entity';
 import { StoreApprove } from 'src/stores/entity/store-approve.entity';
 import { CategoriesModule } from 'src/categories/categories.module';
 import { StoresModule } from 'src/stores/stores.module';
+import { MulterModule } from '@nestjs/platform-express';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { multerS3Config } from 'src/global/config/multer-s3.config';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([Menu, Store, User, MenuView, StoreDetail, BusinessDetail, StoreApprove]),
         DynamooseModule.forFeature([{ name: 'Store-Menu', schema: DynamoSchema }]),
+        MulterModule.registerAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: (configService: ConfigService) => multerS3Config(configService),
+        }),
         CategoriesModule,
         StoresModule,
     ],

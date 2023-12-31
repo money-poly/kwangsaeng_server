@@ -48,10 +48,10 @@ jobs:
                   DATABASE_PASSWORD: ${{ secrets.DEV_DATABASE_PASSWORD }}
                   DATABASE_NAME: ${{ secrets.DEV_DATABASE_NAME }}
                   DATABASE_SYNC: ${{ secrets.DEV_DATABASE_SYNC }}
-                  AWS_ACCESS_KEY: ${{ secrets.DEV_AWS_ACCESS_KEY }}
-                  AWS_SECRET_KEY: ${{ secrets.DEV_AWS_SECRET_KEY }}
-                  AWS_REGION: ${{ secrets.DEV_AWS_REGION }}
-                  S3_BUCKET_NAME: ${{ secrets.DEV_S3_BUCKET_NAME}}
+                  AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+                  AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
+                  AWS_REGION: ${{ secrets.AWS_REGION }}
+                  S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME}}
                   JWT_ACCESS_SECRET: ${{ secrets.JWT_ACCESS_SECRET }}
                   JWT_ACCESS_EXPIRES: ${{ secrets.JWT_ACCESS_EXPIRES }}
                   JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}

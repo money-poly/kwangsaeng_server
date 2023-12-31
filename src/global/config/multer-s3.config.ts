@@ -22,7 +22,6 @@ export const multerS3Config = (configService: ConfigService): MulterOptions => {
             contentType: multerS3.AUTO_CONTENT_TYPE,
             key: function (req: Request, file, cb) {
                 const pathParam = req.path.split('/');
-                console.log(pathParam);
                 let savedPath: string = '';
                 let dataType: string = '';
                 // pathParam[3] -> stores or menus

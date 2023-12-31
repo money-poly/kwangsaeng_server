@@ -1,4 +1,17 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Get,
+    Param,
+    ParseIntPipe,
+    Patch,
+    Post,
+    Put,
+    Query,
+    UploadedFile,
+    UseGuards,
+    UseInterceptors,
+} from '@nestjs/common';
 import { StoresService } from './stores.service';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
@@ -16,6 +29,7 @@ import { CurrentStore } from 'src/global/decorator/current-store.decorator';
 import { UseEntityTransformer } from 'src/global/decorator/entity-transformer.decorator';
 import { CAUTION_TEXT } from 'src/global/common/caution.constant';
 import { FindStoreDetailDto } from './dto/find-store-detail.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('stores')
 export class StoresController {
@@ -92,5 +106,12 @@ export class StoresController {
     @UseGuards(AuthGuard, OperationGuard, OwnerGuard)
     async basicInfo(@Param('storeId', ParseIntPipe) storeId: number) {
         return await this.storesService.basicInfo(storeId);
+    }
+
+    @Post('upload/:storeId')
+    @UseGuards(AuthGuard)
+    @UseInterceptors(FileInterceptor('file'))
+    async uploadImage(@UploadedFile() file: Express.MulterS3.File) {
+        return file.location;
     }
 }

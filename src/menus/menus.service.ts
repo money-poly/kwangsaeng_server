@@ -166,7 +166,8 @@ export class MenusService {
             .addOrderBy('m.created_date')
             .getRawMany();
         if (!dataList.length) {
-            throw MenusException.ANY_MENUS_NOT_FOUND;
+            // 검색되는 메뉴가 존재하지 않을경우 빈배열 리턴
+            return dataList;
         }
         let prevCategory;
         for (const data of dataList) {
@@ -220,7 +221,8 @@ export class MenusService {
             .addOrderBy(orderBy, 'ASC')
             .getRawMany();
         if (!dataList.length) {
-            throw MenusException.ANY_MENUS_NOT_FOUND;
+            // 검색되는 메뉴가 존재하지 않을경우 빈배열 리턴
+            return dataList;
         }
 
         let prevCategory = dataList[0].category;

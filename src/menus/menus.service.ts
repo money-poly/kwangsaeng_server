@@ -254,7 +254,7 @@ export class MenusService {
                 sellingPrice: data.sellingPrice,
                 storeName: data.storeName,
                 menuPictureUrl: data.menuPictureUrl,
-                view: data.viewCount,
+                viewCount: data.viewCount,
             };
             if (prevCategory !== data.category) {
                 refindedData.push({ category: prevCategory, menus: prevArray });

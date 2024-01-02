@@ -254,7 +254,7 @@ export class MenusService {
                 sellingPrice: data.sellingPrice,
                 storeName: data.storeName,
                 menuPictureUrl: data.menuPictureUrl,
-                view: data.viewCount,
+                viewCount: data.viewCount,
             };
             if (prevCategory !== data.category) {
                 refindedData.push({ category: prevCategory, menus: prevArray });
@@ -305,7 +305,7 @@ export class MenusService {
         return await this.entityManager
             .createQueryBuilder(Menu, 'menus')
             .select(
-                'menus.menu_picture_url AS menuPictureUrl, menus.id AS menuId, menus.name, menus.discount_rate AS discountRate, menus.price',
+                'menus.menu_picture_url AS menuPictureUrl, menus.id AS menuId, menus.name, menus.discount_rate AS discountRate, menus.price, menus.description',
             )
             .where('menus.id != :excludeMenuId AND store_id = :storeId', { excludeMenuId, storeId })
             .orderBy('discountRate', 'DESC')

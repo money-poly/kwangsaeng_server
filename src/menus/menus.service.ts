@@ -221,6 +221,11 @@ export class MenusService {
             .andWhere(`m.status = "${MenuStatus.SALE}"`)
             .andWhere('m.discount_rate > 0')
             .andWhere('sa.is_approved = :isApproved', { isApproved: 1 })
+            .andWhere('ST_Distance_Sphere(POINT(:lon, :lat), POINT(sd.lon, sd.lat)) <= :range', {
+                lon: dto.lon,
+                lat: dto.lat,
+                range: 3000,
+            })
             .orderBy(orderBy, 'ASC')
             .getRawMany();
         if (!dataList.length) {

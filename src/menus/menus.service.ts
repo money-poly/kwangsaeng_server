@@ -185,7 +185,6 @@ export class MenusService {
     }
 
     async findManyDiscount(type: MenuFilterType, dto: FindAsLocationDto) {
-        let refindedData = [];
         let orderBy;
         switch (type) {
             case MenuFilterType.DISTANCE:
@@ -222,17 +221,26 @@ export class MenusService {
             .andWhere(`m.status = "${MenuStatus.SALE}"`)
             .andWhere('m.discount_rate > 0')
             .andWhere('sa.is_approved = :isApproved', { isApproved: 1 })
-            .orderBy('c.name')
-            .addOrderBy(orderBy, 'ASC')
+            .orderBy(orderBy, 'ASC')
             .getRawMany();
         if (!dataList.length) {
             // 검색되는 메뉴가 존재하지 않을경우 빈배열 리턴
             return dataList;
         }
 
+        const refindedData = [{ category: '전체', menus: dataList.slice() }]; // dataList의 깊은 복사를 위해 slice함수 사용
+        dataList.sort((menu1, menu2) => {
+            if (menu1.category < menu2.category) {
+                return -1;
+            } else if (menu1.category > menu2.category) {
+                return 1;
+            } else {
+                return 0; // 카테고리가 같을 경우
+            }
+        }); // 카테고리 이름별로 재정렬
+
         let prevCategory = dataList[0].category;
         let prevArray = [];
-        const allMenus = [];
         for (const data of dataList) {
             const menu = {
                 menuId: data.menuId,
@@ -243,7 +251,6 @@ export class MenusService {
                 menuPictureUrl: data.menuPictureUrl,
                 view: data.viewCount,
             };
-            allMenus.push(menu);
             if (prevCategory !== data.category) {
                 refindedData.push({ category: prevCategory, menus: prevArray });
                 prevCategory = data.category;
@@ -254,7 +261,6 @@ export class MenusService {
         }
         refindedData.push({ category: prevCategory, menus: prevArray });
         // 위에서 카테고리가 변경될때만 push해줬으므로 마지막 카테고리는 반영안됨. 그러므로 마지막에 별도로 push
-        refindedData.unshift({ category: '전체', menus: allMenus });
         return refindedData;
     }
 

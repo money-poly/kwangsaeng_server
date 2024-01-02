@@ -221,7 +221,7 @@ export class MenusService {
             .where(`s.status = "${StoreStatus.OPEN}"`)
             .andWhere(`m.status = "${MenuStatus.SALE}"`)
             .andWhere('m.discount_rate > 0')
-            // .andWhere('sa.is_approved = :isApproved', { isApproved: 1 })
+            .andWhere('sa.is_approved = :isApproved', { isApproved: 1 })
             .orderBy('c.name')
             .addOrderBy(orderBy, 'ASC')
             .getRawMany();

@@ -23,6 +23,7 @@ import { Category } from 'src/categories/entity/category.entity';
 import { FindAsLocationDto } from './dto/find-as-loaction.dto';
 import { MenuFilterType } from './enum/discounted-menu-filter-type.enum';
 import { StoreStatus } from 'src/stores/enum/store-status.enum';
+import { StoreApprove } from 'src/stores/entity/store-approve.entity';
 
 @Injectable()
 export class MenusService {
@@ -58,17 +59,17 @@ export class MenusService {
 
     async findDetailOne(menu: Menu, loc?: FindOneMenuDetailDto): Promise<FindDetailOneMenu> {
         const data = await this.entityManager
-            .createQueryBuilder(Menu, 'menus')
-            .leftJoinAndSelect(Store, 'stores', 'stores.id = menus.store_id')
-            .leftJoinAndSelect(StoreDetail, 'store_detail', 'store_detail.store_id = menus.store_id')
+            .createQueryBuilder(Menu, 'm')
+            .leftJoinAndSelect(Store, 's', 's.id = m.store_id')
+            .leftJoinAndSelect(StoreDetail, 'sd', 'sd.store_id = m.store_id')
+            .leftJoinAndSelect(User, 'u', 'u.id = s.user_id')
             .select(
-                'menus.menu_picture_url AS mainMenuPictureUrl, menus.description, menus.name AS name, menus.discount_rate AS discountRate, menus.price, menus.sale_price AS sellingPrice, menus.country_of_origin AS countryOfOrigin',
+                'm.menu_picture_url AS mainMenuPictureUrl, m.description, m.name AS name, m.discount_rate AS discountRate, m.price, m.sale_price AS sellingPrice, m.country_of_origin AS countryOfOrigin',
             )
-            .addSelect('stores.id AS storeId, stores.name AS storeName')
-            .addSelect(
-                'store_detail.address AS storeAddress, store_detail.phone, store_detail.lat AS lat, store_detail.lon AS lon, store_detail.cooking_time AS cookingTime',
-            )
-            .where('menus.id = :id', { id: menu.id })
+            .addSelect('s.id AS storeId, s.name AS storeName')
+            .addSelect('sd.address AS storeAddress, sd.lat AS lat, sd.lon AS lon, sd.cooking_time AS cookingTime')
+            .addSelect('u.phone AS phone')
+            .where('m.id = :id', { id: menu.id })
             .getRawOne();
         const view = await this.menusRepository.findView(menu);
         const anotherMenus = await this.getMenusInStore(data.storeId, menu.id, 3);
@@ -84,7 +85,7 @@ export class MenusService {
             ...data,
             anotherMenus: anotherMenus ? anotherMenus : null, // 다른 메뉴가 없을 경우 null로 전송
             ...view,
-            cookingTime: pickUpTimeStr ? pickUpTimeStr : null, // 사용자의 거리값을 안 보냈을 경우(update 시) null로 전송
+            pickUpTime: pickUpTimeStr ? pickUpTimeStr : null, // 사용자의 거리값을 안 보냈을 경우(update 시) null로 전송
             caution,
         };
         return menuDetailList;
@@ -145,6 +146,7 @@ export class MenusService {
             .createQueryBuilder(Store, 's')
             .leftJoinAndSelect(Menu, 'm', 's.id = m.store_id')
             .leftJoinAndSelect(StoreDetail, 'sd', 's.id = sd.store_id')
+            .leftJoinAndSelect(StoreApprove, 'sa', 's.id = sa.store_id')
             .leftJoin('store_categories', 'sc', 's.id = sc.stores_id')
             .leftJoinAndSelect(Category, 'c', 'sc.categories_id = c.id')
             .select('c.name', 'category')
@@ -161,6 +163,7 @@ export class MenusService {
                 lat: dto.lat,
                 range: 3000,
             })
+            .andWhere('sa.is_approved = :isApproved', { isApproved: 1 })
             .orderBy('c.name')
             .addOrderBy('m.discount_rate', 'DESC')
             .addOrderBy('m.created_date')
@@ -202,6 +205,7 @@ export class MenusService {
             .createQueryBuilder(Menu, 'm')
             .leftJoinAndSelect(Store, 's', 'm.store_id = s.id')
             .leftJoinAndSelect(StoreDetail, 'sd', 's.id = sd.store_id')
+            .leftJoinAndSelect(StoreApprove, 'sa', 's.id = sa.store_id')
             .leftJoinAndSelect('store_categories', 'sc', 'm.store_id = sc.stores_id')
             .leftJoinAndSelect(Category, 'c', 'sc.categories_id = c.id')
             .leftJoinAndSelect('menu_views', 'mv', 'm.id = mv.menu_id')
@@ -217,6 +221,7 @@ export class MenusService {
             .where(`s.status = "${StoreStatus.OPEN}"`)
             .andWhere(`m.status = "${MenuStatus.SALE}"`)
             .andWhere('m.discount_rate > 0')
+            // .andWhere('sa.is_approved = :isApproved', { isApproved: 1 })
             .orderBy('c.name')
             .addOrderBy(orderBy, 'ASC')
             .getRawMany();

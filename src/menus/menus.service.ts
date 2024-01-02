@@ -73,11 +73,11 @@ export class MenusService {
             .getRawOne();
         const view = await this.menusRepository.findView(menu);
         const anotherMenus = await this.getMenusInStore(data.storeId, menu.id, 3);
-        let pickUpTimeStr = null;
+        let refinedPickUpTime = '';
         if (loc) {
             const { lat, lon } = loc;
-            const pickUpTime = (await this.measurePickUpTime(lat, data.lat, lon, data.lon)) + data.cookingTime;
-            pickUpTimeStr = pickUpTime.toString() + '~' + (pickUpTime + 8).toString();
+            const pickUpTime = (await this.measurePickUpTime(lat, data.lat, lon, data.lon)).split('~').map(Number);
+            refinedPickUpTime = pickUpTime[0] + data.cookingTime + '~' + (pickUpTime[1] + data.cookingTime);
         }
         delete data.cookingTime;
         const caution = CAUTION_TEXT;
@@ -85,7 +85,7 @@ export class MenusService {
             ...data,
             anotherMenus: anotherMenus ? anotherMenus : null, // 다른 메뉴가 없을 경우 null로 전송
             ...view,
-            pickUpTime: pickUpTimeStr ? pickUpTimeStr : null, // 사용자의 거리값을 안 보냈을 경우(update 시) null로 전송
+            pickUpTime: refinedPickUpTime ? refinedPickUpTime : null, // 사용자의 거리값을 안 보냈을 경우(update 시) null로 전송
             caution,
         };
         return menuDetailList;
@@ -303,19 +303,35 @@ export class MenusService {
             .getRawMany();
     }
 
-    private async measurePickUpTime(x1: number, x2: number, y1: number, y2: number): Promise<number> {
-        const distance: number = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-        let time: number;
-        if (distance < 200) {
-            time = 5;
-        } else if (distance < 500) {
-            time = 15;
-        } else if (distance < 1000) {
-            time = 23;
+    private async measurePickUpTime(x1: number, x2: number, y1: number, y2: number): Promise<string> {
+        const R = 6371.0; // 지구의 반지름 (단위: km)
+
+        const toRadians = (degrees: number): number => degrees * (Math.PI / 180);
+
+        const x1Rad = toRadians(x1);
+        const y1Rad = toRadians(y1);
+        const x2Rad = toRadians(x2);
+        const y2Rad = toRadians(y2);
+
+        const dx = x2Rad - x1Rad;
+        const dy = y2Rad - y1Rad;
+
+        const a = Math.sin(dx / 2) ** 2 + Math.cos(x1Rad) * Math.cos(x2Rad) * Math.sin(dy / 2) ** 2;
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        const distance = R * c; // 거리 (단위: km)
+
+        let pickUpTime: string = '';
+        if (distance < 0.2) {
+            pickUpTime = '5~7';
+        } else if (distance < 0.5) {
+            pickUpTime = '7~10';
+        } else if (distance < 1) {
+            pickUpTime = '10~15';
         } else {
-            time = -1; // TODO 시간대별로 변경사항 존재
+            pickUpTime = '15~20';
         }
-        return time;
+        return pickUpTime;
     }
 
     async initMockMenus() {

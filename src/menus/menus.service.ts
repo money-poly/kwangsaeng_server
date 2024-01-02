@@ -23,6 +23,7 @@ import { Category } from 'src/categories/entity/category.entity';
 import { FindAsLocationDto } from './dto/find-as-loaction.dto';
 import { MenuFilterType } from './enum/discounted-menu-filter-type.enum';
 import { StoreStatus } from 'src/stores/enum/store-status.enum';
+import { StoreApprove } from 'src/stores/entity/store-approve.entity';
 
 @Injectable()
 export class MenusService {
@@ -58,25 +59,25 @@ export class MenusService {
 
     async findDetailOne(menu: Menu, loc?: FindOneMenuDetailDto): Promise<FindDetailOneMenu> {
         const data = await this.entityManager
-            .createQueryBuilder(Menu, 'menus')
-            .leftJoinAndSelect(Store, 'stores', 'stores.id = menus.store_id')
-            .leftJoinAndSelect(StoreDetail, 'store_detail', 'store_detail.store_id = menus.store_id')
+            .createQueryBuilder(Menu, 'm')
+            .leftJoinAndSelect(Store, 's', 's.id = m.store_id')
+            .leftJoinAndSelect(StoreDetail, 'sd', 'sd.store_id = m.store_id')
+            .leftJoinAndSelect(User, 'u', 'u.id = s.user_id')
             .select(
-                'menus.menu_picture_url AS mainMenuPictureUrl, menus.description, menus.name AS name, menus.discount_rate AS discountRate, menus.price, menus.sale_price AS sellingPrice, menus.country_of_origin AS countryOfOrigin',
+                'm.menu_picture_url AS mainMenuPictureUrl, m.description, m.name AS name, m.discount_rate AS discountRate, m.price, m.sale_price AS sellingPrice, m.country_of_origin AS countryOfOrigin',
             )
-            .addSelect('stores.id AS storeId, stores.name AS storeName')
-            .addSelect(
-                'store_detail.address AS storeAddress, store_detail.phone, store_detail.lat AS lat, store_detail.lon AS lon, store_detail.cooking_time AS cookingTime',
-            )
-            .where('menus.id = :id', { id: menu.id })
+            .addSelect('s.id AS storeId, s.name AS storeName')
+            .addSelect('sd.address AS storeAddress, sd.lat AS lat, sd.lon AS lon, sd.cooking_time AS cookingTime')
+            .addSelect('u.phone AS phone')
+            .where('m.id = :id', { id: menu.id })
             .getRawOne();
         const view = await this.menusRepository.findView(menu);
         const anotherMenus = await this.getMenusInStore(data.storeId, menu.id, 3);
-        let pickUpTimeStr = null;
+        let refinedPickUpTime = '';
         if (loc) {
             const { lat, lon } = loc;
-            const pickUpTime = (await this.measurePickUpTime(lat, data.lat, lon, data.lon)) + data.cookingTime;
-            pickUpTimeStr = pickUpTime.toString() + '~' + (pickUpTime + 8).toString();
+            const pickUpTime = (await this.measurePickUpTime(lat, data.lat, lon, data.lon)).split('~').map(Number);
+            refinedPickUpTime = pickUpTime[0] + data.cookingTime + '~' + (pickUpTime[1] + data.cookingTime);
         }
         delete data.cookingTime;
         const caution = CAUTION_TEXT;
@@ -84,7 +85,7 @@ export class MenusService {
             ...data,
             anotherMenus: anotherMenus ? anotherMenus : null, // 다른 메뉴가 없을 경우 null로 전송
             ...view,
-            cookingTime: pickUpTimeStr ? pickUpTimeStr : null, // 사용자의 거리값을 안 보냈을 경우(update 시) null로 전송
+            pickUpTime: refinedPickUpTime ? refinedPickUpTime : null, // 사용자의 거리값을 안 보냈을 경우(update 시) null로 전송
             caution,
         };
         return menuDetailList;
@@ -145,6 +146,7 @@ export class MenusService {
             .createQueryBuilder(Store, 's')
             .leftJoinAndSelect(Menu, 'm', 's.id = m.store_id')
             .leftJoinAndSelect(StoreDetail, 'sd', 's.id = sd.store_id')
+            .leftJoinAndSelect(StoreApprove, 'sa', 's.id = sa.store_id')
             .leftJoin('store_categories', 'sc', 's.id = sc.stores_id')
             .leftJoinAndSelect(Category, 'c', 'sc.categories_id = c.id')
             .select('c.name', 'category')
@@ -161,6 +163,7 @@ export class MenusService {
                 lat: dto.lat,
                 range: 3000,
             })
+            .andWhere('sa.is_approved = :isApproved', { isApproved: 1 })
             .orderBy('c.name')
             .addOrderBy('m.discount_rate', 'DESC')
             .addOrderBy('m.created_date')
@@ -182,7 +185,6 @@ export class MenusService {
     }
 
     async findManyDiscount(type: MenuFilterType, dto: FindAsLocationDto) {
-        let refindedData = [];
         let orderBy;
         switch (type) {
             case MenuFilterType.DISTANCE:
@@ -202,6 +204,7 @@ export class MenusService {
             .createQueryBuilder(Menu, 'm')
             .leftJoinAndSelect(Store, 's', 'm.store_id = s.id')
             .leftJoinAndSelect(StoreDetail, 'sd', 's.id = sd.store_id')
+            .leftJoinAndSelect(StoreApprove, 'sa', 's.id = sa.store_id')
             .leftJoinAndSelect('store_categories', 'sc', 'm.store_id = sc.stores_id')
             .leftJoinAndSelect(Category, 'c', 'sc.categories_id = c.id')
             .leftJoinAndSelect('menu_views', 'mv', 'm.id = mv.menu_id')
@@ -217,17 +220,32 @@ export class MenusService {
             .where(`s.status = "${StoreStatus.OPEN}"`)
             .andWhere(`m.status = "${MenuStatus.SALE}"`)
             .andWhere('m.discount_rate > 0')
-            .orderBy('c.name')
-            .addOrderBy(orderBy, 'ASC')
+            .andWhere('sa.is_approved = :isApproved', { isApproved: 1 })
+            .andWhere('ST_Distance_Sphere(POINT(:lon, :lat), POINT(sd.lon, sd.lat)) <= :range', {
+                lon: dto.lon,
+                lat: dto.lat,
+                range: 3000,
+            })
+            .orderBy(orderBy, 'ASC')
             .getRawMany();
         if (!dataList.length) {
             // 검색되는 메뉴가 존재하지 않을경우 빈배열 리턴
             return dataList;
         }
 
+        const refindedData = [{ category: '전체', menus: dataList.slice() }]; // dataList의 깊은 복사를 위해 slice함수 사용
+        dataList.sort((menu1, menu2) => {
+            if (menu1.category < menu2.category) {
+                return -1;
+            } else if (menu1.category > menu2.category) {
+                return 1;
+            } else {
+                return 0; // 카테고리가 같을 경우
+            }
+        }); // 카테고리 이름별로 재정렬
+
         let prevCategory = dataList[0].category;
         let prevArray = [];
-        const allMenus = [];
         for (const data of dataList) {
             const menu = {
                 menuId: data.menuId,
@@ -238,7 +256,6 @@ export class MenusService {
                 menuPictureUrl: data.menuPictureUrl,
                 view: data.viewCount,
             };
-            allMenus.push(menu);
             if (prevCategory !== data.category) {
                 refindedData.push({ category: prevCategory, menus: prevArray });
                 prevCategory = data.category;
@@ -249,7 +266,6 @@ export class MenusService {
         }
         refindedData.push({ category: prevCategory, menus: prevArray });
         // 위에서 카테고리가 변경될때만 push해줬으므로 마지막 카테고리는 반영안됨. 그러므로 마지막에 별도로 push
-        refindedData.unshift({ category: '전체', menus: allMenus });
         return refindedData;
     }
 
@@ -298,19 +314,35 @@ export class MenusService {
             .getRawMany();
     }
 
-    private async measurePickUpTime(x1: number, x2: number, y1: number, y2: number): Promise<number> {
-        const distance: number = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-        let time: number;
-        if (distance < 200) {
-            time = 5;
-        } else if (distance < 500) {
-            time = 15;
-        } else if (distance < 1000) {
-            time = 23;
+    private async measurePickUpTime(x1: number, x2: number, y1: number, y2: number): Promise<string> {
+        const R = 6371.0; // 지구의 반지름 (단위: km)
+
+        const toRadians = (degrees: number): number => degrees * (Math.PI / 180);
+
+        const x1Rad = toRadians(x1);
+        const y1Rad = toRadians(y1);
+        const x2Rad = toRadians(x2);
+        const y2Rad = toRadians(y2);
+
+        const dx = x2Rad - x1Rad;
+        const dy = y2Rad - y1Rad;
+
+        const a = Math.sin(dx / 2) ** 2 + Math.cos(x1Rad) * Math.cos(x2Rad) * Math.sin(dy / 2) ** 2;
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        const distance = R * c; // 거리 (단위: km)
+
+        let pickUpTime: string = '';
+        if (distance < 0.2) {
+            pickUpTime = '5~7';
+        } else if (distance < 0.5) {
+            pickUpTime = '7~10';
+        } else if (distance < 1) {
+            pickUpTime = '10~15';
         } else {
-            time = -1; // TODO 시간대별로 변경사항 존재
+            pickUpTime = '15~20';
         }
-        return time;
+        return pickUpTime;
     }
 
     async initMockMenus() {

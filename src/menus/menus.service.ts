@@ -88,6 +88,7 @@ export class MenusService {
             pickUpTime: refinedPickUpTime ? refinedPickUpTime : null, // 사용자의 거리값을 안 보냈을 경우(update 시) null로 전송
             caution,
         };
+        await this.menusRepository.incrementView(menu);
         return menuDetailList;
     }
 

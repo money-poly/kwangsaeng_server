@@ -165,7 +165,8 @@ export class MenusService {
             order.splice(idx, 1);
         }
         await this.updateOrder(menu.store, { order });
-        return this.menusRepository.update(menu, { status: dto.updateStatus });
+        this.menusRepository.update(menu, { status: dto.updateStatus });
+        return await this.findDetailOne(menu);
     }
 
     async findMaxDiscount(dto: FindAsLocationDto) {

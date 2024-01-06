@@ -62,6 +62,11 @@ export class MenusService {
     }
 
     async delete(menu: Menu) {
+        // 메뉴 삭제시 순서에서도 삭제
+        const order = await this.storesRepository.findOrder(menu.store);
+        const idx = order.findIndex((id) => Number(id) === menu.id);
+        order.splice(idx, 1);
+        await this.updateOrder(menu.store, { order });
         return this.menusRepository.delete(menu);
     }
 

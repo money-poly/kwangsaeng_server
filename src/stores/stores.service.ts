@@ -19,6 +19,7 @@ import { UpdateStoreDto } from './dto/update-store.dto';
 import { Category } from 'src/categories/entity/category.entity';
 import { FindStoreDetailDto } from './dto/find-store-detail.dto';
 import { MenuView } from 'src/menus/entity/menu-view.entity';
+import { StoreApproveStatus } from './enum/store-approve-status.enum';
 @Injectable()
 export class StoresService {
     constructor(
@@ -212,8 +213,8 @@ export class StoresService {
                 lat: dto.lat,
                 range: dto.range,
             })
-            .andWhere('stores.status = "open"')
-            .andWhere('a.isApproved = true')
+            .andWhere('stores.status = :openStatus', { openStatus: StoreStatus.OPEN })
+            .andWhere('a.isApproved = :approveStatus', { approveStatus: StoreApproveStatus.DONE })
             .getRawMany();
     }
 

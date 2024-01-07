@@ -19,6 +19,7 @@ import { Category } from 'src/categories/entity/category.entity';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 import { Menu } from 'src/menus/entity/menu.entity';
 import { StoresException } from 'src/global/exception/stores-exception';
+import { StoreApproveStatus } from './enum/store-approve-status.enum';
 
 @Injectable()
 export class StoresRepository {
@@ -71,7 +72,7 @@ export class StoresRepository {
 
     async approve(entity: StoreApprove) {
         await this.storeApprove.update(entity.id, {
-            isApproved: true,
+            isApproved: StoreApproveStatus.DONE,
         });
 
         await this.entityManager

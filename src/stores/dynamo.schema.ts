@@ -2,30 +2,33 @@ import { Schema } from 'dynamoose';
 
 export const DynamoSchema = new Schema(
     {
-        store_id: {
-            type: Number,
+        storeName: {
+            type: String,
             hashKey: true,
             required: true,
         },
-        menu_id: {
+        menuId: {
             type: Number,
             rangeKey: true,
             required: true,
         },
-        menu_name: {
+        menuName: {
             type: String,
         },
-        menu_image: {
+        menuPictureUrl: {
             type: String,
         },
-        menu_saleRate: {
+        sellingPrice: {
             type: Number,
         },
-        menu_price: {
+        discountRate: {
+            type: Number,
+        },
+        viewCount: {
             type: Number,
         },
     },
     {
-        timestamps: true, // createdAt, updateAt 컬럼
+        timestamps: false, // createdAt, updateAt 컬럼
     },
 );

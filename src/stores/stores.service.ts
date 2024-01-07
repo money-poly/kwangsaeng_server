@@ -91,6 +91,15 @@ export class StoresService {
         return await this.storesRepository.approve(approve);
     }
 
+    async checkApprove(storeId: number) {
+        const storeApproveData = await this.storesRepository.findOneApprove({
+            store: {
+                id: storeId,
+            },
+        });
+        return { status: storeApproveData.isApproved };
+    }
+
     async onMapFindStore(storeId: number) {
         const qb = await this.entityManager
             .createQueryBuilder(Store, 's')
@@ -267,8 +276,6 @@ export class StoresService {
     }
 
     async initMockStores() {
-        const countryOfOrigin = [{ 닭고기: '국내산' }, { 김치: '국내산' }, { 고등어: '노르웨이산' }];
-
         const owners: User[] = [
             new User({
                 fId: 'owner0001',

@@ -18,6 +18,7 @@ import { StoreStatus } from './enum/store-status.enum';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { Category } from 'src/categories/entity/category.entity';
 import { FindStoreDetailDto } from './dto/find-store-detail.dto';
+import { MenuView } from 'src/menus/entity/menu-view.entity';
 @Injectable()
 export class StoresService {
     constructor(
@@ -211,28 +212,31 @@ export class StoresService {
         const dataList = await this.entityManager
             .createQueryBuilder(Menu, 'menus')
             .leftJoinAndSelect(Store, 'stores', 'stores.id = menus.store_id')
-            .select('stores.id')
-            .addSelect('menus.id')
-            .addSelect('menus.name')
-            .addSelect('menus.menu_picture_url')
-            .addSelect('menus.discount_rate')
-            .addSelect('menus.price')
+            .leftJoinAndSelect(MenuView, 'menu_views', 'menus.id = menu_views.menu_id')
+            .select('stores.name AS storeName')
+            .addSelect('menus.id AS menuId')
+            .addSelect('menus.name AS menuName')
+            .addSelect('menus.menu_picture_url AS menuPictureUrl')
+            .addSelect('menus.price AS sellingPrice')
+            .addSelect('menus.discount_rate AS discountRate')
+            .addSelect('menu_views.view_count AS viewCount')
             .getRawMany();
         for (const data of dataList) {
             const isExist = await this.dynamoModel.get({
                 // dynamodb에 이미 데이터가 있는지 확인
-                store_id: data.menus_id,
-                menu_id: data.menus_id,
+                storeName: data.storeName,
+                menuId: data.menuId,
             });
             if (!isExist) {
                 // 데이터가 없다면 dynamodb에 넣기
                 const insertData = {
-                    store_id: data.menus_id,
-                    menu_id: data.menus_id,
-                    menu_name: data.menus_name,
-                    menu_image: data.menus_picture_url,
-                    menu_saleRate: data.menus_sale_rate,
-                    menu_price: data.menus_price,
+                    storeName: data.storeName,
+                    menuId: data.menuId,
+                    menuName: data.menuName,
+                    menuPictureUrl: data.menuPictureUrl,
+                    sellingPrice: data.sellingPrice,
+                    discountRate: data.discountRate,
+                    viewCount: data.viewCount,
                 };
                 try {
                     await this.dynamoModel.create(insertData);

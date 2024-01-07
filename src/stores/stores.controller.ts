@@ -8,6 +8,7 @@ import {
     Post,
     Put,
     Query,
+    Request,
     UploadedFile,
     UseGuards,
     UseInterceptors,
@@ -67,6 +68,12 @@ export class StoresController {
     @UseEntityTransformer<Store>(TransformStoreInterceptor)
     async approve(@CurrentStore() store: Store) {
         return await this.storesService.approve(store);
+    }
+
+    @Get('/find-using-token')
+    @UseGuards(AuthGuard)
+    async findStoreUsingToken(@Request() requestUser) {
+        return { id: requestUser.user.id };
     }
 
     @Get(':storeId')

@@ -46,6 +46,10 @@ export class MenusRepository {
             .getRawOne();
     }
 
+    async incrementView(menu: Menu) {
+        return await this.menuView.increment({ id: menu.id }, 'viewCount', 1);
+    }
+
     async exist(where: FindManyOptions<Menu>) {
         return await this.menus.exist(where);
     }

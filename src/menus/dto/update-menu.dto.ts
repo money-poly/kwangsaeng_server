@@ -12,10 +12,6 @@ export class UpdateMenuDto implements UpdateMenuArgs {
     name?: string;
 
     @IsOptional()
-    @IsEnum(MenuStatus)
-    status?: MenuStatus;
-
-    @IsOptional()
     @IsNumber()
     price?: number;
 

@@ -1,7 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MenusRepository } from './menus.repository';
-import { EntityManager, FindManyOptions, FindOptionsWhere, createQueryBuilder } from 'typeorm';
+import {
+    EntityManager,
+    FindManyOptions,
+    FindOptionsRelations,
+    FindOptionsSelect,
+    FindOptionsWhere,
+    createQueryBuilder,
+} from 'typeorm';
 import { UsersRepository } from 'src/users/users.repository';
 import { StoresRepository } from 'src/stores/stores.repository';
 import { Store } from 'src/stores/entity/store.entity';
@@ -24,6 +31,7 @@ import { FindAsLocationDto } from './dto/find-as-loaction.dto';
 import { MenuFilterType } from './enum/discounted-menu-filter-type.enum';
 import { StoreStatus } from 'src/stores/enum/store-status.enum';
 import { StoreApprove } from 'src/stores/entity/store-approve.entity';
+import { UpdateStatusArgs } from './interface/update-status.interface';
 
 @Injectable()
 export class MenusService {
@@ -54,6 +62,11 @@ export class MenusService {
     }
 
     async delete(menu: Menu) {
+        // 메뉴 삭제시 순서에서도 삭제
+        const order = await this.storesRepository.findOrder(menu.store);
+        const idx = order.findIndex((id) => Number(id) === menu.id);
+        order.splice(idx, 1);
+        await this.updateOrder(menu.store, { order });
         return this.menusRepository.delete(menu);
     }
 
@@ -88,6 +101,7 @@ export class MenusService {
             pickUpTime: refinedPickUpTime ? refinedPickUpTime : null, // 사용자의 거리값을 안 보냈을 경우(update 시) null로 전송
             caution,
         };
+        await this.menusRepository.incrementView(menu);
         return menuDetailList;
     }
 
@@ -128,6 +142,31 @@ export class MenusService {
     async updateOrder(store: Store, dto: UpdateMenuOrderDto) {
         const newOrder = dto.order;
         return await this.storesRepository.updateOrder(store, newOrder);
+    }
+
+    async updateStatus(menu: Menu, dto: UpdateStatusArgs) {
+        // 숨김 -> 품절 혹은 반대시 == order변동 x
+        const { prevStatus, updateStatus } = dto;
+        if (
+            prevStatus === updateStatus ||
+            (prevStatus === MenuStatus.HIDDEN && updateStatus === MenuStatus.SOLDOUT) ||
+            (prevStatus === MenuStatus.SOLDOUT && updateStatus === MenuStatus.HIDDEN)
+        ) {
+            return await this.menusRepository.update(menu, { status: dto.updateStatus });
+        }
+        // 숨김, 품절 -> 판매중 == order의 맨 앞에 붙이기
+        const order = await this.storesRepository.findOrder(menu.store);
+        if (updateStatus === MenuStatus.SALE) {
+            order.unshift(menu.id);
+        }
+        // 판매중 -> 숨김, 품절으로 전환시 = order에서 삭제
+        if (updateStatus === MenuStatus.HIDDEN || updateStatus === MenuStatus.SOLDOUT) {
+            const idx = order.findIndex((id) => Number(id) === menu.id);
+            order.splice(idx, 1);
+        }
+        await this.updateOrder(menu.store, { order });
+        this.menusRepository.update(menu, { status: dto.updateStatus });
+        return await this.findDetailOne(menu);
     }
 
     async findMaxDiscount(dto: FindAsLocationDto) {
@@ -269,8 +308,12 @@ export class MenusService {
         return refindedData;
     }
 
-    async findOne(where: FindOptionsWhere<Menu>) {
-        return await this.menusRepository.findOne(where);
+    async findOne(
+        where: FindOptionsWhere<Menu>,
+        select?: FindOptionsSelect<Menu>,
+        relations?: FindOptionsRelations<Menu>,
+    ) {
+        return await this.menusRepository.findOne(where, select, relations);
     }
 
     async exist(where: FindManyOptions<Menu>) {

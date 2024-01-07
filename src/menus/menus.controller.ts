@@ -30,6 +30,7 @@ import { FindAsLocationDto } from './dto/find-as-loaction.dto';
 import { MenuFilterType } from './enum/discounted-menu-filter-type.enum';
 import { MenuStatus } from './enum/menu-status.enum';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { UpdateMenuStatusDto } from './dto/update-status.dto';
 
 @Controller('menus')
 export class MenusController {
@@ -79,6 +80,12 @@ export class MenusController {
     @Get('/discounted')
     async findManyDiscount(@Query('type') type: MenuFilterType, @Query() dto: FindAsLocationDto) {
         return await this.menusService.findManyDiscount(type, dto);
+    }
+
+    @Put('/status/:id')
+    @UseGuards(AuthGuard)
+    async updateStatus(@Param('id', TransformMenuPipe) menu: Menu, @Body() dto: UpdateMenuStatusDto) {
+        return await this.menusService.updateStatus(menu, dto);
     }
 
     @Post('upload/:storeId')

@@ -4,7 +4,6 @@ export interface UpdateMenuArgs {
     menuPictureUrl?: string;
     name?: string;
     description?: string;
-    status?: MenuStatus;
     price?: number;
     discountRate?: number;
 }

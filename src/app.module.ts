@@ -12,7 +12,7 @@ import { CategoriesModule } from './categories/categories.module';
 import { InitializeService } from './initialize.service';
 import { SmsModule } from './sms/sms.module';
 import { CacheModule } from './cache/cache.module';
-import { SearchModule } from './search/search.module';
+import { VersionModule } from './version/version.module';
 import aligoConfiguration from './global/config/aligo.configuration';
 
 @Module({
@@ -31,7 +31,7 @@ import aligoConfiguration from './global/config/aligo.configuration';
         CategoriesModule,
         SmsModule,
         CacheModule,
-        SearchModule,
+        VersionModule,
     ],
     providers: [Logger, InitializeService],
 })

@@ -11,7 +11,7 @@ export const configGenerator = (env: string): TypeOrmModuleOptions => {
             password: process.env.DATABASE_PASSWORD,
             database: process.env.DATABASE_NAME,
             synchronize: JSON.parse(process.env.DATABASE_SYNC),
-            entities: [__dirname + '/../../**/*.entity.*'],
+            entities: [__dirname + '/../../**/*.entity.{js,ts}'],
             logging: true,
             namingStrategy: new SnakeNamingStrategy(),
         };
@@ -27,7 +27,7 @@ export const configGenerator = (env: string): TypeOrmModuleOptions => {
             ssl: {
                 rejectUnauthorized: true,
             },
-            entities: [__dirname + '/../../**/*.entity.*'],
+            entities: [__dirname + '/../../**/entity.{js,ts}'],
             namingStrategy: new SnakeNamingStrategy(),
         };
 };

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Category } from './entity/category.entity';
+import { Category } from 'src/categories/entity/category.entity';
 import { FindOptionsWhere, TreeRepository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CategoriesException } from 'src/global/exception/categories-exception';

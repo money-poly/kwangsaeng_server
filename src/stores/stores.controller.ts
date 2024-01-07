@@ -115,6 +115,11 @@ export class StoresController {
         return await this.storesService.basicInfo(storeId);
     }
 
+    @Get('/operation/:id')
+    async checkOperationStatus(@Param('id', ParseIntPipe) storeId: number) {
+        return await this.storesService.checkApprove(storeId);
+    }
+
     @Post('upload/:storeId')
     @UseGuards(AuthGuard)
     @UseInterceptors(FileInterceptor('file'))

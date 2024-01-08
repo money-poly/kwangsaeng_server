@@ -24,29 +24,30 @@ export const multerS3Config = (configService: ConfigService): MulterOptions => {
             key: function (req: Request, file, cb) {
                 const pathParam = req.path.split('/');
                 let savedPath: string = '';
-                let dataType: string = '';
+                let uploadedName: string = '';
                 // pathParam[3] -> stores or menus or banners
                 // pathParam[4] -> upload
                 // pathParam[5] -> :storeId
                 switch (pathParam[3]) {
                     case 'stores':
                         savedPath = 'stores' + '/ID: ' + pathParam[5];
-                        dataType = 'storeImage';
+                        uploadedName = 'storeImage';
                         break;
                     case 'menus':
                         savedPath = 'stores' + '/ID: ' + pathParam[5] + '/menus';
-                        dataType = 'menuImage';
+                        uploadedName = 'menuImage';
                         break;
                     case 'banners':
                         savedPath = 'banners';
-                        dataType = 'bannerImage';
+                        const extensionIdx = file.originalname.lastIndexOf('.'); // 확장자 온점 idx번호
+                        uploadedName = file.originalname.slice(0, extensionIdx); // 확장자 전까지만 기록
                         break;
                     default:
                         cb(S3Exception.URL_NOT_FOUND);
                 }
                 const currentDate = new Date();
-                const formattedDate = currentDate.toISOString().replace(/:/g, '-').slice(0, -5);
-                cb(null, `${savedPath}/${dataType} ${formattedDate}.${mime.extension(file.mimetype)}`);
+                const formattedDate = currentDate.toISOString().replace(/:/g, '-').slice(0, -5); // 2024-01-08T07-15-59 <- 위와 같은 모양새
+                cb(null, `${savedPath}/${uploadedName} ${formattedDate}.${mime.extension(file.mimetype)}`);
             },
         }),
         limits: {

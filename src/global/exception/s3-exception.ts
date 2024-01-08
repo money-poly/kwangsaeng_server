@@ -9,4 +9,6 @@ export abstract class S3Exception {
         9001,
         HttpStatus.BAD_REQUEST,
     );
+
+    static UPLOAD_FAIL = new CommonException('사진 업로드에 실패했습니다.', 9002, HttpStatus.BAD_REQUEST);
 }

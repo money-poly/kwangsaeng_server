@@ -4,6 +4,7 @@ import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer
 import * as multerS3 from 'multer-s3';
 import * as mime from 'mime-types';
 import { Request } from 'express';
+import { S3Exception } from '../exception/s3-exception';
 
 export const multerS3Config = (configService: ConfigService): MulterOptions => {
     const s3 = new S3Client({
@@ -24,7 +25,7 @@ export const multerS3Config = (configService: ConfigService): MulterOptions => {
                 const pathParam = req.path.split('/');
                 let savedPath: string = '';
                 let dataType: string = '';
-                // pathParam[3] -> stores or menus
+                // pathParam[3] -> stores or menus or banners
                 // pathParam[4] -> upload
                 // pathParam[5] -> :storeId
                 switch (pathParam[3]) {
@@ -36,6 +37,12 @@ export const multerS3Config = (configService: ConfigService): MulterOptions => {
                         savedPath = 'stores' + '/ID: ' + pathParam[5] + '/menus';
                         dataType = 'menuImage';
                         break;
+                    case 'banners':
+                        savedPath = 'banners';
+                        dataType = 'bannerImage';
+                        break;
+                    default:
+                        cb(S3Exception.URL_NOT_FOUND);
                 }
                 const currentDate = new Date();
                 const formattedDate = currentDate.toISOString().replace(/:/g, '-').slice(0, -5);
@@ -52,7 +59,7 @@ export const multerS3Config = (configService: ConfigService): MulterOptions => {
             if (allowedMimeTypes.includes(file.mimetype)) {
                 callback(null, true); // 허용
             } else {
-                callback(new Error('Invalid file type. Only JPEG, PNG, and GIF images are allowed.'), false); // 거부
+                callback(S3Exception.NOT_ALLOWED_EXTENSION, false);
             }
         },
     };

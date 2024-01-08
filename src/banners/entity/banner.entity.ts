@@ -12,9 +12,9 @@ export class Banner extends AbstractEntity<Banner> {
     @Column({ nullable: true })
     description: string;
 
+    @Column({ nullable: true })
+    orders: number;
+
     @Column({ default: 0 })
     isVisible: boolean;
-
-    @Column({})
-    order: number;
 }

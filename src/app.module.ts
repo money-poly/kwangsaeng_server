@@ -13,6 +13,7 @@ import { InitializeService } from './initialize.service';
 import { SmsModule } from './sms/sms.module';
 import { CacheModule } from './cache/cache.module';
 import { VersionModule } from './version/version.module';
+import { BannersModule } from './banners/banners.module';
 import aligoConfiguration from './global/config/aligo.configuration';
 
 @Module({
@@ -32,6 +33,7 @@ import aligoConfiguration from './global/config/aligo.configuration';
         SmsModule,
         CacheModule,
         VersionModule,
+        BannersModule,
     ],
     providers: [Logger, InitializeService],
 })

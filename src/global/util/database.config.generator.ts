@@ -1,5 +1,6 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { Token } from 'src/auth/entity/token.entity';
+import { Banner } from 'src/banners/entity/banner.entity';
 import { Category } from 'src/categories/entity/category.entity';
 import { MenuView } from 'src/menus/entity/menu-view.entity';
 import { Menu } from 'src/menus/entity/menu.entity';
@@ -51,6 +52,7 @@ export const configGenerator = (env: string): TypeOrmModuleOptions => {
                 Token,
                 Tag,
                 Version,
+                Banner,
             ],
             namingStrategy: new SnakeNamingStrategy(),
         };

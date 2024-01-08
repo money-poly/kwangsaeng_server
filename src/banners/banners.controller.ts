@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Post, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { BannersService } from './banners.service';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -14,5 +14,10 @@ export class BannersController {
     async uploadImage(@UploadedFile() file: Express.MulterS3.File, @Body() formData: object) {
         const dto: CreateBannerDto = JSON.parse(JSON.stringify(formData));
         await this.bannerService.create(dto, file);
+    }
+
+    @Get('')
+    async findAll() {
+        return await this.bannerService.findAll();
     }
 }

@@ -45,4 +45,14 @@ export class BannersService {
             } else throw error;
         });
     }
+
+    async findAll() {
+        const urlList = await this.entityManager
+            .createQueryBuilder(Banner, 'b')
+            .select('b.url AS url')
+            .where('is_visible = :isVisible', { isVisible: 1 })
+            .orderBy('orders', 'ASC')
+            .getRawMany();
+        return urlList.map((data) => data.url);
+    }
 }

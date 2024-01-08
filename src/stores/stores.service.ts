@@ -214,8 +214,8 @@ export class StoresService {
                 lat: dto.lat,
                 range: dto.range,
             })
-            .andWhere('stores.status = "open"')
-            .andWhere('a.isApproved = done')
+            .andWhere('stores.status = :openStatus', { openStatus: StoreStatus.OPEN })
+            .andWhere('a.isApproved = :approveStatus', { approveStatus: StoreApproveStatus.DONE })
             .getRawMany();
     }
 

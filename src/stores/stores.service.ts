@@ -20,6 +20,7 @@ import { Category } from 'src/categories/entity/category.entity';
 import { FindStoreDetailDto } from './dto/find-store-detail.dto';
 import { MenuView } from 'src/menus/entity/menu-view.entity';
 import { StoreApproveStatus } from './enum/store-approve-status.enum';
+
 @Injectable()
 export class StoresService {
     constructor(
@@ -85,7 +86,7 @@ export class StoresService {
             },
         });
 
-        if (approve.isApproved) {
+        if (approve.isApproved === StoreApproveStatus.DONE) {
             throw StoresException.ALREADY_APPROVED;
         }
 
@@ -153,7 +154,7 @@ export class StoresService {
         END AS pickupTime`,
             )
             .where('s.id = :storeId', { storeId: storeId })
-            .andWhere('sa.is_approved = :isApproved', { isApproved: 1 })
+            .andWhere('sa.is_approved = :isApproved', { isApproved: StoreApproveStatus.DONE })
             .setParameters({ lat: dto.lat, lon: dto.lon })
             .orderBy(orderBy, 'DESC')
             .getRawMany();

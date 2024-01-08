@@ -21,7 +21,7 @@ export class OperationGuard implements CanActivate {
             throw StoresException.ENTITY_NOT_FOUND;
         }
 
-        if (approve.isApproved == StoreApproveStatus.DONE) {
+        if (approve.isApproved === StoreApproveStatus.DONE) {
             return true;
         } else {
             throw StoresException.NOT_APPROVED;

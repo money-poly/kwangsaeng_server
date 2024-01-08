@@ -32,6 +32,7 @@ import { MenuFilterType } from './enum/discounted-menu-filter-type.enum';
 import { StoreStatus } from 'src/stores/enum/store-status.enum';
 import { StoreApprove } from 'src/stores/entity/store-approve.entity';
 import { UpdateStatusArgs } from './interface/update-status.interface';
+import { StoreApproveStatus } from 'src/stores/enum/store-approve-status.enum';
 
 @Injectable()
 export class MenusService {
@@ -202,7 +203,7 @@ export class MenusService {
                 lat: dto.lat,
                 range: 3000,
             })
-            .andWhere('sa.is_approved = :isApproved', { isApproved: 1 })
+            .andWhere('sa.is_approved = :isApproved', { isApproved: StoreApproveStatus.DONE })
             .orderBy('c.name')
             .addOrderBy('m.discount_rate', 'DESC')
             .addOrderBy('m.created_date')
@@ -259,7 +260,7 @@ export class MenusService {
             .where(`s.status = "${StoreStatus.OPEN}"`)
             .andWhere(`m.status = "${MenuStatus.SALE}"`)
             .andWhere('m.discount_rate > 0')
-            .andWhere('sa.is_approved = :isApproved', { isApproved: 1 })
+            .andWhere('sa.is_approved = :isApproved', { isApproved: StoreApproveStatus.DONE })
             .andWhere('ST_Distance_Sphere(POINT(:lon, :lat), POINT(sd.lon, sd.lat)) <= :range', {
                 lon: dto.lon,
                 lat: dto.lat,

@@ -16,8 +16,8 @@ export class BannersService {
     ) {}
 
     async create(dto: CreateBannerInterface, file: Express.MulterS3.File) {
-        if (!file.location) {
-            throw S3Exception.URL_NOT_FOUND;
+        if (file === undefined) {
+            throw S3Exception.UPLOAD_FAIL;
         }
 
         const refinedIsVisible = Boolean(Number(dto.isVisible));

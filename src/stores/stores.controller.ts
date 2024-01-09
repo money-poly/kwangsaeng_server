@@ -31,6 +31,7 @@ import { UseEntityTransformer } from 'src/global/decorator/entity-transformer.de
 import { CAUTION_TEXT } from 'src/global/common/caution.constant';
 import { FindStoreDetailDto } from './dto/find-store-detail.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { AdminGuard } from 'src/auth/guard/admin.guard';
 
 @Controller('stores')
 export class StoresController {
@@ -63,8 +64,8 @@ export class StoresController {
         return await this.storesService.toggleStoreStatus(store);
     }
 
-    // TODO: 어드민 권한
     @Patch('approve/:storeId')
+    @UseGuards(AuthGuard, AdminGuard)
     @UseEntityTransformer<Store>(TransformStoreInterceptor)
     async approve(@CurrentStore() store: Store) {
         return await this.storesService.approve(store);

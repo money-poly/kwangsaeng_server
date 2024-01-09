@@ -3,13 +3,14 @@ import { BannersService } from './banners.service';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateBannerDto } from './dto/create-banner.dto';
+import { AdminGuard } from 'src/auth/guard/admin.guard';
 
 @Controller('banners')
 export class BannersController {
     constructor(private readonly bannerService: BannersService) {}
 
     @Post('/upload')
-    @UseGuards(AuthGuard) // TODO: 어드민 권한
+    @UseGuards(AuthGuard, AdminGuard)
     @UseInterceptors(FileInterceptor('file'))
     async uploadImage(@UploadedFile() file: Express.MulterS3.File, @Body() formData: object) {
         const dto: CreateBannerDto = JSON.parse(JSON.stringify(formData));

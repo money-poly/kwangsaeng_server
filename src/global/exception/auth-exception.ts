@@ -39,4 +39,6 @@ export abstract class AuthException {
         1006,
         HttpStatus.INTERNAL_SERVER_ERROR,
     );
+
+    static DENINED_USER_NOT_ADMIN = new CommonException('관리자(Admin)만 접근 가능합니다.', 1007, HttpStatus.FORBIDDEN);
 }

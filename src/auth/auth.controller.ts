@@ -8,6 +8,7 @@ import { ReissueTokensDto } from './dto/reissue-token.dto';
 import { SmsService } from 'src/sms/sms.service';
 import { SendVerifiactionCodeDto } from './dto/send-verification-code.dto';
 import { VerifyCodeDto } from './dto/verify-code.dto';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {
@@ -31,6 +32,7 @@ export class AuthController {
         return this.authService.issueTokens(dto);
     }
 
+    @Throttle({ default: { limit: 2, ttl: 25000 } })
     @Post('verification/send')
     sendVerificationCode(@Body() dto: SendVerifiactionCodeDto) {
         return this.smsService.sendVerificationCode(dto);

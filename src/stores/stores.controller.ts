@@ -74,7 +74,9 @@ export class StoresController {
     @Get('/find-using-token')
     @UseGuards(AuthGuard)
     async findStoreUsingToken(@Request() requestUser) {
-        return { id: requestUser.user.id };
+        // TODO 1점주 1가게가 변경될 시, 구조 변경
+        const data = await this.storesService.findOneStore({ id: requestUser.user.id }, { id: true });
+        return data ? [data] : [];
     }
 
     @Get(':storeId')

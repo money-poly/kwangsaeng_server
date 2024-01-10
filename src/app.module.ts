@@ -15,6 +15,8 @@ import { CacheModule } from './cache/cache.module';
 import { VersionModule } from './version/version.module';
 import { BannersModule } from './banners/banners.module';
 import aligoConfiguration from './global/config/aligo.configuration';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
     imports: [
@@ -24,6 +26,16 @@ import aligoConfiguration from './global/config/aligo.configuration';
             envFilePath: __dirname + `/../src/global/config/envs/.${process.env.NODE_ENV}.env`,
             validationSchema,
         }),
+        ThrottlerModule.forRoot([
+            {
+                ttl: 1000,
+                limit: 10,
+            },
+            {
+                ttl: 60000,
+                limit: 100,
+            },
+        ]),
         DatabaseModule,
         UsersModule,
         StoresModule,
@@ -35,6 +47,6 @@ import aligoConfiguration from './global/config/aligo.configuration';
         VersionModule,
         BannersModule,
     ],
-    providers: [Logger, InitializeService],
+    providers: [Logger, InitializeService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}

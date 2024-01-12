@@ -105,6 +105,13 @@ export class StoresController {
                 'detail.modifiedDate',
                 'detail.lat',
                 'detail.lon',
+                'tag.createdDate',
+                'tag.modifiedDate',
+                'tag.description',
+                'tag.icon',
+                'tag.content',
+                'tag.textColor',
+                'tag.backgroundColor',
             ],
         },
     })

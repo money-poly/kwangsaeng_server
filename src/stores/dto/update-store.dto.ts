@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsUrl } from 'class-validator';
+import { IsNumber, IsOptional, IsString, IsUrl } from 'class-validator';
 import { CreateStoreDto } from './create-store.dto';
 import { PartialType, PickType } from '@nestjs/mapped-types';
 
@@ -12,4 +12,8 @@ export class UpdateStoreDto extends PartialType(
     @IsString()
     @IsOptional()
     description?: string;
+
+    @IsNumber()
+    @IsOptional()
+    tagId: number;
 }

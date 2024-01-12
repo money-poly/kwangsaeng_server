@@ -105,6 +105,9 @@ export class StoresRepository {
             }),
             approve: this.storeApprove.create(),
             name: dto.name,
+            tag: {
+                id: 1,
+            },
             user: user,
             categories,
         });

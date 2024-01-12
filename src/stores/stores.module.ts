@@ -17,6 +17,7 @@ import { HttpModule } from '@nestjs/axios';
 import { MulterModule } from '@nestjs/platform-express';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { multerS3Config } from 'src/global/config/multer-s3.config';
+import { TagsModule } from 'src/tags/tags.module';
 
 @Module({
     imports: [
@@ -25,6 +26,7 @@ import { multerS3Config } from 'src/global/config/multer-s3.config';
         CategoriesModule,
         UsersModule,
         HttpModule,
+        TagsModule,
         MulterModule.registerAsync({
             imports: [ConfigModule],
             inject: [ConfigService],

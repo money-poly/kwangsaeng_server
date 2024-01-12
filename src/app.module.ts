@@ -17,6 +17,7 @@ import { BannersModule } from './banners/banners.module';
 import aligoConfiguration from './global/config/aligo.configuration';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { TagsModule } from './tags/tags.module';
 
 @Module({
     imports: [
@@ -46,6 +47,7 @@ import { APP_GUARD } from '@nestjs/core';
         CacheModule,
         VersionModule,
         BannersModule,
+        TagsModule,
     ],
     providers: [Logger, InitializeService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

@@ -1,12 +1,13 @@
 import { AbstractEntity } from 'src/global/common/abstract.entity';
-import { Column, Entity } from 'typeorm';
+import { Store } from 'src/stores/entity/store.entity';
+import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 
-@Entity()
+@Entity({ name: 'tags' })
 export class Tag extends AbstractEntity<Tag> {
-    @Column()
+    @Column({ unique: true })
     name: string;
 
-    @Column()
+    @Column({ nullable: true })
     description: string;
 
     @Column()
@@ -20,4 +21,7 @@ export class Tag extends AbstractEntity<Tag> {
 
     @Column()
     backgroundColor: string;
+
+    @OneToMany(() => Store, (store) => store.tag)
+    stores: Store[];
 }

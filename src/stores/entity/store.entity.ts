@@ -1,12 +1,13 @@
 import { BusinessDetail } from './business-detail.entity';
 import { SoftDeleteEntity } from 'src/global/common/abstract.entity';
-import { Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToMany, OneToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, OneToOne } from 'typeorm';
 import { Menu } from 'src/menus/entity/menu.entity';
 import { StoreStatus } from '../enum/store-status.enum';
 import { User } from 'src/users/entity/user.entity';
 import { StoreDetail } from './store-detail.entity';
 import { Category } from 'src/categories/entity/category.entity';
 import { StoreApprove } from './store-approve.entity';
+import { Tag } from 'src/tags/entity/tag.entity';
 
 @Entity({ name: 'stores' })
 export class Store extends SoftDeleteEntity<Store> {
@@ -31,6 +32,9 @@ export class Store extends SoftDeleteEntity<Store> {
 
     @OneToMany(() => Menu, (menu) => menu.store)
     menus: Menu[];
+
+    @ManyToOne(() => Tag, (tag) => tag.stores)
+    tag: Tag;
 
     @ManyToMany(() => Category, (category) => category.store, {
         cascade: ['insert'],

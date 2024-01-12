@@ -395,19 +395,41 @@ export class StoresService {
     async basicInfo(storeId: number) {
         let query =
             'SELECT s.name AS name, s.status, bd.name AS businessLeaderName, c.name AS category, sd.store_picture_url AS storePictureUrl, ';
-        query += 'COUNT(m.id) AS totalMenuCount, IFNULL(SUM(m.sale_price < price), 0) discountMenuCount ';
+        query += 'COUNT(m.id) AS totalMenuCount, IFNULL(SUM(m.sale_price < price), 0) discountMenuCount, ';
+        query +=
+            't.id AS tag_id, t.name AS tag_name, t.content AS tag_content , t.description AS tag_description, t.text_color AS tag_textColor, t.background_color AS tag_backgroundColor, t.icon AS tag_icon ';
         query += 'FROM stores AS s ';
         query += 'LEFT JOIN store_detail sd ON sd.store_id = s.id ';
+        query += 'LEFT JOIN tags t ON t.id = s.tag_id ';
         query += 'LEFT JOIN business_detail bd ON bd.store_id = s.id ';
         query += 'LEFT JOIN store_categories sc ON sc.stores_id = s.id ';
         query += 'LEFT JOIN categories c ON sc.categories_id = c.id ';
         query += 'LEFT JOIN menus m ON m.store_id = s.id ';
         query += 'WHERE s.id = ? ';
         query += 'group by s.name, s.status, bd.name, c.name, sd.store_picture_url';
-        // TODO: tags 추가
 
         const sql = await this.entityManager.query(query, [storeId]);
+        const tag = {
+            id: sql[0].tag_id,
+            name: sql[0].tag_name,
+            description: sql[0].tag_description,
+            icon: sql[0].tag_icon,
+            content: sql[0].tag_content,
+            textColor: sql[0].tag_textColor,
+            backgroundColor: sql[0].tag_backgroundColor,
+        };
 
-        return sql[0];
+        const info = {
+            name: sql[0].name,
+            status: sql[0].status,
+            businessLeaderName: sql[0].businessLeaderName,
+            category: sql[0].category,
+            storePictureUrl: sql[0].storePictureUrl,
+            totalMenuCount: sql[0].totalMenuCount,
+            discountMenuCount: sql[0].discountMenuCount,
+            tag,
+        };
+
+        return info;
     }
 }

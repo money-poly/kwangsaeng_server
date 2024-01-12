@@ -20,6 +20,8 @@ import { Category } from 'src/categories/entity/category.entity';
 import { FindStoreDetailDto } from './dto/find-store-detail.dto';
 import { MenuView } from 'src/menus/entity/menu-view.entity';
 import { StoreApproveStatus } from './enum/store-approve-status.enum';
+import { TagsService } from 'src/tags/tags.service';
+import { TagException } from 'src/global/exception/tag-exception';
 
 @Injectable()
 export class StoresService {
@@ -27,6 +29,7 @@ export class StoresService {
         private readonly storesRepository: StoresRepository,
         private readonly entityManager: EntityManager,
         private readonly usersRepository: UsersRepository,
+        private readonly tagsService: TagsService,
         @InjectModel('Store-Menu')
         private dynamoModel: Model<DynamoSchema, DynamoKey>,
     ) {}
@@ -55,6 +58,20 @@ export class StoresService {
     }
 
     async updateStore(store: Store, dto: UpdateStoreDto) {
+        let tag;
+
+        if (dto?.tagId) {
+            tag = await this.tagsService.findOne({
+                where: {
+                    id: dto.tagId,
+                },
+            });
+
+            if (!tag) {
+                throw TagException.NOT_FOUND;
+            }
+        }
+
         Object.assign(store, {
             name: dto.name ?? store.name,
             detail: {
@@ -66,6 +83,7 @@ export class StoresService {
                 cookingTime: dto.cookingTime ?? store.detail.cookingTime,
                 storePictureUrl: dto.storePictureUrl ?? store.detail.storePictureUrl,
             },
+            tag: tag ?? store.tag,
         });
 
         return await this.storesRepository.saveStore(store);

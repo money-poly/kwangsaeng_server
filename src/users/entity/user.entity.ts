@@ -9,7 +9,7 @@ export class User extends SoftDeleteEntity<User> {
     @Column({ comment: 'firebase uid', unique: true })
     fId: string;
 
-    @Column({ comment: '유저 이름' })
+    @Column({ nullable: true, comment: '유저 이름' })
     name: string;
 
     @Column({ length: 15, comment: '전화번호 000-0000-0000' })

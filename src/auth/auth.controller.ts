@@ -17,12 +17,12 @@ export class AuthController {
         private readonly smsService: SmsService,
     ) {}
 
-    @Post('signUp/:roles')
+    @Post('register/:roles')
     signUp(@Param('roles') role: Roles, @Body() dto: SignUpDto): Promise<TokensModel> {
         return this.authService.signUpAndIssueTokens(role, dto);
     }
 
-    @Post('signIn')
+    @Post('login')
     signIn(@Body() dto: SignInDto): Promise<TokensModel> {
         return this.authService.issueTokens(dto);
     }

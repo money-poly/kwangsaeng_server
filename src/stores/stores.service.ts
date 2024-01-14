@@ -237,6 +237,15 @@ export class StoresService {
             .getRawMany();
     }
 
+    async findStoreUsingToken(userId: number) {
+        return await this.entityManager
+            .createQueryBuilder(Store, 's')
+            .leftJoinAndSelect(User, 'u', 's.user_id = u.id')
+            .select('s.id AS id')
+            .where('u.id = :userId', { userId })
+            .getRawMany();
+    }
+
     async migrateDynamo() {
         const dataList = await this.entityManager
             .createQueryBuilder(Menu, 'menus')

@@ -91,7 +91,10 @@ export class MenusService {
 
     async update(menu: Menu, args: UpdateMenuArgs) {
         await this.menusRepository.update(menu, { ...args });
-        return await this.findDetailOne(menu);
+        const result = await this.findDetailOne(menu);
+        const dynamoMenuData = await this.dynamoModel.get({ storeName: result.storeName, menuId: menu.id });
+        await this.dynamoModel.update({ ...dynamoMenuData, ...args, menuName: args.name ? args.name : result.name }); // TODO name칼럼 좀 이쁘게 변환할 순 없을까?
+        return;
     }
 
     async delete(menu: Menu) {

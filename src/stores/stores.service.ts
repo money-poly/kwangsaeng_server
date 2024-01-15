@@ -248,16 +248,16 @@ export class StoresService {
 
     async migrateDynamo() {
         const dataList = await this.entityManager
-            .createQueryBuilder(Menu, 'menus')
-            .leftJoinAndSelect(Store, 'stores', 'stores.id = menus.store_id')
-            .leftJoinAndSelect(MenuView, 'menu_views', 'menus.id = menu_views.menu_id')
-            .select('stores.name AS storeName')
-            .addSelect('menus.id AS menuId')
-            .addSelect('menus.name AS menuName')
-            .addSelect('menus.menu_picture_url AS menuPictureUrl')
-            .addSelect('menus.price AS sellingPrice')
-            .addSelect('menus.discount_rate AS discountRate')
-            .addSelect('menu_views.view_count AS viewCount')
+            .createQueryBuilder(Menu, 'm')
+            .leftJoinAndSelect(Store, 's', 's.id = m.store_id')
+            .leftJoinAndSelect(MenuView, 'mv', 'm.id = mv.menu_id')
+            .select('s.name AS storeName')
+            .addSelect('m.id AS menuId')
+            .addSelect('m.name AS menuName')
+            .addSelect('m.menu_picture_url AS menuPictureUrl')
+            .addSelect('m.price AS sellingPrice')
+            .addSelect('m.discount_rate AS discountRate')
+            .addSelect('mv.view_count AS viewCount')
             .getRawMany();
         for (const data of dataList) {
             const isExist = await this.dynamoModel.get({
@@ -271,7 +271,7 @@ export class StoresService {
                     storeName: data.storeName,
                     menuId: data.menuId,
                     menuName: data.menuName,
-                    menuPictureUrl: data.menuPictureUrl,
+                    menuPictureUrl: data.menuPictureUrl ? data.menuPictureUrl : undefined, // TODO 프론트에 값 넘겨줄떄, null값으로 변환 후 보내주기. (null값이면 아예 dynamo에 안들어감)
                     sellingPrice: data.sellingPrice,
                     discountRate: data.discountRate,
                     viewCount: data.viewCount,

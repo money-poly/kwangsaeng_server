@@ -20,6 +20,10 @@ export class UpdateMenuDto implements UpdateMenuArgs {
     discountRate?: number;
 
     @IsOptional()
+    @IsNumber()
+    sellingPrice?: number;
+
+    @IsOptional()
     @IsString()
     description?: string;
 }

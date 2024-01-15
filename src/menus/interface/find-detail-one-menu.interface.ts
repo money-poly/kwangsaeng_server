@@ -1,21 +1,13 @@
-import { Store } from 'src/stores/entity/store.entity';
-import { Menu } from '../entity/menu.entity';
 import { FindSimpleOneMenu } from './find-simple-one-menu.interface';
 
 export interface FindDetailOneMenu {
-    mainMenuPictureUrl: Pick<Menu, 'menuPictureUrl'>;
-    description: Pick<Menu, 'description'>;
-    name: Pick<Menu, 'name'>;
-    discountRate: Pick<Menu, 'discountRate'>;
-    price: Pick<Menu, 'price'>;
-    //viewCount: Pick<Menu, 'viewCount'>;
-    storeNmae: Pick<Store, 'name'>;
-    //storeAddress: Pick<Store, 'address'>;
-    //phone: Pick<Store, 'phone'>;
-    expiredDate: null;
-    //storeLatitude: Pick<Store, 'latitude'>;
-    //storeLongitude: Pick<Store, 'longitude'>;
-    //countryOfOrigin: Pick<Store, 'countryOfOrigin'>;
+    mainMenuPictureUrl: string;
+    description: string;
+    name: string;
+    discountRate: number;
+    price: number;
+    storeName: string;
+    expiredDate?: Date;
     anotherMenus: FindSimpleOneMenu[];
     notice: string[];
 }

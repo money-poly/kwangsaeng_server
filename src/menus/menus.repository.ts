@@ -13,6 +13,8 @@ import { MenuView } from './entity/menu-view.entity';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 import { CreateMenuArgs } from './interface/create-menu.interface';
 import { Store } from 'src/stores/entity/store.entity';
+import { InjectModel, Model } from 'nestjs-dynamoose';
+import { DynamoKey, DynamoSchema } from 'src/stores/interfaces/store-menu-dynamo.interface';
 
 @Injectable()
 export class MenusRepository {
@@ -24,6 +26,8 @@ export class MenusRepository {
         @InjectRepository(MenuView)
         private readonly menuView: Repository<MenuView>,
         public entityManager: EntityManager,
+        @InjectModel('Store-Menu')
+        private dynamoModel: Model<DynamoSchema, DynamoKey>,
     ) {}
 
     async findOne(
@@ -46,7 +50,10 @@ export class MenusRepository {
             .getRawOne();
     }
 
-    async incrementView(menu: Menu) {
+    async incrementView(menu: Menu, storeName: string) {
+        const dynamoMenuData = await this.dynamoModel.get({ storeName, menuId: menu.id });
+        const incrementDynamoMenuData = { ...dynamoMenuData, viewCount: dynamoMenuData.viewCount + 1 };
+        await this.dynamoModel.update(incrementDynamoMenuData);
         return await this.menuView.increment({ id: menu.id }, 'viewCount', 1);
     }
 
@@ -71,12 +78,12 @@ export class MenusRepository {
             ...args,
             store,
         });
-        await this.menus.save(newMenu);
+        const menu = await this.menus.save(newMenu);
         const newMenuView = this.menuView.create({
             viewCount: 0,
             menu: newMenu,
         });
         await this.menuView.save(newMenuView);
-        return newMenu.id;
+        return menu;
     }
 }

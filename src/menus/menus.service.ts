@@ -47,6 +47,9 @@ export class MenusService {
         if (!storeData) {
             throw StoresException.ENTITY_NOT_FOUND;
         }
+        if (user !== storeData.user) {
+            throw MenusException.HAS_NO_PERMISSION_CREATE;
+        }
         await this.validateUserRole(user, Roles.OWNER);
         const createdMenu = await this.menusRepository.create(storeData, args);
         await this.storesRepository.addOrder(storeData, createdMenu);

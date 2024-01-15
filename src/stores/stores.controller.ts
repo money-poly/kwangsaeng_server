@@ -32,6 +32,7 @@ import { CAUTION_TEXT } from 'src/global/common/caution.constant';
 import { FindStoreDetailDto } from './dto/find-store-detail.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AdminGuard } from 'src/auth/guard/admin.guard';
+import { S3Exception } from 'src/global/exception/s3-exception';
 
 @Controller('stores')
 export class StoresController {
@@ -133,6 +134,9 @@ export class StoresController {
     @UseGuards(AuthGuard)
     @UseInterceptors(FileInterceptor('file'))
     async uploadImage(@UploadedFile() file: Express.MulterS3.File) {
+        if (file === undefined) {
+            throw S3Exception.UPLOAD_FAIL;
+        }
         return file.location;
     }
 }

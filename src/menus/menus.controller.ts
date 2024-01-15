@@ -31,6 +31,7 @@ import { MenuFilterType } from './enum/discounted-menu-filter-type.enum';
 import { MenuStatus } from './enum/menu-status.enum';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateMenuStatusDto } from './dto/update-status.dto';
+import { S3Exception } from 'src/global/exception/s3-exception';
 
 @Controller('menus')
 export class MenusController {
@@ -92,6 +93,9 @@ export class MenusController {
     @UseGuards(AuthGuard)
     @UseInterceptors(FileInterceptor('file'))
     async uploadImage(@UploadedFile() file: Express.MulterS3.File) {
+        if (file === undefined) {
+            throw S3Exception.UPLOAD_FAIL;
+        }
         return file.location;
     }
 }

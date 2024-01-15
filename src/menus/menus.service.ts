@@ -1,14 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MenusRepository } from './menus.repository';
-import {
-    EntityManager,
-    FindManyOptions,
-    FindOptionsRelations,
-    FindOptionsSelect,
-    FindOptionsWhere,
-    createQueryBuilder,
-} from 'typeorm';
+import { EntityManager, FindManyOptions, FindOptionsRelations, FindOptionsSelect, FindOptionsWhere } from 'typeorm';
 import { UsersRepository } from 'src/users/users.repository';
 import { StoresRepository } from 'src/stores/stores.repository';
 import { Store } from 'src/stores/entity/store.entity';
@@ -33,6 +26,9 @@ import { StoreStatus } from 'src/stores/enum/store-status.enum';
 import { StoreApprove } from 'src/stores/entity/store-approve.entity';
 import { UpdateStatusArgs } from './interface/update-status.interface';
 import { StoreApproveStatus } from 'src/stores/enum/store-approve-status.enum';
+import { InjectModel, Model } from 'nestjs-dynamoose';
+import { DynamoKey, DynamoSchema } from 'src/stores/interfaces/store-menu-dynamo.interface';
+import { DynamoException } from 'src/global/exception/dynamo-exception';
 
 @Injectable()
 export class MenusService {
@@ -41,7 +37,8 @@ export class MenusService {
         private readonly entityManager: EntityManager,
         private readonly usersRepository: UsersRepository,
         private readonly storesRepository: StoresRepository,
-        private readonly configService: ConfigService,
+        @InjectModel('Store-Menu')
+        private dynamoModel: Model<DynamoSchema, DynamoKey>,
     ) {}
 
     async create(user: User, args: CreateMenuArgs) {
@@ -51,10 +48,42 @@ export class MenusService {
             throw StoresException.ENTITY_NOT_FOUND;
         }
         await this.validateUserRole(user, Roles.OWNER);
-        const createdId = await this.menusRepository.create(storeData, args);
-        const menuData: Menu = await this.menusRepository.findOne({ id: createdId });
-        await this.storesRepository.addOrder(storeData, menuData);
-        return { menuId: createdId };
+        const createdMenu = await this.menusRepository.create(storeData, args);
+        await this.storesRepository.addOrder(storeData, createdMenu);
+        const dynamoInsertData = {
+            storeName: storeData.name,
+            menuId: createdMenu.id,
+            menuName: createdMenu.name,
+            menuPictureUrl: createdMenu.menuPictureUrl,
+            sellingPrice: createdMenu.salePrice,
+            discountRate: createdMenu.discountRate,
+            viewCount: 0,
+        };
+        try {
+            await this.dynamoModel.create(dynamoInsertData);
+        } catch (error) {
+            switch (error.code) {
+                case 'ConditionalCheckFailedException':
+                    throw DynamoException.CONDITION_CHECK_FAILED;
+                case 'ProvisionedThroughputExceededException':
+                    throw DynamoException.PROVISIONED_THROUGHPUT_EXCEEDED;
+                case 'ItemCollectionSizeLimitExceededException':
+                    throw DynamoException.ITEM_COLLECTION_SIZE_LIMIT_EXCEEDED;
+                case 'ResourceNotFoundException':
+                    throw DynamoException.RESOURCE_NOT_FOUND;
+                case 'LimitExceededException':
+                    throw DynamoException.Limit_Exceeded;
+                case 'RequestLimitExceeded':
+                    throw DynamoException.Request_Limit_Exceeded;
+                case 'ValidationException':
+                    throw DynamoException.VALIDATION_ERROR;
+                case 'TransactionConflictException':
+                    throw DynamoException.TRANSACTION_CONFLICT;
+                case 'InternalServerError':
+                    throw DynamoException.INTERNAL_SERVER_ERROR;
+            }
+        }
+        return { menuId: createdMenu.id };
     }
 
     async update(menu: Menu, args: UpdateMenuArgs) {
@@ -102,7 +131,7 @@ export class MenusService {
             pickUpTime: refinedPickUpTime ? refinedPickUpTime : null, // 사용자의 거리값을 안 보냈을 경우(update 시) null로 전송
             caution,
         };
-        await this.menusRepository.incrementView(menu);
+        await this.menusRepository.incrementView(menu, data.storeName);
         return menuDetailList;
     }
 
@@ -440,9 +469,8 @@ export class MenusService {
                     countryOfOrigin: countryOfOrigins,
                 };
                 i++;
-                const createdId = await this.menusRepository.create(storeInfo, { ...mockMenu });
-                const menuData: Menu = await this.menusRepository.findOne({ id: createdId });
-                await this.storesRepository.addOrder(storeInfo, menuData);
+                const createdMenu = await this.menusRepository.create(storeInfo, { ...mockMenu });
+                await this.storesRepository.addOrder(storeInfo, createdMenu);
             }
         }
     }

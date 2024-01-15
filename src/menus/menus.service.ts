@@ -99,10 +99,20 @@ export class MenusService {
 
     async delete(menu: Menu) {
         // 메뉴 삭제시 순서에서도 삭제
-        const order = await this.storesRepository.findOrder(menu.store);
-        const idx = order.findIndex((id) => Number(id) === menu.id);
-        order.splice(idx, 1);
+        const data = await this.entityManager
+            .createQueryBuilder(Menu, 'm')
+            .leftJoinAndSelect(Store, 's', 's.id = m.store_id')
+            .leftJoinAndSelect(StoreDetail, 'sd', 'sd.store_id = m.store_id')
+            .select('m.id AS menuId')
+            .addSelect('s.name AS storeName')
+            .addSelect('sd.menu_orders AS orders')
+            .where('m.id = :menuId', { menuId: menu.id })
+            .getRawOne();
+        const order = data.orders.split(',');
+        const findIdx = order.findIndex((id) => Number(id) === menu.id);
+        order.splice(findIdx, 1);
         await this.updateOrder(menu.store, { order });
+        await this.dynamoModel.delete({ storeName: data.storeName, menuId: data.menuId });
         return this.menusRepository.delete(menu);
     }
 

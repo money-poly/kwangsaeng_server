@@ -5,7 +5,7 @@ import { StoreApproveStatus } from '../enum/store-approve-status.enum';
 
 @Entity()
 export class StoreApprove extends AbstractEntity<StoreApprove> {
-    @Column({ type: 'enum', enum: StoreApproveStatus, default: StoreApproveStatus.BEFORE })
+    @Column({ type: 'enum', enum: StoreApproveStatus, default: StoreApproveStatus.WAITING })
     isApproved: StoreApproveStatus;
 
     @OneToOne(() => Store, (store) => store.approve, { onDelete: 'CASCADE' })

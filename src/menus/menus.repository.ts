@@ -51,7 +51,7 @@ export class MenusRepository {
     }
 
     async incrementView(menu: Menu, storeName: string) {
-        const dynamoMenuData = await this.dynamoModel.get({ storeName, menuId: menu.id });
+        const dynamoMenuData = await this.dynamoModel.get({ menuId: menu.id, storeName });
         const incrementDynamoMenuData = { ...dynamoMenuData, viewCount: dynamoMenuData.viewCount + 1 };
         await this.dynamoModel.update(incrementDynamoMenuData);
         return await this.menuView.increment({ id: menu.id }, 'viewCount', 1);

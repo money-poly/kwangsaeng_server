@@ -1,6 +1,6 @@
 export interface DynamoKey {
-    storeName: string; // hashKey(파티션 키)
-    menuId: number; // sortKey(정렬 키)
+    menuId: number; // hashKey(파티션 키)
+    storeName: string; // sortKey(정렬 키)
 }
 
 export interface DynamoSchema extends DynamoKey {

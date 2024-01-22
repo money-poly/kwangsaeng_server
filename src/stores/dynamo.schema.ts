@@ -2,13 +2,14 @@ import { Schema } from 'dynamoose';
 
 export const DynamoSchema = new Schema(
     {
-        storeName: {
-            type: String,
-            hashKey: true,
-            required: true,
-        },
         menuId: {
             type: Number,
+            hashKey: true,
+
+            required: true,
+        },
+        storeName: {
+            type: String,
             rangeKey: true,
             required: true,
         },

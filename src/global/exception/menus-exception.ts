@@ -11,4 +11,5 @@ export abstract class MenusException {
     static ENTITY_NOT_FOUND = new CommonException('존재하지 않는 메뉴입니다.', 3002, HttpStatus.NOT_FOUND);
     static STATUS_NOT_FOUND = new CommonException('식별되지않은 메뉴 상태입니다.', 3003, HttpStatus.NOT_FOUND);
     static FILTER_TYPE_NOT_FOUND = new CommonException('식별되지않은 필터링 타입입니다.', 3004, HttpStatus.NOT_FOUND);
+    static HAS_NO_PERMISSION_DELETE = new CommonException('메뉴 삭제 권한이 없습니다.', 3005, HttpStatus.FORBIDDEN);
 }

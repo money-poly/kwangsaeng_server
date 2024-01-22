@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { MenusRepository } from './menus.repository';
 import { EntityManager, FindManyOptions, FindOptionsRelations, FindOptionsSelect, FindOptionsWhere } from 'typeorm';
 import { UsersRepository } from 'src/users/users.repository';
@@ -43,19 +42,19 @@ export class MenusService {
 
     async create(user: User, args: CreateMenuArgs) {
         const storeId: number = args.storeId;
-        const storeData: Store = await this.storesRepository.findOneStore({ id: storeId });
+        const storeData: Store = await this.storesRepository.findOneStore({ id: storeId }, {}, { user: true });
         if (!storeData) {
             throw StoresException.ENTITY_NOT_FOUND;
         }
-        if (user !== storeData.user) {
+        if (user.id !== (await storeData.user).id) {
             throw MenusException.HAS_NO_PERMISSION_CREATE;
         }
         await this.validateUserRole(user, Roles.OWNER);
         const createdMenu = await this.menusRepository.create(storeData, args);
         await this.storesRepository.addOrder(storeData, createdMenu);
         const dynamoInsertData = {
-            storeName: storeData.name,
             menuId: createdMenu.id,
+            storeName: storeData.name,
             menuName: createdMenu.name,
             menuPictureUrl: createdMenu.menuPictureUrl,
             sellingPrice: createdMenu.salePrice,
@@ -92,7 +91,7 @@ export class MenusService {
     async update(menu: Menu, args: UpdateMenuArgs) {
         await this.menusRepository.update(menu, { ...args });
         const result = await this.findDetailOne(menu);
-        const dynamoMenuData = await this.dynamoModel.get({ storeName: result.storeName, menuId: menu.id });
+        const dynamoMenuData = await this.dynamoModel.get({ menuId: menu.id, storeName: result.storeName });
         await this.dynamoModel.update({ ...dynamoMenuData, ...args, menuName: args.name ? args.name : result.name }); // TODO name칼럼 좀 이쁘게 변환할 순 없을까?
         return;
     }
@@ -112,7 +111,7 @@ export class MenusService {
         const findIdx = order.findIndex((id) => Number(id) === menu.id);
         order.splice(findIdx, 1);
         await this.updateOrder(menu.store, { order });
-        await this.dynamoModel.delete({ storeName: data.storeName, menuId: data.menuId });
+        await this.dynamoModel.delete({ menuId: data.menuId, storeName: data.storeName });
         return this.menusRepository.delete(menu);
     }
 

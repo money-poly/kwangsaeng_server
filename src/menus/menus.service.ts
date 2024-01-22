@@ -96,22 +96,25 @@ export class MenusService {
         return;
     }
 
-    async delete(menu: Menu) {
+    async delete(user: User, menu: Menu) {
         // 메뉴 삭제시 순서에서도 삭제
-        const data = await this.entityManager
+        const menuData = await this.entityManager
             .createQueryBuilder(Menu, 'm')
             .leftJoinAndSelect(Store, 's', 's.id = m.store_id')
             .leftJoinAndSelect(StoreDetail, 'sd', 'sd.store_id = m.store_id')
             .select('m.id AS menuId')
-            .addSelect('s.name AS storeName')
+            .addSelect('s.name AS storeName, s.user_id AS userId')
             .addSelect('sd.menu_orders AS orders')
             .where('m.id = :menuId', { menuId: menu.id })
             .getRawOne();
-        const order = data.orders.split(',');
+        if (menuData.userId !== user.id) {
+            throw MenusException.HAS_NO_PERMISSION_DELETE;
+        }
+        const order = menuData.orders.split(',');
         const findIdx = order.findIndex((id) => Number(id) === menu.id);
         order.splice(findIdx, 1);
         await this.updateOrder(menu.store, { order });
-        await this.dynamoModel.delete({ menuId: data.menuId, storeName: data.storeName });
+        await this.dynamoModel.delete({ menuId: menuData.menuId, storeName: menuData.storeName });
         return this.menusRepository.delete(menu);
     }
 

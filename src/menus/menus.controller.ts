@@ -55,8 +55,8 @@ export class MenusController {
 
     @Delete('/:id')
     @UseGuards(AuthGuard)
-    async delete(@Param('id', TransformMenuPipe) menu: Menu) {
-        return await this.menusService.delete(menu);
+    async delete(@CurrentUser() user: User, @Param('id', TransformMenuPipe) menu: Menu) {
+        return await this.menusService.delete(user, menu);
     }
 
     @Get('/seller/:storeId')

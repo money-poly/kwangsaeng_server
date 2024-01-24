@@ -262,8 +262,8 @@ export class StoresService {
         for (const data of dataList) {
             const isExist = await this.dynamoModel.get({
                 // dynamodb에 이미 데이터가 있는지 확인
-                storeName: data.storeName,
                 menuId: data.menuId,
+                storeName: data.storeName,
             });
             if (!isExist) {
                 // 데이터가 없다면 dynamodb에 넣기

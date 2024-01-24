@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { MenusRepository } from './menus.repository';
 import { EntityManager, FindManyOptions, FindOptionsRelations, FindOptionsSelect, FindOptionsWhere } from 'typeorm';
 import { UsersRepository } from 'src/users/users.repository';
@@ -43,19 +42,19 @@ export class MenusService {
 
     async create(user: User, args: CreateMenuArgs) {
         const storeId: number = args.storeId;
-        const storeData: Store = await this.storesRepository.findOneStore({ id: storeId });
+        const storeData: Store = await this.storesRepository.findOneStore({ id: storeId }, {}, { user: true });
         if (!storeData) {
             throw StoresException.ENTITY_NOT_FOUND;
         }
-        if (user !== storeData.user) {
+        if (user.id !== (await storeData.user).id) {
             throw MenusException.HAS_NO_PERMISSION_CREATE;
         }
         await this.validateUserRole(user, Roles.OWNER);
         const createdMenu = await this.menusRepository.create(storeData, args);
         await this.storesRepository.addOrder(storeData, createdMenu);
         const dynamoInsertData = {
-            storeName: storeData.name,
             menuId: createdMenu.id,
+            storeName: storeData.name,
             menuName: createdMenu.name,
             menuPictureUrl: createdMenu.menuPictureUrl,
             sellingPrice: createdMenu.salePrice,
@@ -92,27 +91,30 @@ export class MenusService {
     async update(menu: Menu, args: UpdateMenuArgs) {
         await this.menusRepository.update(menu, { ...args });
         const result = await this.findDetailOne(menu);
-        const dynamoMenuData = await this.dynamoModel.get({ storeName: result.storeName, menuId: menu.id });
+        const dynamoMenuData = await this.dynamoModel.get({ menuId: menu.id, storeName: result.storeName });
         await this.dynamoModel.update({ ...dynamoMenuData, ...args, menuName: args.name ? args.name : result.name }); // TODO name칼럼 좀 이쁘게 변환할 순 없을까?
         return;
     }
 
-    async delete(menu: Menu) {
+    async delete(user: User, menu: Menu) {
         // 메뉴 삭제시 순서에서도 삭제
-        const data = await this.entityManager
+        const menuData = await this.entityManager
             .createQueryBuilder(Menu, 'm')
             .leftJoinAndSelect(Store, 's', 's.id = m.store_id')
             .leftJoinAndSelect(StoreDetail, 'sd', 'sd.store_id = m.store_id')
             .select('m.id AS menuId')
-            .addSelect('s.name AS storeName')
+            .addSelect('s.name AS storeName, s.user_id AS userId')
             .addSelect('sd.menu_orders AS orders')
             .where('m.id = :menuId', { menuId: menu.id })
             .getRawOne();
-        const order = data.orders.split(',');
+        if (menuData.userId !== user.id) {
+            throw MenusException.HAS_NO_PERMISSION_DELETE;
+        }
+        const order = menuData.orders.split(',');
         const findIdx = order.findIndex((id) => Number(id) === menu.id);
         order.splice(findIdx, 1);
         await this.updateOrder(menu.store, { order });
-        await this.dynamoModel.delete({ storeName: data.storeName, menuId: data.menuId });
+        await this.dynamoModel.delete({ menuId: menuData.menuId, storeName: menuData.storeName });
         return this.menusRepository.delete(menu);
     }
 

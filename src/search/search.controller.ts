@@ -37,19 +37,19 @@ export class SearchController {
     }
 
     @Post('/keyword')
-    @UseGuards(AuthGuard, AdminGuard)
+    // @UseGuards(AuthGuard, AdminGuard)
     async createKeyword(@Body() dto: CreateKeywordDto) {
         return await this.searchService.createKeyword(CreateKeywordDto.toEntity(dto));
     }
 
     @Get('/keyword/:type')
-    @UseGuards(AuthGuard)
+    // @UseGuards(AuthGuard)
     async findKeyword(@Param('type') type: string): Promise<FindKeywordDto[]> {
         return await this.searchService.findKeyword(type);
     }
 
     @Put('/keyword/:id')
-    @UseGuards(AuthGuard, AdminGuard)
+    // @UseGuards(AuthGuard, AdminGuard)
     async updateKeyword(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateKeywordDto) {
         return await this.searchService.updateKeyword(id, dto);
     }

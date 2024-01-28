@@ -26,7 +26,7 @@ export class SearchController {
     constructor(private readonly searchService: SearchService) {}
 
     @Post()
-    // @UseGuards(AuthGuard)
+    @UseGuards(AuthGuard)
     @UseInterceptors(ClassSerializerInterceptor)
     async search(@Query() dto: SearchReqDto, @Body() location: FindStoreWithLocationDto): Promise<SearchResDto[]> {
         const result = await this.searchService.getFromAWSCloudSearch(dto);
@@ -37,7 +37,7 @@ export class SearchController {
     }
 
     @Post('/keyword')
-    // @UseGuards(AuthGuard, AdminGuard)
+    @UseGuards(AuthGuard, AdminGuard)
     async createKeyword(@Body() dto: CreateKeywordDto) {
         return await this.searchService.createKeyword(CreateKeywordDto.toEntity(dto));
     }

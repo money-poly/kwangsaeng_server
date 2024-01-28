@@ -24,7 +24,7 @@ export class SearchResDto {
         this._storeName = data.storename;
         this._menuId = data.menuid;
         this._menuName = data.menuname;
-        this._menuPictureUrl = data.menupictureurl;
+        this._menuPictureUrl = data.menupictureurl !== undefined ? data.menupictureurl : null;
         this._sellingPrice = data.sellingprice;
         this._discountRate = data.discountrate;
         this._viewCount = data.viewcount;

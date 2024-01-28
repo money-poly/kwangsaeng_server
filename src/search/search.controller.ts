@@ -14,21 +14,21 @@ import {
 import { SearchService } from './search.service';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { AdminGuard } from 'src/auth/guard/admin.guard';
-import { UpdateRecommandDto } from './dto/update-recommand.dto';
-import { CreateRecommandDto } from './dto/create-recommand.dto';
+import { UpdateKeywordDto } from './dto/update-keyword.dto';
+import { CreateKeywordDto } from './dto/create-keyword.dto';
 import { SearchReqDto } from './dto/search.request';
 import { SearchResDto } from './dto/search.response';
-import { FindRecommandDto } from './dto/find-recommand.dto';
+import { FindKeywordDto } from './dto/find-keyword.dto';
 import { FindStoreWithLocationDto } from 'src/stores/dto/find-store-with-location.dto';
 
 @Controller('search')
 export class SearchController {
     constructor(private readonly searchService: SearchService) {}
 
-    @Get()
-    @UseGuards(AuthGuard)
+    @Post()
+    // @UseGuards(AuthGuard)
     @UseInterceptors(ClassSerializerInterceptor)
-    async search(@Query() dto: SearchReqDto, location: FindStoreWithLocationDto): Promise<SearchResDto[]> {
+    async search(@Query() dto: SearchReqDto, @Body() location: FindStoreWithLocationDto): Promise<SearchResDto[]> {
         const result = await this.searchService.getFromAWSCloudSearch(dto);
         const filteredResult = await this.searchService.checkValidDistance(result, location);
         // exclude storeId
@@ -36,21 +36,21 @@ export class SearchController {
         return transformedData;
     }
 
-    @Post('/recommand')
-    @UseGuards(AuthGuard, AdminGuard)
-    async createRecommand(@Body() dto: CreateRecommandDto) {
-        return await this.searchService.createRecommand(dto.toEntity());
+    @Post('/keyword')
+    // @UseGuards(AuthGuard, AdminGuard)
+    async createKeyword(@Body() dto: CreateKeywordDto) {
+        return await this.searchService.createKeyword(CreateKeywordDto.toEntity(dto));
     }
 
-    @Get('/recommand/:type')
+    @Get('/keyword/:type')
     @UseGuards(AuthGuard)
-    async findRecommand(@Param('type') type: string): Promise<FindRecommandDto[]> {
-        return await this.searchService.findRecommand(type);
+    async findKeyword(@Param('type') type: string): Promise<FindKeywordDto[]> {
+        return await this.searchService.findKeyword(type);
     }
 
-    @Put('/recommand/:id')
+    @Put('/keyword/:id')
     @UseGuards(AuthGuard, AdminGuard)
-    async updateRecommand(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateRecommandDto) {
-        return await this.searchService.updateRecommand(id, dto);
+    async updateKeyword(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateKeywordDto) {
+        return await this.searchService.updateKeyword(id, dto);
     }
 }

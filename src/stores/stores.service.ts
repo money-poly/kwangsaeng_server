@@ -304,6 +304,7 @@ export class StoresService {
             .leftJoinAndSelect(MenuView, 'mv', 'm.id = mv.menu_id')
             .select('s.name AS storeName')
             .addSelect('m.id AS menuId')
+            .addSelect('s.id AS storeId')
             .addSelect('m.name AS menuName')
             .addSelect('m.menu_picture_url AS menuPictureUrl')
             .addSelect('m.price AS sellingPrice')
@@ -321,6 +322,7 @@ export class StoresService {
                 const insertData = {
                     storeName: data.storeName,
                     menuId: data.menuId,
+                    storeId: data.storeId,
                     menuName: data.menuName,
                     menuPictureUrl: data.menuPictureUrl ? data.menuPictureUrl : undefined, // TODO 프론트에 값 넘겨줄떄, null값으로 변환 후 보내주기. (null값이면 아예 dynamo에 안들어감)
                     sellingPrice: data.sellingPrice,

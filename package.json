@@ -48,6 +48,7 @@
         "nestjs-dynamoose": "^0.5.5",
         "reflect-metadata": "^0.1.13",
         "rxjs": "^7.8.1",
+        "ts-jenum": "^2.2.2",
         "typeorm": "^0.3.17",
         "typeorm-naming-strategies": "^4.1.0"
     },
@@ -77,12 +78,21 @@
         "winston-daily-rotate-file": "^4.7.1"
     },
     "jest": {
+        "moduleDirectories": [
+            "node_modules",
+            "src"
+        ],
         "moduleFileExtensions": [
             "js",
             "json",
             "ts"
         ],
-        "rootDir": "src",
+        "roots": [
+            "<rootDir>"
+        ],
+        "modulePaths": [
+            "<rootDir>"
+        ],
         "testRegex": ".*\\.spec\\.ts$",
         "transform": {
             "^.+\\.(t|j)s$": "ts-jest"

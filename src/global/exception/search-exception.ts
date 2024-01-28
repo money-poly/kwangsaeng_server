@@ -17,4 +17,9 @@ export abstract class SearchException {
         11002,
         HttpStatus.INTERNAL_SERVER_ERROR,
     );
+    static NOT_EQUAL_TO_10 = new CommonException(
+        '검색어 갯수가 10개가 아닙니다',
+        11002,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+    );
 }

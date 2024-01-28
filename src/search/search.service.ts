@@ -40,6 +40,9 @@ export class SearchService {
 
     public async findKeyword(type: string): Promise<FindKeywordDto[]> {
         const result = await this.keywordRepository.findBy({ type });
+        if (result.length !== 10) {
+            throw SearchException.NOT_EQUAL_TO_10;
+        }
         // exclude keywordType
         return result.map((e) => new FindKeywordDto(e));
     }

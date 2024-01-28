@@ -3,7 +3,7 @@ import { Column, Entity } from 'typeorm';
 
 @Entity({ name: 'keywords' })
 export class Keyword extends BaseEntity {
-    @Column({ unique: true, nullable: true, comment: '검색어 내용' })
+    @Column({ unique: true, comment: '검색어 내용' })
     content: string;
 
     @Column({ comment: '검색어 종류' })
@@ -13,7 +13,6 @@ export class Keyword extends BaseEntity {
         const keyword = new Keyword();
         keyword.content = content;
         keyword.type = type;
-
         return keyword;
     }
 }

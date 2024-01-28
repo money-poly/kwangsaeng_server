@@ -12,4 +12,9 @@ export abstract class SearchException {
         11001,
         HttpStatus.INTERNAL_SERVER_ERROR,
     );
+    static UNDEFINED_TO_KEYWORD = new CommonException(
+        '데이터가 정의되지 않았습니다',
+        11002,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+    );
 }

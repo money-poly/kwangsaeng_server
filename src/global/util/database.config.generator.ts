@@ -4,6 +4,7 @@ import { Banner } from 'src/banners/entity/banner.entity';
 import { Category } from 'src/categories/entity/category.entity';
 import { MenuView } from 'src/menus/entity/menu-view.entity';
 import { Menu } from 'src/menus/entity/menu.entity';
+import { Keyword } from 'src/search/entity/keyword.entity';
 import { BusinessDetail } from 'src/stores/entity/business-detail.entity';
 import { StoreApprove } from 'src/stores/entity/store-approve.entity';
 import { StoreDetail } from 'src/stores/entity/store-detail.entity';
@@ -53,6 +54,7 @@ export const configGenerator = (env: string): TypeOrmModuleOptions => {
                 Tag,
                 Version,
                 Banner,
+                Keyword,
             ],
             namingStrategy: new SnakeNamingStrategy(),
         };

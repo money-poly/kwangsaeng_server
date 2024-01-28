@@ -4,7 +4,7 @@ import { MenusService } from '../menus.service';
 import { Injectable, PipeTransform } from '@nestjs/common';
 
 @Injectable()
-export class CreateMenuValidationPipe implements PipeTransform {
+export class ModifyMenuValidationPipe implements PipeTransform {
     constructor(private readonly menusService: MenusService) {}
 
     async transform(dto: CreateMenuDto) {

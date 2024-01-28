@@ -22,6 +22,7 @@ import { MenuView } from 'src/menus/entity/menu-view.entity';
 import { StoreApproveStatus } from './enum/store-approve-status.enum';
 import { TagsService } from 'src/tags/tags.service';
 import { TagException } from 'src/global/exception/tag-exception';
+import { FindOneStoreReturnValue } from './interfaces/find-one-store-return-value.interface';
 
 @Injectable()
 export class StoresService {
@@ -135,8 +136,63 @@ export class StoresService {
         return qb;
     }
 
-    async findStore(storeId: number, dto: FindStoreDetailDto) {
-        const orderBy = await this.storesRepository.processOrderBy(await this.findOneStore({ id: storeId }));
+    async findStore(store: Store, dto: FindStoreDetailDto) {
+        const orderBy = await this.storesRepository.processOrderBy(store);
+        // 메뉴 순서가 존재하지 않을때 == 메뉴가 존재하지 않기때문에 스토어 정보만 보내줌
+        if (!orderBy) {
+            const storeDataIncludedDetail = await this.entityManager
+                .createQueryBuilder(Store, 's')
+                .leftJoinAndSelect(StoreApprove, 'sa', 's.id = sa.store_id')
+                .leftJoinAndSelect(StoreDetail, 'sd', 's.id = sd.store_id')
+                .leftJoin('store_categories', 'sc', 's.id = sc.stores_id')
+                .leftJoinAndSelect(Category, 'c', 'sc.categories_id = c.id')
+                .leftJoinAndSelect(User, 'u', 'u.id = s.user_id')
+                .addSelect('s.status', 'storeStatus')
+                .addSelect('c.name', 'category')
+                .addSelect('sd.address', 'address')
+                .addSelect('sd.address_detail', 'addressDetail')
+                .addSelect('sd.lat', 'lat')
+                .addSelect('sd.lon', 'lon')
+                .addSelect('u.phone', 'phone')
+                .addSelect('sd.cooking_time', 'cookingTime')
+                .addSelect('sd.operation_times', 'operationTimes')
+                .addSelect('sd.menu_orders', 'menuOrders')
+                .addSelect(
+                    `CASE WHEN ST_Distance_Sphere(POINT(sd.lon, sd.lat), POINT(:lon, :lat)) <= 200 THEN 7
+        WHEN ST_Distance_Sphere(POINT(sd.lon, sd.lat), POINT(:lon, :lat)) <= 500 THEN 10
+        WHEN ST_Distance_Sphere(POINT(sd.lon, sd.lat), POINT(:lon, :lat)) <= 1000 THEN 15 ELSE 20
+        END AS pickupTime`,
+                )
+                .where('s.id = :storeId', { storeId: store.id })
+                .andWhere('sa.is_approved = :isApproved', { isApproved: StoreApproveStatus.DONE })
+                .setParameters({ lat: dto.lat, lon: dto.lon })
+                .getRawMany();
+
+            const categories = [];
+            storeDataIncludedDetail.forEach((data) => {
+                categories.push(data.category);
+            });
+
+            const result: FindOneStoreReturnValue = {
+                id: storeDataIncludedDetail[0].storeId,
+                name: storeDataIncludedDetail[0].storeName,
+                categories,
+                detail: {
+                    address: storeDataIncludedDetail[0].address,
+                    addressDetail: storeDataIncludedDetail[0].addressDetail,
+                    lat: storeDataIncludedDetail[0].lat,
+                    lon: storeDataIncludedDetail[0].lon,
+                    phone: storeDataIncludedDetail[0].phone,
+                    cookingTime: storeDataIncludedDetail[0].cookingTime,
+                    operationTimes: storeDataIncludedDetail[0].operationTimes,
+                    pickupTime: storeDataIncludedDetail[0].pickupTime,
+                    menuOrders: storeDataIncludedDetail[0].menuOrders,
+                },
+                menus: [],
+            };
+
+            return result;
+        }
         const dataList = await this.entityManager
             .createQueryBuilder(Menu, 'm')
             .leftJoinAndSelect(Store, 's', 's.id = m.store_id')
@@ -171,14 +227,11 @@ export class StoresService {
         WHEN ST_Distance_Sphere(POINT(sd.lon, sd.lat), POINT(:lon, :lat)) <= 1000 THEN 15 ELSE 20
         END AS pickupTime`,
             )
-            .where('s.id = :storeId', { storeId: storeId })
+            .where('s.id = :storeId', { storeId: store.id })
             .andWhere('sa.is_approved = :isApproved', { isApproved: StoreApproveStatus.DONE })
             .setParameters({ lat: dto.lat, lon: dto.lon })
             .orderBy(orderBy, 'DESC')
             .getRawMany();
-        if (!dataList.length) {
-            throw StoresException.NOT_APPROVED;
-        }
 
         const menuList = [];
         for (const menu of dataList) {
@@ -194,7 +247,8 @@ export class StoresService {
             };
             menuList.push(refinedMenuData);
         }
-        const store = {
+
+        const storeIncludedMenu: FindOneStoreReturnValue = {
             id: dataList[0].storeId,
             name: dataList[0].storeName,
             categories: [{ name: dataList[0].category }],
@@ -211,11 +265,8 @@ export class StoresService {
             },
             menus: menuList,
         };
-        if (!store) {
-            throw StoresException.ENTITY_NOT_FOUND;
-        }
 
-        return store;
+        return storeIncludedMenu;
     }
 
     async findStoresWithLocation(dto: FindStoreWithLocationDto) {
@@ -263,8 +314,8 @@ export class StoresService {
         for (const data of dataList) {
             const isExist = await this.dynamoModel.get({
                 // dynamodb에 이미 데이터가 있는지 확인
-                storeName: data.storeName,
                 menuId: data.menuId,
+                storeName: data.storeName,
             });
             if (!isExist) {
                 // 데이터가 없다면 dynamodb에 넣기

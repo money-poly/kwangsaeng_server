@@ -17,7 +17,7 @@ import { CurrentUser } from 'src/global/decorator/current-user.decorator';
 import { User } from 'src/users/entity/user.entity';
 import { CreateMenuDto } from './dto/create-menu.dto';
 import { UpdateMenuDto } from './dto/update-menu.dto';
-import { CreateMenuValidationPipe } from './pipe/create-menu-validation.pipe';
+import { ModifyMenuValidationPipe } from './pipe/modify-menu-validation.pipe';
 import { TransformMenuPipe } from './pipe/transform-menu.pipe';
 import { Menu } from './entity/menu.entity';
 import { FindOneMenuDetailDto } from './dto/find-one-menu.dto';
@@ -43,20 +43,20 @@ export class MenusController {
 
     @Post()
     @UseGuards(AuthGuard)
-    async create(@CurrentUser() user: User, @Body(CreateMenuValidationPipe) dto: CreateMenuDto) {
+    async create(@CurrentUser() user: User, @Body(ModifyMenuValidationPipe) dto: CreateMenuDto) {
         return await this.menusService.create(user, dto);
     }
 
     @Put('/:id')
     @UseGuards(AuthGuard)
-    async update(@Param('id', TransformMenuPipe) menu: Menu, @Body() dto: UpdateMenuDto) {
+    async update(@Param('id', TransformMenuPipe) menu: Menu, @Body(ModifyMenuValidationPipe) dto: UpdateMenuDto) {
         return await this.menusService.update(menu, dto);
     }
 
     @Delete('/:id')
     @UseGuards(AuthGuard)
-    async delete(@Param('id', TransformMenuPipe) menu: Menu) {
-        return await this.menusService.delete(menu);
+    async delete(@CurrentUser() user: User, @Param('id', TransformMenuPipe) menu: Menu) {
+        return await this.menusService.delete(user, menu);
     }
 
     @Get('/seller/:storeId')

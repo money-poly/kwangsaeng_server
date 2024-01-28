@@ -13,7 +13,6 @@ import {
     UseGuards,
     UseInterceptors,
 } from '@nestjs/common';
-import { StoresService } from './stores.service';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { CurrentUser } from 'src/global/decorator/current-user.decorator';
@@ -33,6 +32,7 @@ import { FindStoreDetailDto } from './dto/find-store-detail.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AdminGuard } from 'src/auth/guard/admin.guard';
 import { S3Exception } from 'src/global/exception/s3-exception';
+import { StoresService } from './stores.service';
 
 @Controller('stores')
 export class StoresController {
@@ -80,9 +80,11 @@ export class StoresController {
     }
 
     @Get(':storeId')
-    async findOneStore(@Param('storeId') storeId: number, @Query() dto: FindStoreDetailDto) {
-        const store = await this.storesService.findStore(storeId, dto);
-        return { ...store, caution: CAUTION_TEXT };
+    @UseGuards(OperationGuard)
+    @UseEntityTransformer<Store>(TransformStoreInterceptor)
+    async findOneStore(@CurrentStore() store: Store, @Query() dto: FindStoreDetailDto) {
+        const storeData = await this.storesService.findStore(store, dto);
+        return { ...storeData, caution: CAUTION_TEXT };
     }
 
     @Put('/:storeId')

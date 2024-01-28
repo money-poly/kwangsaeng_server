@@ -4,6 +4,7 @@ export interface DynamoKey {
 }
 
 export interface DynamoSchema extends DynamoKey {
+    storeId: number;
     menuName: string;
     menuPictureUrl: string;
     discountRate: number;

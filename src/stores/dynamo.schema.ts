@@ -12,6 +12,10 @@ export const DynamoSchema = new Schema(
             rangeKey: true,
             required: true,
         },
+        storeId: {
+            type: Number,
+            required: true,
+        },
         menuName: {
             type: String,
         },

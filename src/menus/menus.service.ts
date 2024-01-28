@@ -56,6 +56,7 @@ export class MenusService {
         const dynamoInsertData = {
             storeName: storeData.name,
             menuId: createdMenu.id,
+            storeId: storeData.id,
             menuName: createdMenu.name,
             menuPictureUrl: createdMenu.menuPictureUrl,
             sellingPrice: createdMenu.salePrice,

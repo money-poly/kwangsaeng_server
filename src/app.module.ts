@@ -18,6 +18,8 @@ import aligoConfiguration from './global/config/aligo.configuration';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { TagsModule } from './tags/tags.module';
+import { SearchController } from './search/search.controller';
+import { SearchModule } from './search/search.module';
 
 @Module({
     imports: [
@@ -48,7 +50,9 @@ import { TagsModule } from './tags/tags.module';
         VersionModule,
         BannersModule,
         TagsModule,
+        SearchModule,
     ],
     providers: [Logger, InitializeService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
+    controllers: [SearchController],
 })
 export class AppModule {}

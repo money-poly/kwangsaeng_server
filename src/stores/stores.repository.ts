@@ -118,15 +118,15 @@ export class StoresRepository {
     async findOrder(store: Store) {
         const storeDetailData = await this.storeDetails.findOne({ where: { store: { id: store.id } } });
         const order = storeDetailData.menuOrders;
-        if (!order) {
-            throw StoresException.ORDER_NOT_FOUND;
-        }
         return order;
     }
 
     async processOrderBy(store: Store) {
-        let orderBy = 'FIELD(m.id, ';
         const processingOrder = await this.findOrder(store);
+        if (!processingOrder) {
+            return null;
+        }
+        let orderBy = 'FIELD(m.id, ';
         while (processingOrder.length > 1) {
             const menuId = processingOrder.pop();
             orderBy += menuId + ', ';

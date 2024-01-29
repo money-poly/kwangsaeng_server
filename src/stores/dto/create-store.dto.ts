@@ -5,6 +5,7 @@ import {
     IsNumber,
     IsOptional,
     IsString,
+    IsUrl,
     Length,
     ValidateNested,
 } from 'class-validator';
@@ -46,6 +47,10 @@ export class CreateStoreDto {
     @IsString()
     @IsOptional()
     addressDetail?: string;
+
+    @IsUrl()
+    @IsOptional()
+    storePictureUrl?: string;
 
     @IsNotEmpty()
     @IsNumber()

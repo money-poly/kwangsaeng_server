@@ -137,6 +137,7 @@ export class StoresService {
     }
 
     async findStore(store: Store, dto: FindStoreDetailDto) {
+        const { lat, lon } = dto;
         const orderBy = await this.storesRepository.processOrderBy(store);
         // 메뉴 순서가 존재하지 않을때 == 메뉴가 존재하지 않기때문에 스토어 정보만 보내줌
         if (!orderBy) {
@@ -147,6 +148,8 @@ export class StoresService {
                 .leftJoin('store_categories', 'sc', 's.id = sc.stores_id')
                 .leftJoinAndSelect(Category, 'c', 'sc.categories_id = c.id')
                 .leftJoinAndSelect(User, 'u', 'u.id = s.user_id')
+                .select('s.id', 'storeId')
+                .addSelect('s.name', 'storeName')
                 .addSelect('s.status', 'storeStatus')
                 .addSelect('c.name', 'category')
                 .addSelect('sd.address', 'address')
@@ -157,21 +160,22 @@ export class StoresService {
                 .addSelect('sd.cooking_time', 'cookingTime')
                 .addSelect('sd.operation_times', 'operationTimes')
                 .addSelect('sd.menu_orders', 'menuOrders')
-                .addSelect(
-                    `CASE WHEN ST_Distance_Sphere(POINT(sd.lon, sd.lat), POINT(:lon, :lat)) <= 200 THEN 7
-        WHEN ST_Distance_Sphere(POINT(sd.lon, sd.lat), POINT(:lon, :lat)) <= 500 THEN 10
-        WHEN ST_Distance_Sphere(POINT(sd.lon, sd.lat), POINT(:lon, :lat)) <= 1000 THEN 15 ELSE 20
-        END AS pickupTime`,
-                )
                 .where('s.id = :storeId', { storeId: store.id })
                 .andWhere('sa.is_approved = :isApproved', { isApproved: StoreApproveStatus.DONE })
-                .setParameters({ lat: dto.lat, lon: dto.lon })
                 .getRawMany();
 
             const categories = [];
             storeDataIncludedDetail.forEach((data) => {
                 categories.push(data.category);
             });
+
+            const pickupTime = await this.storesRepository.measurePickUpTime(
+                storeDataIncludedDetail[0].cookingTime,
+                lat,
+                storeDataIncludedDetail[0].lat,
+                lon,
+                storeDataIncludedDetail[0].lon,
+            );
 
             const result: FindOneStoreReturnValue = {
                 id: storeDataIncludedDetail[0].storeId,
@@ -185,14 +189,14 @@ export class StoresService {
                     phone: storeDataIncludedDetail[0].phone,
                     cookingTime: storeDataIncludedDetail[0].cookingTime,
                     operationTimes: storeDataIncludedDetail[0].operationTimes,
-                    pickupTime: storeDataIncludedDetail[0].pickupTime,
+                    pickupTime,
                     menuOrders: storeDataIncludedDetail[0].menuOrders,
                 },
                 menus: [],
             };
-
             return result;
         }
+
         const dataList = await this.entityManager
             .createQueryBuilder(Menu, 'm')
             .leftJoinAndSelect(Store, 's', 's.id = m.store_id')
@@ -221,15 +225,8 @@ export class StoresService {
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
             .addSelect('m.country_of_origin', 'countryOfOrigin')
             .addSelect('m.description', 'description')
-            .addSelect(
-                `CASE WHEN ST_Distance_Sphere(POINT(sd.lon, sd.lat), POINT(:lon, :lat)) <= 200 THEN 7
-        WHEN ST_Distance_Sphere(POINT(sd.lon, sd.lat), POINT(:lon, :lat)) <= 500 THEN 10
-        WHEN ST_Distance_Sphere(POINT(sd.lon, sd.lat), POINT(:lon, :lat)) <= 1000 THEN 15 ELSE 20
-        END AS pickupTime`,
-            )
             .where('s.id = :storeId', { storeId: store.id })
             .andWhere('sa.is_approved = :isApproved', { isApproved: StoreApproveStatus.DONE })
-            .setParameters({ lat: dto.lat, lon: dto.lon })
             .orderBy(orderBy, 'DESC')
             .getRawMany();
 
@@ -248,6 +245,14 @@ export class StoresService {
             menuList.push(refinedMenuData);
         }
 
+        const pickupTime = await this.storesRepository.measurePickUpTime(
+            dataList[0].cookingTime,
+            lat,
+            dataList[0].lat,
+            lon,
+            dataList[0].lon,
+        );
+
         const storeIncludedMenu: FindOneStoreReturnValue = {
             id: dataList[0].storeId,
             name: dataList[0].storeName,
@@ -260,7 +265,7 @@ export class StoresService {
                 phone: dataList[0].phone,
                 cookingTime: dataList[0].cookingTime,
                 operationTimes: dataList[0].operationTimes,
-                pickupTime: dataList[0].pickupTime,
+                pickupTime,
                 menuOrders: dataList[0].menuOrders,
             },
             menus: menuList,

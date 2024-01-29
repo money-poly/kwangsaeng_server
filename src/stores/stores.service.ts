@@ -23,6 +23,7 @@ import { StoreApproveStatus } from './enum/store-approve-status.enum';
 import { TagsService } from 'src/tags/tags.service';
 import { TagException } from 'src/global/exception/tag-exception';
 import { FindOneStoreReturnValue } from './interfaces/find-one-store-return-value.interface';
+import { mockOwners, mockStores } from 'src/global/common/mock.constant';
 
 @Injectable()
 export class StoresService {
@@ -363,112 +364,15 @@ export class StoresService {
     }
 
     async initMockStores() {
-        const owners: User[] = [
-            new User({
-                fId: 'owner0001',
-                name: '김사장',
-                role: Roles.OWNER,
-                phone: '010-1234-1234',
-            }),
-            new User({
-                fId: 'owner0002',
-                name: '박사장',
-                role: Roles.OWNER,
-                phone: '010-1234-1234',
-            }),
-            new User({
-                fId: 'owner0003',
-                name: '최사장',
-                role: Roles.OWNER,
-                phone: '010-1234-1234',
-            }),
-            new User({
-                fId: 'owner0004',
-                name: '오사장',
-                role: Roles.OWNER,
-                phone: '010-1234-1234',
-            }),
-            new User({
-                fId: 'owner0005',
-                name: '윤사장',
-                role: Roles.OWNER,
-                phone: '010-1234-1234',
-            }),
-        ];
+        const owners: User[] = mockOwners;
 
         const isExist = await this.usersRepository.exist({
             name: owners[owners.length - 1].name,
         });
 
-        const dtos: CreateStoreDto[] = [
-            {
-                name: '고씨네',
-                businessLeaderName: '김대표',
-                address: '서울특별시 노원구 월계동 광운로 17-5',
-                addressDetail: '1층',
-                businessNum: '123-456-789',
-                categories: [3],
-                cookingTime: 20,
-                operationTimes: {
-                    startedAt: '11:00',
-                    endedAt: '24:00',
-                },
-            },
-            {
-                name: '서민초밥',
-                businessLeaderName: '김대표',
-                address: '서울특별시 노원구 석계로3길 17-1',
-                businessNum: '123-456-789',
-                categories: [3],
-                cookingTime: 35,
-                operationTimes: {
-                    startedAt: '10:00',
-                    endedAt: '21:00',
-                },
-            },
-            {
-                name: '후문식당',
-                businessLeaderName: '김대표',
-                address: '서울특별시 노원구 석계로13길 25-1',
-                addressDetail: '가든빌딩 지층 101호',
-                businessNum: '123-456-789',
-                categories: [3],
-                cookingTime: 15,
-                operationTimes: {
-                    startedAt: '09:00',
-                    endedAt: '21:00',
-                },
-            },
-            {
-                name: '베트남노상식당 광운대점',
-                businessLeaderName: '김대표',
-                address: '서울 노원구 광운로 46',
-                addressDetail: '대동아파트상가 112, 113호',
-                businessNum: '123-456-789',
-                categories: [3],
-                cookingTime: 15,
-                operationTimes: {
-                    startedAt: '09:00',
-                    endedAt: '21:00',
-                },
-            },
-            {
-                name: '맛닭꼬 광운대점',
-                businessLeaderName: '김대표',
-                address: '서울 노원구 광운로 61',
-                businessNum: '123-456-789',
-                categories: [3],
-                cookingTime: 15,
-                operationTimes: {
-                    startedAt: '09:00',
-                    endedAt: '21:00',
-                },
-            },
-        ];
-
+        const dtos: CreateStoreDto[] = mockStores;
         if (!isExist) {
             let i = 0;
-
             for (const dto of dtos) {
                 const user = await this.usersRepository.create(owners[i]);
                 await this.storesRepository.createStore(user, dto);

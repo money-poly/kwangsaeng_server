@@ -153,6 +153,7 @@ export class StoresService {
                 .addSelect('s.name', 'storeName')
                 .addSelect('s.status', 'storeStatus')
                 .addSelect('c.name', 'category')
+                .addSelect('sd.storePictureUrl', 'storePictureUrl')
                 .addSelect('sd.address', 'address')
                 .addSelect('sd.address_detail', 'addressDetail')
                 .addSelect('sd.lat', 'lat')
@@ -183,6 +184,7 @@ export class StoresService {
                 name: storeDataIncludedDetail[0].storeName,
                 categories,
                 detail: {
+                    storePictureUrl: storeDataIncludedDetail[0].storePictureUrl,
                     address: storeDataIncludedDetail[0].address,
                     addressDetail: storeDataIncludedDetail[0].addressDetail,
                     lat: storeDataIncludedDetail[0].lat,
@@ -210,6 +212,7 @@ export class StoresService {
             .addSelect('s.name', 'storeName')
             .addSelect('s.status', 'storeStatus')
             .addSelect('c.name', 'category')
+            .addSelect('sd.storePictureUrl', 'storePictureUrl')
             .addSelect('sd.address', 'address')
             .addSelect('sd.address_detail', 'addressDetail')
             .addSelect('sd.lat', 'lat')
@@ -231,18 +234,23 @@ export class StoresService {
             .orderBy(orderBy, 'DESC')
             .getRawMany();
 
+        const categories = [];
         const menuList = [];
-        for (const menu of dataList) {
+        for (const data of dataList) {
+            const category = data.category;
             const refinedMenuData = {
-                id: menu.menuId,
-                name: menu.menuName,
-                discountRate: menu.discountRate,
-                salePrice: menu.salePrice,
-                price: menu.price,
-                menuPictureUrl: menu.menuPictureUrl,
-                countryOfOrigin: menu.countryOfOrigin,
-                description: menu.description,
+                id: data.menuId,
+                name: data.menuName,
+                discountRate: data.discountRate,
+                salePrice: data.salePrice,
+                price: data.price,
+                menuPictureUrl: data.menuPictureUrl,
+                countryOfOrigin: data.countryOfOrigin,
+                description: data.description,
             };
+            if (!categories.includes(category)) {
+                categories.push(category);
+            }
             menuList.push(refinedMenuData);
         }
 
@@ -257,8 +265,9 @@ export class StoresService {
         const storeIncludedMenu: FindOneStoreReturnValue = {
             id: dataList[0].storeId,
             name: dataList[0].storeName,
-            categories: [{ name: dataList[0].category }],
+            categories,
             detail: {
+                storePictureUrl: dataList[0].storePictureUrl,
                 address: dataList[0].address,
                 addressDetail: dataList[0].addressDetail,
                 lat: dataList[0].lat,

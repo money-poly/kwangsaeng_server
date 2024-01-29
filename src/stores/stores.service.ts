@@ -330,7 +330,7 @@ export class StoresService {
                     menuId: data.menuId,
                     storeId: data.storeId,
                     menuName: data.menuName,
-                    menuPictureUrl: data.menuPictureUrl ? data.menuPictureUrl : undefined, // TODO 프론트에 값 넘겨줄떄, null값으로 변환 후 보내주기. (null값이면 아예 dynamo에 안들어감)
+                    menuPictureUrl: data.menuPictureUrl ? data.menuPictureUrl : undefined,
                     sellingPrice: data.sellingPrice,
                     discountRate: data.discountRate,
                     viewCount: data.viewCount,

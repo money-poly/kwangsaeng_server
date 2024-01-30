@@ -5,7 +5,7 @@ export class SearchReqDto {
     @Expose()
     @IsNotEmpty()
     @IsString()
-    @MinLength(1, { message: 'Content is too short' })
+    @MinLength(2, { message: '검색어 최소 2글자 이상 입력해주세요' })
     q: string;
 
     @Expose()

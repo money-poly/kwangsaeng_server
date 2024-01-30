@@ -26,7 +26,7 @@ export class SearchController {
     constructor(private readonly searchService: SearchService) {}
 
     @Post()
-    @UseGuards(AuthGuard)
+    // @UseGuards(AuthGuard)
     @UseInterceptors(ClassSerializerInterceptor)
     async search(@Query() dto: SearchReqDto, @Body() location: FindStoreWithLocationDto): Promise<SearchResDto[]> {
         const result = await this.searchService.getFromAWSCloudSearch(dto);
@@ -37,19 +37,19 @@ export class SearchController {
     }
 
     @Post('/keyword')
-    // @UseGuards(AuthGuard, AdminGuard)
+    @UseGuards(AuthGuard, AdminGuard)
     async createKeyword(@Body() dto: CreateKeywordDto) {
         return await this.searchService.createKeyword(CreateKeywordDto.toEntity(dto));
     }
 
     @Get('/keyword/:type')
     // @UseGuards(AuthGuard)
-    async findKeyword(@Param('type') type: string): Promise<FindKeywordDto[]> {
+    async findKeyword(@Param('type') type: string): Promise<FindKeywordDto> {
         return await this.searchService.findKeyword(type);
     }
 
     @Put('/keyword/:id')
-    // @UseGuards(AuthGuard, AdminGuard)
+    @UseGuards(AuthGuard, AdminGuard)
     async updateKeyword(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateKeywordDto) {
         return await this.searchService.updateKeyword(id, dto);
     }

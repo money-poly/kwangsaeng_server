@@ -138,6 +138,7 @@ export class StoresService {
     }
 
     async findStore(store: Store, dto: FindStoreDetailDto) {
+        // TODO 리팩토링 해야할듯. 가독성이 너무 떨어짐
         const { lat, lon } = dto;
         const orderBy = await this.storesRepository.processOrderBy(store);
         // 메뉴 순서가 존재하지 않을때 == 메뉴가 존재하지 않기때문에 스토어 정보만 보내줌

@@ -10,4 +10,5 @@ export interface CreateMenuArgs {
     countryOfOrigin?: { ingredient: string; origin: string }[];
     discountRate: number;
     salePrice: number;
+    menuPictureUrl?: string;
 }

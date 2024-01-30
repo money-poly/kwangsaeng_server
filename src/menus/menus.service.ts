@@ -28,6 +28,16 @@ import { StoreApproveStatus } from 'src/stores/enum/store-approve-status.enum';
 import { InjectModel, Model } from 'nestjs-dynamoose';
 import { DynamoKey, DynamoSchema } from 'src/stores/interfaces/store-menu-dynamo.interface';
 import { DynamoException } from 'src/global/exception/dynamo-exception';
+import {
+    mockCountryOfOrigins,
+    mockDiscountRates,
+    mockMenuDescriptions,
+    mockMenuNames,
+    mockMenuPictureUrl,
+    mockMenuStatus,
+    mockPrices,
+    mockSalePrices,
+} from 'src/global/common/mock.constant';
 
 @Injectable()
 export class MenusService {
@@ -138,8 +148,13 @@ export class MenusService {
         let refinedPickUpTime = '';
         if (loc) {
             const { lat, lon } = loc;
-            const pickUpTime = (await this.measurePickUpTime(lat, data.lat, lon, data.lon)).split('~').map(Number);
-            refinedPickUpTime = pickUpTime[0] + data.cookingTime + '~' + (pickUpTime[1] + data.cookingTime);
+            refinedPickUpTime = await this.storesRepository.measurePickUpTime(
+                data.cookingTime,
+                lat,
+                data.lat,
+                lon,
+                data.lon,
+            );
         }
         delete data.cookingTime;
         const caution = CAUTION_TEXT;
@@ -406,90 +421,27 @@ export class MenusService {
             .getRawMany();
     }
 
-    private async measurePickUpTime(x1: number, x2: number, y1: number, y2: number): Promise<string> {
-        const R = 6371.0; // 지구의 반지름 (단위: km)
-
-        const toRadians = (degrees: number): number => degrees * (Math.PI / 180);
-
-        const x1Rad = toRadians(x1);
-        const y1Rad = toRadians(y1);
-        const x2Rad = toRadians(x2);
-        const y2Rad = toRadians(y2);
-
-        const dx = x2Rad - x1Rad;
-        const dy = y2Rad - y1Rad;
-
-        const a = Math.sin(dx / 2) ** 2 + Math.cos(x1Rad) * Math.cos(x2Rad) * Math.sin(dy / 2) ** 2;
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-        const distance = R * c; // 거리 (단위: km)
-
-        let pickUpTime: string = '';
-        if (distance < 0.2) {
-            pickUpTime = '5~7';
-        } else if (distance < 0.5) {
-            pickUpTime = '7~10';
-        } else if (distance < 1) {
-            pickUpTime = '10~15';
-        } else {
-            pickUpTime = '15~20';
-        }
-        return pickUpTime;
-    }
-
     async initMockMenus() {
-        const names = [
-            '돈까스',
-            '돈까스세트',
-            '돈까스세트메밀국수',
-            '돈까스세트메밀국수우동',
-            '로제돈까스',
-            '로제돈까스 우동',
-            '초밥',
-            '오렌지 치즈 샐러드(M)',
-        ];
-        const discountRates = [10, 20, 30, 40, 10, 20, 30, 40];
-        const prices = [10000, 15000, 16000, 17000, 12000, 14000, 17000, 15000];
-        const salePrices = [9000, 12000, 11200, 10200, 10233, 22000, 15000, 13000];
-        const descriptions = ['설명1', '설명2', '설명3', '설명4', '설명5', '설명6', '설명7', '설명8'];
-        const storeId = [1, 2, 3, 1, 1, 2, 1, 1];
-        const countryOfOrigins = [
-            {
-                ingredient: '닭가슴살',
-                origin: '국내산',
-            },
-            {
-                ingredient: '김치',
-                origin: '호주산',
-            },
-        ];
-        let i = 0;
-        const isExist = await this.usersRepository.exist({
-            name: '이사장',
-        });
+        const storeId = [1, 2, 3, 4, 5];
+        const isExist = await this.menusRepository.exist({ where: { name: '브룩클린 바게트' } });
         if (!isExist) {
-            const newOwner = new User({
-                fId: 'owner0006',
-                name: '이사장',
-                role: Roles.OWNER,
-                phone: '010-5678-5678',
-            });
-            const user = await this.usersRepository.create(newOwner);
-            for (const name of names) {
+            for (let i = 0; i < 5; i++) {
                 const storeInfo = await this.storesRepository.findOneStore({ id: storeId[i] }, { id: true }, {});
-                const mockMenu: CreateMenuArgs = {
-                    name,
-                    discountRate: discountRates[i],
-                    price: prices[i],
-                    salePrice: salePrices[i],
-                    status: MenuStatus.SALE,
-                    description: descriptions[i],
-                    storeId: storeInfo.id,
-                    countryOfOrigin: countryOfOrigins,
-                };
-                i++;
-                const createdMenu = await this.menusRepository.create(storeInfo, { ...mockMenu });
-                await this.storesRepository.addOrder(storeInfo, createdMenu);
+                for (let j = 0; j < 7; j++) {
+                    const mockMenu: CreateMenuArgs = {
+                        name: mockMenuNames[i][j],
+                        discountRate: mockDiscountRates[i][j],
+                        price: mockPrices[i][j],
+                        salePrice: mockSalePrices[i][j],
+                        status: mockMenuStatus[i][j],
+                        description: mockMenuDescriptions[i][j],
+                        storeId: storeInfo.id,
+                        countryOfOrigin: mockCountryOfOrigins[i],
+                        menuPictureUrl: mockMenuPictureUrl[i][j],
+                    };
+                    const createdMenu = await this.menusRepository.create(storeInfo, { ...mockMenu });
+                    await this.storesRepository.addOrder(storeInfo, createdMenu);
+                }
             }
         }
     }

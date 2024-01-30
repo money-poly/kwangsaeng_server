@@ -18,6 +18,6 @@ export class InitializeService implements OnModuleInit {
         await this.tagsService.initTags();
         await this.storesService.initMockStores();
         await this.menusService.initMockMenus();
-        await this.storesService.migrateDynamo();
+        // await this.storesService.migrateDynamo();
     }
 }

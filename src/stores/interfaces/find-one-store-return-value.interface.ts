@@ -9,6 +9,7 @@ export interface FindOneStoreReturnValue {
     name: Pick<Store, 'name'>;
     categories: Pick<Category, 'name'>[];
     detail: {
+        storePictureUrl: Pick<StoreDetail, 'storePictureUrl'>;
         address: Pick<StoreDetail, 'address'>;
         addressDetail: Pick<StoreDetail, 'addressDetail'>;
         lat: Pick<StoreDetail, 'lat'>;

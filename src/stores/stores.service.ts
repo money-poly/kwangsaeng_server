@@ -23,6 +23,7 @@ import { StoreApproveStatus } from './enum/store-approve-status.enum';
 import { TagsService } from 'src/tags/tags.service';
 import { TagException } from 'src/global/exception/tag-exception';
 import { FindOneStoreReturnValue } from './interfaces/find-one-store-return-value.interface';
+import { mockOwners, mockStores } from 'src/global/common/mock.constant';
 
 @Injectable()
 export class StoresService {
@@ -137,6 +138,8 @@ export class StoresService {
     }
 
     async findStore(store: Store, dto: FindStoreDetailDto) {
+        // TODO 리팩토링 해야할듯. 가독성이 너무 떨어짐
+        const { lat, lon } = dto;
         const orderBy = await this.storesRepository.processOrderBy(store);
         // 메뉴 순서가 존재하지 않을때 == 메뉴가 존재하지 않기때문에 스토어 정보만 보내줌
         if (!orderBy) {
@@ -147,8 +150,11 @@ export class StoresService {
                 .leftJoin('store_categories', 'sc', 's.id = sc.stores_id')
                 .leftJoinAndSelect(Category, 'c', 'sc.categories_id = c.id')
                 .leftJoinAndSelect(User, 'u', 'u.id = s.user_id')
+                .select('s.id', 'storeId')
+                .addSelect('s.name', 'storeName')
                 .addSelect('s.status', 'storeStatus')
                 .addSelect('c.name', 'category')
+                .addSelect('sd.storePictureUrl', 'storePictureUrl')
                 .addSelect('sd.address', 'address')
                 .addSelect('sd.address_detail', 'addressDetail')
                 .addSelect('sd.lat', 'lat')
@@ -157,15 +163,8 @@ export class StoresService {
                 .addSelect('sd.cooking_time', 'cookingTime')
                 .addSelect('sd.operation_times', 'operationTimes')
                 .addSelect('sd.menu_orders', 'menuOrders')
-                .addSelect(
-                    `CASE WHEN ST_Distance_Sphere(POINT(sd.lon, sd.lat), POINT(:lon, :lat)) <= 200 THEN 7
-        WHEN ST_Distance_Sphere(POINT(sd.lon, sd.lat), POINT(:lon, :lat)) <= 500 THEN 10
-        WHEN ST_Distance_Sphere(POINT(sd.lon, sd.lat), POINT(:lon, :lat)) <= 1000 THEN 15 ELSE 20
-        END AS pickupTime`,
-                )
                 .where('s.id = :storeId', { storeId: store.id })
                 .andWhere('sa.is_approved = :isApproved', { isApproved: StoreApproveStatus.DONE })
-                .setParameters({ lat: dto.lat, lon: dto.lon })
                 .getRawMany();
 
             const categories = [];
@@ -173,11 +172,20 @@ export class StoresService {
                 categories.push(data.category);
             });
 
+            const pickupTime = await this.storesRepository.measurePickUpTime(
+                storeDataIncludedDetail[0].cookingTime,
+                lat,
+                storeDataIncludedDetail[0].lat,
+                lon,
+                storeDataIncludedDetail[0].lon,
+            );
+
             const result: FindOneStoreReturnValue = {
                 id: storeDataIncludedDetail[0].storeId,
                 name: storeDataIncludedDetail[0].storeName,
                 categories,
                 detail: {
+                    storePictureUrl: storeDataIncludedDetail[0].storePictureUrl,
                     address: storeDataIncludedDetail[0].address,
                     addressDetail: storeDataIncludedDetail[0].addressDetail,
                     lat: storeDataIncludedDetail[0].lat,
@@ -185,14 +193,14 @@ export class StoresService {
                     phone: storeDataIncludedDetail[0].phone,
                     cookingTime: storeDataIncludedDetail[0].cookingTime,
                     operationTimes: storeDataIncludedDetail[0].operationTimes,
-                    pickupTime: storeDataIncludedDetail[0].pickupTime,
+                    pickupTime,
                     menuOrders: storeDataIncludedDetail[0].menuOrders,
                 },
                 menus: [],
             };
-
             return result;
         }
+
         const dataList = await this.entityManager
             .createQueryBuilder(Menu, 'm')
             .leftJoinAndSelect(Store, 's', 's.id = m.store_id')
@@ -205,6 +213,7 @@ export class StoresService {
             .addSelect('s.name', 'storeName')
             .addSelect('s.status', 'storeStatus')
             .addSelect('c.name', 'category')
+            .addSelect('sd.storePictureUrl', 'storePictureUrl')
             .addSelect('sd.address', 'address')
             .addSelect('sd.address_detail', 'addressDetail')
             .addSelect('sd.lat', 'lat')
@@ -221,38 +230,45 @@ export class StoresService {
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
             .addSelect('m.country_of_origin', 'countryOfOrigin')
             .addSelect('m.description', 'description')
-            .addSelect(
-                `CASE WHEN ST_Distance_Sphere(POINT(sd.lon, sd.lat), POINT(:lon, :lat)) <= 200 THEN 7
-        WHEN ST_Distance_Sphere(POINT(sd.lon, sd.lat), POINT(:lon, :lat)) <= 500 THEN 10
-        WHEN ST_Distance_Sphere(POINT(sd.lon, sd.lat), POINT(:lon, :lat)) <= 1000 THEN 15 ELSE 20
-        END AS pickupTime`,
-            )
             .where('s.id = :storeId', { storeId: store.id })
             .andWhere('sa.is_approved = :isApproved', { isApproved: StoreApproveStatus.DONE })
-            .setParameters({ lat: dto.lat, lon: dto.lon })
             .orderBy(orderBy, 'DESC')
             .getRawMany();
 
+        const categories = [];
         const menuList = [];
-        for (const menu of dataList) {
+        for (const data of dataList) {
+            const category = data.category;
             const refinedMenuData = {
-                id: menu.menuId,
-                name: menu.menuName,
-                discountRate: menu.discountRate,
-                salePrice: menu.salePrice,
-                price: menu.price,
-                menuPictureUrl: menu.menuPictureUrl,
-                countryOfOrigin: menu.countryOfOrigin,
-                description: menu.description,
+                id: data.menuId,
+                name: data.menuName,
+                discountRate: data.discountRate,
+                salePrice: data.salePrice,
+                price: data.price,
+                menuPictureUrl: data.menuPictureUrl,
+                countryOfOrigin: data.countryOfOrigin,
+                description: data.description,
             };
+            if (!categories.includes(category)) {
+                categories.push(category);
+            }
             menuList.push(refinedMenuData);
         }
+
+        const pickupTime = await this.storesRepository.measurePickUpTime(
+            dataList[0].cookingTime,
+            lat,
+            dataList[0].lat,
+            lon,
+            dataList[0].lon,
+        );
 
         const storeIncludedMenu: FindOneStoreReturnValue = {
             id: dataList[0].storeId,
             name: dataList[0].storeName,
-            categories: [{ name: dataList[0].category }],
+            categories,
             detail: {
+                storePictureUrl: dataList[0].storePictureUrl,
                 address: dataList[0].address,
                 addressDetail: dataList[0].addressDetail,
                 lat: dataList[0].lat,
@@ -260,7 +276,7 @@ export class StoresService {
                 phone: dataList[0].phone,
                 cookingTime: dataList[0].cookingTime,
                 operationTimes: dataList[0].operationTimes,
-                pickupTime: dataList[0].pickupTime,
+                pickupTime,
                 menuOrders: dataList[0].menuOrders,
             },
             menus: menuList,
@@ -324,7 +340,7 @@ export class StoresService {
                     menuId: data.menuId,
                     storeId: data.storeId,
                     menuName: data.menuName,
-                    menuPictureUrl: data.menuPictureUrl ? data.menuPictureUrl : undefined, // TODO 프론트에 값 넘겨줄떄, null값으로 변환 후 보내주기. (null값이면 아예 dynamo에 안들어감)
+                    menuPictureUrl: data.menuPictureUrl ? data.menuPictureUrl : undefined,
                     sellingPrice: data.sellingPrice,
                     discountRate: data.discountRate,
                     viewCount: data.viewCount,
@@ -358,112 +374,15 @@ export class StoresService {
     }
 
     async initMockStores() {
-        const owners: User[] = [
-            new User({
-                fId: 'owner0001',
-                name: '김사장',
-                role: Roles.OWNER,
-                phone: '010-1234-1234',
-            }),
-            new User({
-                fId: 'owner0002',
-                name: '박사장',
-                role: Roles.OWNER,
-                phone: '010-1234-1234',
-            }),
-            new User({
-                fId: 'owner0003',
-                name: '최사장',
-                role: Roles.OWNER,
-                phone: '010-1234-1234',
-            }),
-            new User({
-                fId: 'owner0004',
-                name: '오사장',
-                role: Roles.OWNER,
-                phone: '010-1234-1234',
-            }),
-            new User({
-                fId: 'owner0005',
-                name: '윤사장',
-                role: Roles.OWNER,
-                phone: '010-1234-1234',
-            }),
-        ];
+        const owners: User[] = mockOwners;
 
         const isExist = await this.usersRepository.exist({
             name: owners[owners.length - 1].name,
         });
 
-        const dtos: CreateStoreDto[] = [
-            {
-                name: '고씨네',
-                businessLeaderName: '김대표',
-                address: '서울특별시 노원구 월계동 광운로 17-5',
-                addressDetail: '1층',
-                businessNum: '123-456-789',
-                categories: [3],
-                cookingTime: 20,
-                operationTimes: {
-                    startedAt: '11:00',
-                    endedAt: '24:00',
-                },
-            },
-            {
-                name: '서민초밥',
-                businessLeaderName: '김대표',
-                address: '서울특별시 노원구 석계로3길 17-1',
-                businessNum: '123-456-789',
-                categories: [3],
-                cookingTime: 35,
-                operationTimes: {
-                    startedAt: '10:00',
-                    endedAt: '21:00',
-                },
-            },
-            {
-                name: '후문식당',
-                businessLeaderName: '김대표',
-                address: '서울특별시 노원구 석계로13길 25-1',
-                addressDetail: '가든빌딩 지층 101호',
-                businessNum: '123-456-789',
-                categories: [3],
-                cookingTime: 15,
-                operationTimes: {
-                    startedAt: '09:00',
-                    endedAt: '21:00',
-                },
-            },
-            {
-                name: '베트남노상식당 광운대점',
-                businessLeaderName: '김대표',
-                address: '서울 노원구 광운로 46',
-                addressDetail: '대동아파트상가 112, 113호',
-                businessNum: '123-456-789',
-                categories: [3],
-                cookingTime: 15,
-                operationTimes: {
-                    startedAt: '09:00',
-                    endedAt: '21:00',
-                },
-            },
-            {
-                name: '맛닭꼬 광운대점',
-                businessLeaderName: '김대표',
-                address: '서울 노원구 광운로 61',
-                businessNum: '123-456-789',
-                categories: [3],
-                cookingTime: 15,
-                operationTimes: {
-                    startedAt: '09:00',
-                    endedAt: '21:00',
-                },
-            },
-        ];
-
+        const dtos: CreateStoreDto[] = mockStores;
         if (!isExist) {
             let i = 0;
-
             for (const dto of dtos) {
                 const user = await this.usersRepository.create(owners[i]);
                 await this.storesRepository.createStore(user, dto);

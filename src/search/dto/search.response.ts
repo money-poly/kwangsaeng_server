@@ -20,14 +20,14 @@ export class SearchResDto {
         discountrate: number;
         viewcount: number;
     }) {
-        this._storeId = data.storeid;
+        this._storeId = Number(data.storeid) || 0;
         this._storeName = data.storename;
-        this._menuId = data.menuid;
+        this._menuId = Number(data.menuid) || 0;
         this._menuName = data.menuname;
         this._menuPictureUrl = data.menupictureurl !== undefined ? data.menupictureurl : null;
-        this._sellingPrice = data.sellingprice;
-        this._discountRate = data.discountrate;
-        this._viewCount = data.viewcount;
+        this._sellingPrice = Number(data.sellingprice) || 0;
+        this._discountRate = Number(data.discountrate) || 0;
+        this._viewCount = Number(data.viewcount) || 0;
     }
 
     @Expose({ name: 'storeName' })

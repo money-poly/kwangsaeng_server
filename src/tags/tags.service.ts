@@ -50,7 +50,7 @@ export class TagsService {
     async initTags() {
         const tags: CreateTagDto[] = [
             {
-                name: 'close',
+                name: '마감할인',
                 description: '마감시간 특별 할인',
                 icon: 'alarm',
                 content: '마감할인',
@@ -58,7 +58,7 @@ export class TagsService {
                 backgroundColor: 'FFF4F6FA',
             },
             {
-                name: 'break',
+                name: '브레이크타임 할인',
                 description: '브레이크타임 특별 할인',
                 icon: 'alarm',
                 content: '브레이크할인',
@@ -66,7 +66,7 @@ export class TagsService {
                 backgroundColor: 'FFF4F6FA',
             },
             {
-                name: 'open',
+                name: '오픈할인',
                 description: '오픈시간 특별 할인',
                 icon: 'sun',
                 content: '오픈할인',
@@ -74,7 +74,7 @@ export class TagsService {
                 backgroundColor: 'FFF4F6FA',
             },
             {
-                name: 'surprise',
+                name: '서프라이즈백',
                 description: '가격대에 맞게 음식들을 랜덤하게 보내주는 랜덤박스',
                 icon: 'box',
                 content: '서프라이즈백',

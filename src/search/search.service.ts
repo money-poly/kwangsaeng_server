@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Keyword } from './entity/keyword.entity';
 import { Repository } from 'typeorm';
 import { SearchException } from 'src/global/exception/search-exception';
-import { SearchReqDto } from './dto/search.request';
+import { SearchReqDto } from './dto/search-request.dto';
 import { FindKeywordDto } from './dto/find-keyword.dto';
 import { UpdateKeywordDto } from './dto/update-keyword.dto';
 import { StoresService } from 'src/stores/stores.service';
@@ -20,7 +20,7 @@ export class SearchService {
 
     public async getFromAWSCloudSearch(dto: SearchReqDto) {
         const keyword = dto.q;
-        const size = dto.size;
+        const size = dto.size ? dto.size : 100;
         const apiUrl = `https://search-kwangsaeng-nindstrzi24sxleaflpbbq7wtu.ap-northeast-2.cloudsearch.amazonaws.com/2013-01-01/search?q=${keyword}&size=${size}&return=_all_fields`;
 
         return await axios.get(apiUrl);

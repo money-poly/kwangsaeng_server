@@ -16,8 +16,8 @@ import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { AdminGuard } from 'src/auth/guard/admin.guard';
 import { UpdateKeywordDto } from './dto/update-keyword.dto';
 import { CreateKeywordDto } from './dto/create-keyword.dto';
-import { SearchReqDto } from './dto/search.request';
-import { SearchResDto } from './dto/search.response';
+import { SearchReqDto } from './dto/search-request.dto';
+import { SearchResDto } from './dto/search-response.dto';
 import { FindKeywordDto } from './dto/find-keyword.dto';
 import { FindStoreWithLocationDto } from 'src/stores/dto/find-store-with-location.dto';
 

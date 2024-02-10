@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import axios from 'axios';
 // import { SearchService } from '../../src/search/search.service';
-import { SearchResDto } from 'src/search/dto/search.response';
+import { SearchResDto } from 'src/search/dto/search-response.dto';
 
 describe('SearchService', () => {
     // let service: SearchService;

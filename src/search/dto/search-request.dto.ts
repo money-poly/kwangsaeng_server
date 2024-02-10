@@ -9,6 +9,5 @@ export class SearchReqDto {
     q: string;
 
     @Expose()
-    @IsNotEmpty()
     size: number;
 }

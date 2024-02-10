@@ -21,7 +21,7 @@ export class SearchService {
     public async getFromAWSCloudSearch(dto: SearchReqDto) {
         const keyword = dto.q;
         const size = dto.size ? dto.size : 100;
-        const apiUrl = `https://search-kwangsaeng-nindstrzi24sxleaflpbbq7wtu.ap-northeast-2.cloudsearch.amazonaws.com/2013-01-01/search?q=${keyword}&size=${size}&return=_all_fields`;
+        const apiUrl = `https://search-kwangsaeng-search-7vekg3ibvxuhu233bue2vawouy.ap-northeast-2.cloudsearch.amazonaws.com/2013-01-01/search?q=${keyword}&size=${size}&return=_all_fields`;
 
         return await axios.get(apiUrl);
     }

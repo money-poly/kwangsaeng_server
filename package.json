@@ -19,6 +19,7 @@
         "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
         "test:e2e": "jest --config ./test/jest-e2e.json",
         "docker:local": "docker-compose -f local-compose.yml --env-file src/global/config/envs/.local.env up",
+        "docker:stage": "docker-compose -f local-compose.yml --env-file src/global/config/envs/.dev.env up",
         "docker:build": "docker-compose -f local-compose.yml --env-file src/global/config/envs/.local.env build",
         "docker:down": "docker-compose -f local-compose.yml --env-file src/global/config/envs/.local.env down",
         "docker:exec": "docker exec -it api /bin/sh"

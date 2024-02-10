@@ -85,7 +85,7 @@ export class TagsService {
 
         const isExist = await this.tagsRepository.exist({
             where: {
-                name: 'surprise',
+                name: '마감할인',
             },
         });
 

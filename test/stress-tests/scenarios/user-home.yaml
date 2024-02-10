@@ -1,0 +1,12 @@
+config:
+    target: 'http://localhost:3000/api' # target URL
+    phases:
+        - duration: 10 # n초동안 테스트
+          arrivalRate: 2 # 초당 n회의 요청
+scenarios: # 시나리오 구성
+    - name: '유저앱 접속 시나리오'
+      flow:
+          - get:
+                url: '/v1/menus/max-discount?lat=37.6201693503893&lon=127.0613551471280'
+          - get:
+                url: '/v1/menus/discounted?type=name&lat=37.6201693503893&lon=127.0613551471280'

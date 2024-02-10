@@ -32,10 +32,12 @@ import { MenuStatus } from './enum/menu-status.enum';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateMenuStatusDto } from './dto/update-status.dto';
 import { S3Exception } from 'src/global/exception/s3-exception';
+import { SkipThrottle } from '@nestjs/throttler';
 
 @Controller('menus')
 export class MenusController {
     constructor(private readonly menusService: MenusService) {}
+
     @Get('/detail/:id')
     async findDetailOne(@Param('id', TransformMenuPipe) menu: Menu, @Query() dto: FindOneMenuDetailDto) {
         return this.menusService.findDetailOne(menu, dto);
@@ -73,11 +75,13 @@ export class MenusController {
         return await this.menusService.updateOrder(store, dto);
     }
 
+    @SkipThrottle()
     @Get('/max-discount')
     async findMaxDiscount(@Query() dto: FindAsLocationDto) {
         return await this.menusService.findMaxDiscount(dto);
     }
 
+    @SkipThrottle()
     @Get('/discounted')
     async findManyDiscount(@Query('type') type: MenuFilterType, @Query() dto: FindAsLocationDto) {
         return await this.menusService.findManyDiscount(type, dto);

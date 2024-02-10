@@ -29,13 +29,18 @@ import { SearchModule } from './search/search.module';
             validationSchema,
         }),
         ThrottlerModule.forRoot([
+            // 전역 Throttl 설정
             {
-                ttl: 1000,
-                limit: 10,
+                ttl: 3000,
+                limit: 5,
+            },
+            {
+                ttl: 10000,
+                limit: 20,
             },
             {
                 ttl: 60000,
-                limit: 100,
+                limit: 50,
             },
         ]),
         DatabaseModule,

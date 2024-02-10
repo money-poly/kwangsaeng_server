@@ -33,6 +33,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { AdminGuard } from 'src/auth/guard/admin.guard';
 import { S3Exception } from 'src/global/exception/s3-exception';
 import { StoresService } from './stores.service';
+import { SkipThrottle } from '@nestjs/throttler';
 
 @Controller('stores')
 export class StoresController {
@@ -47,11 +48,13 @@ export class StoresController {
         return await this.storesService.createStore(user, dto);
     }
 
+    @SkipThrottle()
     @Get('/map/location')
     async findStoresWithLocation(@Query() dto: FindStoreWithLocationDto) {
         return await this.storesService.findStoresWithLocation(dto);
     }
 
+    @SkipThrottle()
     @Get('/map/:storeId')
     @UseGuards(OperationGuard)
     onMapFindOne(@Param('storeId', ParseIntPipe) storeId: number) {

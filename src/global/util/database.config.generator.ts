@@ -28,7 +28,7 @@ export const configGenerator = (env: string): TypeOrmModuleOptions => {
             logging: true,
             namingStrategy: new SnakeNamingStrategy(),
         };
-    else if (env === 'dev')
+    else if (env === 'dev' || env === 'stage')
         return {
             type: 'mysql',
             host: process.env.DATABASE_HOST,

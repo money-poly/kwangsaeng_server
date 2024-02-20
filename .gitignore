@@ -2,6 +2,7 @@
 .dev.env
 .prod.env
 .local.env
+.stage.env
 
 # jwt
 jwtConstants.ts

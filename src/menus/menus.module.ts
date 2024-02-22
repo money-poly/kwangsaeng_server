@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { MenusService } from './menus.service';
 import { MenusController } from './menus.controller';
 import { Menu } from './entity/menu.entity';
@@ -30,7 +30,7 @@ import { multerS3Config } from 'src/global/config/multer-s3.config';
             useFactory: (configService: ConfigService) => multerS3Config(configService),
         }),
         CategoriesModule,
-        StoresModule,
+        forwardRef(() => StoresModule), // 순환참조 해결
     ],
     controllers: [MenusController],
     providers: [MenusService, MenusRepository, StoresRepository, UsersRepository],

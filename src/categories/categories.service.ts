@@ -1,17 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { Category } from 'src/categories/entity/category.entity';
-import { FindOptionsWhere, TreeRepository } from 'typeorm';
+import { EntityManager, FindOptionsWhere, TreeRepository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CategoriesException } from 'src/global/exception/categories-exception';
 import { CreateSuperCategoryDto } from './dto/create-super-category.dto';
 import { CreateSubCategoryDto } from './dto/create-sub-category.dto';
 import { subNames, superNames } from './categories.constants';
+import { Store } from 'src/stores/entity/store.entity';
 
 @Injectable()
 export class CategoriesService {
     constructor(
         @InjectRepository(Category)
         private readonly categoriesRepository: TreeRepository<Category>,
+        private readonly entityManager: EntityManager,
     ) {}
 
     async exist(where: FindOptionsWhere<Category>) {
@@ -111,5 +113,14 @@ export class CategoriesService {
     async initCategories() {
         const supers = await this.initSuperCategories();
         await this.initSubCategories(supers);
+    }
+
+    async findCategoriesNameByStore(store: Store) {
+        return await this.entityManager
+            .createQueryBuilder(Category, 'c')
+            .leftJoin('store_categories', 'sc', 'c.id = sc.categories_id')
+            .select('c.name AS categoryName')
+            .where('sc.stores_id = :storeId', { storeId: store.id })
+            .getRawMany();
     }
 }

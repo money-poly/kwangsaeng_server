@@ -384,6 +384,10 @@ export class MenusService {
         return await this.menusRepository.exist(where);
     }
 
+    async findMenusForOrder(store: Store, orderBy: string) {
+        return await this.menusRepository.findMenusForOrder(store, orderBy);
+    }
+
     private processDetailMenu(data) {
         const menu = {
             id: data.menuId,

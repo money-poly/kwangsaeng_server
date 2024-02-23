@@ -86,4 +86,19 @@ export class MenusRepository {
         await this.menuView.save(newMenuView);
         return menu;
     }
+
+    async findMenusForOrder(store: Store, orderBy: string) {
+        return await this.entityManager
+            .createQueryBuilder(Menu, 'm')
+            .select('m.id AS id')
+            .addSelect('m.name AS name')
+            .addSelect('m.discount_rate AS discountRate')
+            .addSelect('m.sale_price AS salePrice')
+            .addSelect('m.price AS price')
+            .addSelect('m.menu_picture_url AS menuPictureUrl')
+            .addSelect('m.country_of_origin AS countryOfOrigin')
+            .where('m.store_id = :storeId', { storeId: store.id })
+            .orderBy(orderBy, 'DESC')
+            .getRawMany();
+    }
 }

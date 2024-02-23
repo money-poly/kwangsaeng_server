@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { StoresService } from './stores.service';
 import { StoresController } from './stores.controller';
 import { StoresRepository } from './stores.repository';
@@ -18,6 +18,7 @@ import { MulterModule } from '@nestjs/platform-express';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { multerS3Config } from 'src/global/config/multer-s3.config';
 import { TagsModule } from 'src/tags/tags.module';
+import { MenusModule } from 'src/menus/menus.module';
 
 @Module({
     imports: [
@@ -26,6 +27,7 @@ import { TagsModule } from 'src/tags/tags.module';
         CategoriesModule,
         UsersModule,
         HttpModule,
+        forwardRef(() => MenusModule), // 순환참조 해결
         TagsModule,
         MulterModule.registerAsync({
             imports: [ConfigModule],

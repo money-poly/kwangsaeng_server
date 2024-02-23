@@ -3,7 +3,6 @@ import { UsersRepository } from './../users/users.repository';
 import { Injectable } from '@nestjs/common';
 import { StoresRepository } from './stores.repository';
 import { Store } from './entity/store.entity';
-import { Roles } from 'src/users/enum/roles.enum';
 import { User } from 'src/users/entity/user.entity';
 import { StoresException } from 'src/global/exception/stores-exception';
 import { InjectModel, Model } from 'nestjs-dynamoose';
@@ -16,20 +15,23 @@ import { FindStoreWithLocationDto } from './dto/find-store-with-location.dto';
 import { StoreApprove } from './entity/store-approve.entity';
 import { StoreStatus } from './enum/store-status.enum';
 import { UpdateStoreDto } from './dto/update-store.dto';
-import { Category } from 'src/categories/entity/category.entity';
 import { FindStoreDetailDto } from './dto/find-store-detail.dto';
 import { MenuView } from 'src/menus/entity/menu-view.entity';
 import { StoreApproveStatus } from './enum/store-approve-status.enum';
 import { TagsService } from 'src/tags/tags.service';
 import { TagException } from 'src/global/exception/tag-exception';
-import { FindOneStoreReturnValue } from './interfaces/find-one-store-return-value.interface';
 import { mockOwners, mockStores } from 'src/global/common/mock.constant';
+import { CategoriesService } from 'src/categories/categories.service';
+import { MenusService } from 'src/menus/menus.service';
+import { FindOneStoreReturnValue } from './interfaces/find-one-store-return-value.interface';
 
 @Injectable()
 export class StoresService {
     constructor(
         private readonly storesRepository: StoresRepository,
+        private readonly categoriesService: CategoriesService,
         private readonly entityManager: EntityManager,
+        private readonly menusService: MenusService,
         private readonly usersRepository: UsersRepository,
         private readonly tagsService: TagsService,
         @InjectModel('Store-Menu')
@@ -138,151 +140,59 @@ export class StoresService {
     }
 
     async findStore(store: Store, dto: FindStoreDetailDto) {
-        // TODO 리팩토링 해야할듯. 가독성이 너무 떨어짐
         const { lat, lon } = dto;
-        const orderBy = await this.storesRepository.processOrderBy(store);
-        // 메뉴 순서가 존재하지 않을때 == 메뉴가 존재하지 않기때문에 스토어 정보만 보내줌
-        if (!orderBy) {
-            const storeDataIncludedDetail = await this.entityManager
-                .createQueryBuilder(Store, 's')
-                .leftJoinAndSelect(StoreApprove, 'sa', 's.id = sa.store_id')
-                .leftJoinAndSelect(StoreDetail, 'sd', 's.id = sd.store_id')
-                .leftJoin('store_categories', 'sc', 's.id = sc.stores_id')
-                .leftJoinAndSelect(Category, 'c', 'sc.categories_id = c.id')
-                .leftJoinAndSelect(User, 'u', 'u.id = s.user_id')
-                .select('s.id', 'storeId')
-                .addSelect('s.name', 'storeName')
-                .addSelect('s.status', 'storeStatus')
-                .addSelect('c.name', 'category')
-                .addSelect('sd.storePictureUrl', 'storePictureUrl')
-                .addSelect('sd.address', 'address')
-                .addSelect('sd.address_detail', 'addressDetail')
-                .addSelect('sd.lat', 'lat')
-                .addSelect('sd.lon', 'lon')
-                .addSelect('u.phone', 'phone')
-                .addSelect('sd.cooking_time', 'cookingTime')
-                .addSelect('sd.operation_times', 'operationTimes')
-                .addSelect('sd.menu_orders', 'menuOrders')
-                .where('s.id = :storeId', { storeId: store.id })
-                .andWhere('sa.is_approved = :isApproved', { isApproved: StoreApproveStatus.DONE })
-                .getRawMany();
-
-            const categories = [];
-            storeDataIncludedDetail.forEach((data) => {
-                categories.push(data.category);
-            });
-
-            const pickupTime = await this.storesRepository.measurePickUpTime(
-                storeDataIncludedDetail[0].cookingTime,
-                lat,
-                storeDataIncludedDetail[0].lat,
-                lon,
-                storeDataIncludedDetail[0].lon,
-            );
-
-            const result: FindOneStoreReturnValue = {
-                id: storeDataIncludedDetail[0].storeId,
-                name: storeDataIncludedDetail[0].storeName,
-                categories,
+        const storeData: Store = await this.storesRepository.findOneStore(
+            { id: store.id, status: StoreStatus.OPEN, approve: { isApproved: StoreApproveStatus.DONE } },
+            {
+                id: true,
+                name: true,
                 detail: {
-                    storePictureUrl: storeDataIncludedDetail[0].storePictureUrl,
-                    address: storeDataIncludedDetail[0].address,
-                    addressDetail: storeDataIncludedDetail[0].addressDetail,
-                    lat: storeDataIncludedDetail[0].lat,
-                    lon: storeDataIncludedDetail[0].lon,
-                    phone: storeDataIncludedDetail[0].phone,
-                    cookingTime: storeDataIncludedDetail[0].cookingTime,
-                    operationTimes: storeDataIncludedDetail[0].operationTimes,
-                    pickupTime,
-                    menuOrders: storeDataIncludedDetail[0].menuOrders,
+                    storePictureUrl: true,
+                    address: true,
+                    addressDetail: true,
+                    lat: true,
+                    lon: true,
+                    cookingTime: true,
+                    operationTimes: { startedAt: true, endedAt: true },
+                    menuOrders: true,
                 },
-                menus: [],
-            };
-            return result;
+                user: { phone: true },
+            },
+            { detail: true, user: true, approve: true },
+        );
+        if (!storeData) {
+            throw StoresException.ENTITY_NOT_FOUND;
         }
 
-        const dataList = await this.entityManager
-            .createQueryBuilder(Menu, 'm')
-            .leftJoinAndSelect(Store, 's', 's.id = m.store_id')
-            .leftJoinAndSelect(StoreApprove, 'sa', 's.id = sa.store_id')
-            .leftJoinAndSelect(StoreDetail, 'sd', 's.id = sd.store_id')
-            .leftJoin('store_categories', 'sc', 's.id = sc.stores_id')
-            .leftJoinAndSelect(Category, 'c', 'sc.categories_id = c.id')
-            .leftJoinAndSelect(User, 'u', 'u.id = s.user_id')
-            .select('s.id', 'storeId')
-            .addSelect('s.name', 'storeName')
-            .addSelect('s.status', 'storeStatus')
-            .addSelect('c.name', 'category')
-            .addSelect('sd.storePictureUrl', 'storePictureUrl')
-            .addSelect('sd.address', 'address')
-            .addSelect('sd.address_detail', 'addressDetail')
-            .addSelect('sd.lat', 'lat')
-            .addSelect('sd.lon', 'lon')
-            .addSelect('u.phone', 'phone')
-            .addSelect('sd.cooking_time', 'cookingTime')
-            .addSelect('sd.operation_times', 'operationTimes')
-            .addSelect('sd.menu_orders', 'menuOrders')
-            .addSelect('m.id', 'menuId')
-            .addSelect('m.name', 'menuName')
-            .addSelect('m.discount_rate', 'discountRate')
-            .addSelect('m.sale_price', 'salePrice')
-            .addSelect('m.price', 'price')
-            .addSelect('m.menu_picture_url', 'menuPictureUrl')
-            .addSelect('m.country_of_origin', 'countryOfOrigin')
-            .addSelect('m.description', 'description')
-            .where('s.id = :storeId', { storeId: store.id })
-            .andWhere('sa.is_approved = :isApproved', { isApproved: StoreApproveStatus.DONE })
-            .orderBy(orderBy, 'DESC')
-            .getRawMany();
+        const categories = await this.categoriesService.findCategoriesNameByStore(store);
+        const refinedCategories = categories.map((item) => {
+            return { name: item.categoryName };
+        });
 
-        const categories = [];
-        const menuList = [];
-        for (const data of dataList) {
-            const category = data.category;
-            const refinedMenuData = {
-                id: data.menuId,
-                name: data.menuName,
-                discountRate: data.discountRate,
-                salePrice: data.salePrice,
-                price: data.price,
-                menuPictureUrl: data.menuPictureUrl,
-                countryOfOrigin: data.countryOfOrigin,
-                description: data.description,
-            };
-            if (!categories.includes(category)) {
-                categories.push(category);
-            }
-            menuList.push(refinedMenuData);
+        let menus = [];
+        let refinedOrder = null;
+        const orderBy = await this.storesRepository.processOrderBy(store);
+        if (orderBy) {
+            menus = await this.menusService.findMenusForOrder(store, orderBy);
+            refinedOrder = storeData.detail.menuOrders.join(',');
         }
 
-        const pickupTime = await this.storesRepository.measurePickUpTime(
-            dataList[0].cookingTime,
+        const pickUpTime = await this.storesRepository.measurePickUpTime(
+            storeData.detail.cookingTime,
+            storeData.detail.lat,
             lat,
-            dataList[0].lat,
+            storeData.detail.lon,
             lon,
-            dataList[0].lon,
         );
 
-        const storeIncludedMenu: FindOneStoreReturnValue = {
-            id: dataList[0].storeId,
-            name: dataList[0].storeName,
-            categories,
-            detail: {
-                storePictureUrl: dataList[0].storePictureUrl,
-                address: dataList[0].address,
-                addressDetail: dataList[0].addressDetail,
-                lat: dataList[0].lat,
-                lon: dataList[0].lon,
-                phone: dataList[0].phone,
-                cookingTime: dataList[0].cookingTime,
-                operationTimes: dataList[0].operationTimes,
-                pickupTime,
-                menuOrders: dataList[0].menuOrders,
-            },
-            menus: menuList,
+        const refinedReturnValue: FindOneStoreReturnValue = {
+            id: storeData.id,
+            name: storeData.name,
+            categories: refinedCategories,
+            detail: { ...storeData.detail, pickUpTime, menuOrders: refinedOrder, phone: storeData.user.phone },
+            menus,
         };
-
-        return storeIncludedMenu;
+        return refinedReturnValue;
     }
 
     async findStoresWithLocation(dto: FindStoreWithLocationDto) {

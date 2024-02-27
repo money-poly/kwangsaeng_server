@@ -33,6 +33,7 @@ import { Tag } from 'src/tags/entity/tag.entity';
 describe('StoresService', () => {
     let service: StoresService;
     let repository: StoresRepository;
+    let categoriesService: CategoriesService;
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -67,6 +68,7 @@ describe('StoresService', () => {
 
         service = module.get<StoresService>(StoresService);
         repository = module.get<StoresRepository>(StoresRepository);
+        categoriesService = module.get<CategoriesService>(CategoriesService);
     });
 
     it('Store Module 의존성 주입 확인', () => {
@@ -98,10 +100,56 @@ describe('StoresService', () => {
                 isAuth: false,
             });
 
-            jest.spyOn(repository, 'createStore').mockReturnValue(undefined);
-
             const result = await service.createStore(user, dto);
             expect(result).toBeUndefined();
         });
     });
+
+    describe('가게 조회', () => {
+        it('가게 조회 성공(유저)', async () => {
+            const user = new User({
+                fId: 'ABCDEFG',
+                name: '공진성',
+                phone: '010-1234-1234',
+                role: Roles.OWNER,
+                status: UserStatus.ACTIVATE,
+                isAuth: false,
+            });
+            const store = new Store({ name: '뉴욕바게트', user });
+            const lat = 32.62;
+            const lon = 127.0583;
+
+            // jest.spyOn(repository, 'findOneStore').mockReturnValue({
+            //     {id: 1}
+            // });
+            const result = await service.findStore(store, { lat, lon });
+            console.log(result);
+            // expect(result).toBe()
+        });
+    });
 });
+
+// class UserCreateFixture {
+//     static create(
+//         fId = 'ABCDEFG',
+//         name = '공진성',
+//         phone = '010-1234-1234',
+//         role = Roles.OWNER,
+//         status = UserStatus.ACTIVATE,
+//         isAuth = true,
+//     ): User {
+//         return {
+//             id: 1,
+//             fId,
+//             name,
+//             phone,
+//             role,
+//             status,
+//             isAuth,
+//             store: {},
+//             createdDate: new Date(),
+//             deletedDate: new Date(),
+//             modifiedDate: new Date(),
+//         };
+//     }
+// }

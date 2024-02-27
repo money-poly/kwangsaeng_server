@@ -2,6 +2,12 @@ import { Model } from 'nestjs-dynamoose';
 import { DynamoKey, DynamoSchema } from 'src/stores/interfaces/store-menu-dynamo.interface';
 
 export const mockEntityManager = {
+    exist: jest.fn(),
+    findOne: jest.fn(),
+    save: jest.fn(),
+    update: jest.fn(),
+    findOneBy: jest.fn(),
+
     createQueryBuilder: jest.fn().mockReturnThis(),
     select: jest.fn().mockReturnThis(),
     from: jest.fn().mockReturnThis(),

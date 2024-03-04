@@ -82,6 +82,7 @@ export class StoresController {
         return await this.storesService.findStoreUsingToken(requestUser.user.id);
     }
 
+    @SkipThrottle()
     @Get(':storeId')
     @UseGuards(OperationGuard)
     @UseEntityTransformer<Store>(TransformStoreInterceptor)

@@ -38,6 +38,7 @@ import { SkipThrottle } from '@nestjs/throttler';
 export class MenusController {
     constructor(private readonly menusService: MenusService) {}
 
+    @SkipThrottle()
     @Get('/detail/:id')
     async findDetailOne(@Param('id', TransformMenuPipe) menu: Menu, @Query() dto: FindOneMenuDetailDto) {
         return this.menusService.findDetailOne(menu, dto);

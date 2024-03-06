@@ -20,6 +20,9 @@ export class StoreDetail extends AbstractEntity<StoreDetail> {
     @Column({ type: 'decimal', precision: 16, scale: 13, comment: '가게 경도', default: 0 })
     lon: number;
 
+    @Column({ comment: '가게 전화번호' })
+    phone: string;
+
     @Column({ nullable: true, comment: '가게 소개글' })
     description: string;
 

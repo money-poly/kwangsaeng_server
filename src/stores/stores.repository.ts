@@ -103,6 +103,7 @@ export class StoresRepository {
                 cookingTime: dto.cookingTime,
                 operationTimes: dto.operationTimes,
                 storePictureUrl: dto.storePictureUrl ?? null,
+                phone: dto.phone,
             }),
             approve: this.storeApprove.create(),
             name: dto.name,

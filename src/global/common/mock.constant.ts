@@ -18,6 +18,7 @@ export const mockStores: CreateStoreDto[] = [
         },
         storePictureUrl:
             'https://postfiles.pstatic.net/MjAyNDAxMTdfODgg/MDAxNzA1NDg4ODMwOTM2.ulhbei2-OzPW6HEGZCmIclngdg7jORpPa88C1An-ZhQg.JvntZxAVUv9sA1C9y6ivFW9XU9hZ4zNnKZdHfI6IV_cg.JPEG.sdg612/bakery-1868396_1920.jpg?type=w966',
+        phone: '02-1111-1111',
     },
     {
         name: '순수커피 광운대점',
@@ -32,6 +33,7 @@ export const mockStores: CreateStoreDto[] = [
         },
         storePictureUrl:
             'https://postfiles.pstatic.net/MjAyNDAxMTdfOTEg/MDAxNzA1NDg5MTIzMTk4.rIVGMJaUMdLZiG5sVX7aererfQ0ELN0FXX0mGxdiIz0g.5T_eGVPmZpKWVIlMEwnOuDfXu6y_KcJk_c1T2Ut2Hf4g.JPEG.sdg612/%EC%88%9C%EC%88%98%EC%BB%A4%ED%94%BC.jpg?type=w966',
+        phone: '02-2222-2222',
     },
     {
         name: '사랑컵밥',
@@ -47,6 +49,7 @@ export const mockStores: CreateStoreDto[] = [
         },
         storePictureUrl:
             'https://postfiles.pstatic.net/MjAyNDAxMTdfMTMy/MDAxNzA1NDkwMTQ3MzQw.OFrm2P5Oub7k3_k2nWtobchPQtydkDmb-I89dsKbFPQg.en17j7MzGqtoAsQhSdPlHyIDbyUE-QevmuWN3ZPulJMg.JPEG.sdg612/%EB%8F%84%EC%8B%9C%EB%9D%BD.jpg?type=w966',
+        phone: '02-3333-3333',
     },
     {
         name: '광생러드',
@@ -62,6 +65,7 @@ export const mockStores: CreateStoreDto[] = [
         },
         storePictureUrl:
             'https://postfiles.pstatic.net/MjAyNDAxMTdfNzQg/MDAxNzA1NDkwMTE3NTA1.VqttzPWj6cibLE6MmLTr8VWsMJk0JfpSH77cBZYcQa4g.VVm9y8aSOc15vP5j1AYPJttyaHSMhZrca5BtmM_996Ig.PNG.sdg612/%EA%B7%B8%EB%A6%BC1.png?type=w966',
+        phone: '02-4444-4444',
     },
     {
         name: '순천식당',
@@ -76,6 +80,7 @@ export const mockStores: CreateStoreDto[] = [
         },
         storePictureUrl:
             'https://postfiles.pstatic.net/MjAyNDAxMTdfMTkx/MDAxNzA1NDkwMTUxNTAy.WjehTHPYpMCi_p30KCioG-DCuYXXzxiSY-Z-legvVZUg.8aT0sTQ0iB3O7dTO3i5NNEqLL5-MDD1Eh6cCGQIBFJcg.JPEG.sdg612/%EB%B7%94%ED%8E%98.jpg?type=w966',
+        phone: '02-5555-5555',
     },
 ];
 
@@ -84,31 +89,31 @@ export const mockOwners: User[] = [
         fId: 'IEY494xKjTS7CkxSn9MIIT9LZ0B2',
         name: '유정미',
         role: Roles.OWNER,
-        phone: '010-1111-1111',
+        phone: '010-2557-3333',
     }),
     new User({
         fId: 'TZ3zKZC2NXMSb0T0TUujxeZVVRd2',
         name: '강태현',
         role: Roles.OWNER,
-        phone: '010-2222-2222',
+        phone: '010-8878-9669',
     }),
     new User({
         fId: 'ipCQpH0aOkNUkLLbjhZlMv4XPwF3',
         name: '김영숙',
         role: Roles.OWNER,
-        phone: '010-3333-3333',
+        phone: '010-7787-3365',
     }),
     new User({
         fId: 'Do0OYiAFpBbdETfdOwLM2PBHFD43',
         name: '양철환',
         role: Roles.OWNER,
-        phone: '010-4444-4444',
+        phone: '010-1357-6637',
     }),
     new User({
         fId: '9OSbqXCX7Mhq8OZS1r9ctxNKe6y2',
         name: '강복자',
         role: Roles.OWNER,
-        phone: '010-5555-5555',
+        phone: '010-8645-4768',
     }),
 ];
 

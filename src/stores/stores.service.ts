@@ -86,6 +86,7 @@ export class StoresService {
                 operationTimes: dto.operationTimes ?? store.detail.operationTimes,
                 cookingTime: dto.cookingTime ?? store.detail.cookingTime,
                 storePictureUrl: dto.storePictureUrl ?? store.detail.storePictureUrl,
+                phone: dto.phone ?? store.detail.storePictureUrl,
             },
             tag: tag ?? store.tag,
         });
@@ -147,6 +148,7 @@ export class StoresService {
                 id: true,
                 name: true,
                 detail: {
+                    description: true,
                     storePictureUrl: true,
                     address: true,
                     addressDetail: true,
@@ -155,10 +157,10 @@ export class StoresService {
                     cookingTime: true,
                     operationTimes: { startedAt: true, endedAt: true },
                     menuOrders: true,
+                    phone: true,
                 },
-                user: { phone: true },
             },
-            { detail: true, user: true, approve: true },
+            { detail: true, approve: true },
         );
         if (!storeData) {
             throw StoresException.ENTITY_NOT_FOUND;
@@ -189,7 +191,7 @@ export class StoresService {
             id: storeData.id,
             name: storeData.name,
             categories: refinedCategories,
-            detail: { ...storeData.detail, pickUpTime, menuOrders: refinedOrder, phone: storeData.user.phone },
+            detail: { ...storeData.detail, pickUpTime, menuOrders: refinedOrder },
             menus,
         };
         return refinedReturnValue;

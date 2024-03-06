@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { MenusRepository } from './menus.repository';
 import { EntityManager, FindManyOptions, FindOptionsRelations, FindOptionsSelect, FindOptionsWhere } from 'typeorm';
 import { UsersRepository } from 'src/users/users.repository';
@@ -46,6 +46,7 @@ export class MenusService {
         private readonly entityManager: EntityManager,
         private readonly usersRepository: UsersRepository,
         private readonly storesRepository: StoresRepository,
+        private readonly logger: Logger,
         @InjectModel('Store-Menu')
         private dynamoModel: Model<DynamoSchema, DynamoKey>,
     ) {}
@@ -100,11 +101,18 @@ export class MenusService {
     }
 
     async update(menu: Menu, args: UpdateMenuArgs) {
+        const dynamoMenuData = await this.dynamoModel.get({ menuId: menu.id, storeName: menu.store.name });
+        if (dynamoMenuData) {
+            await this.dynamoModel.update({
+                ...dynamoMenuData,
+                ...args,
+                menuName: args.name ? args.name : menu.store.name,
+            });
+        } else {
+            this.logger.error(DynamoException.ITEM_NOT_FOUND);
+        } // dynamo쪽에 해당 데이터가 없을경우 로깅
         await this.menusRepository.update(menu, { ...args });
-        const result = await this.findDetailOne(menu);
-        const dynamoMenuData = await this.dynamoModel.get({ menuId: menu.id, storeName: result.storeName });
-        await this.dynamoModel.update({ ...dynamoMenuData, ...args, menuName: args.name ? args.name : result.name }); // TODO name칼럼 좀 이쁘게 변환할 순 없을까?
-        return;
+        return this.findDetailOne(menu.id);
     }
 
     async delete(user: User, menu: Menu) {
@@ -129,43 +137,67 @@ export class MenusService {
         return this.menusRepository.delete(menu);
     }
 
-    async findDetailOne(menu: Menu, loc?: FindOneMenuDetailDto): Promise<FindDetailOneMenu> {
-        const data = await this.entityManager
-            .createQueryBuilder(Menu, 'm')
-            .leftJoinAndSelect(Store, 's', 's.id = m.store_id')
-            .leftJoinAndSelect(StoreDetail, 'sd', 'sd.store_id = m.store_id')
-            .leftJoinAndSelect(User, 'u', 'u.id = s.user_id')
-            .select(
-                'm.menu_picture_url AS mainMenuPictureUrl, m.description, m.name AS name, m.discount_rate AS discountRate, m.price, m.sale_price AS sellingPrice, m.country_of_origin AS countryOfOrigin',
-            )
-            .addSelect('s.id AS storeId, s.name AS storeName')
-            .addSelect('sd.address AS storeAddress, sd.lat AS lat, sd.lon AS lon, sd.cooking_time AS cookingTime')
-            .addSelect('u.phone AS phone')
-            .where('m.id = :id', { id: menu.id })
-            .getRawOne();
-        const view = await this.menusRepository.findView(menu);
-        const anotherMenus = await this.getMenusInStore(data.storeId, menu.id, 3);
-        let refinedPickUpTime = '';
+    async findDetailOne(menuId: number, loc?: FindOneMenuDetailDto): Promise<FindDetailOneMenu> {
+        const menu = await this.menusRepository.findOne(
+            { id: menuId },
+            {
+                id: true,
+                menuPictureUrl: true,
+                description: true,
+                name: true,
+                discountRate: true,
+                price: true,
+                salePrice: true,
+                count: true,
+                expiredDate: true,
+                countryOfOrigin: true,
+                view: {
+                    viewCount: true,
+                },
+                store: {
+                    id: true,
+                },
+            },
+            { view: true, store: true },
+        );
+
+        const store: any = await this.storesRepository.findOneStore(
+            { id: menu.store.id },
+            {
+                id: true,
+                name: true,
+                detail: { address: true, addressDetail: true, lat: true, lon: true, cookingTime: true, phone: true },
+            },
+            { detail: true },
+        );
+
+        const anotherMenus = await this.getMenusInStore(store.id, menu.id, 3);
+
+        let refinedPickUpTime;
         if (loc) {
             const { lat, lon } = loc;
             refinedPickUpTime = await this.storesRepository.measurePickUpTime(
-                data.cookingTime,
+                store.detail.cookingTime,
                 lat,
-                data.lat,
+                store.detail.lat,
                 lon,
-                data.lon,
+                store.detail.lon,
             );
         }
-        delete data.cookingTime;
-        const caution = CAUTION_TEXT;
+        store.detail.pickUpTime = refinedPickUpTime;
+
         const menuDetailList = {
-            ...data,
+            ...menu,
+            sellingPrice: menu.salePrice,
+            store,
             anotherMenus: anotherMenus ? anotherMenus : null, // 다른 메뉴가 없을 경우 null로 전송
-            ...view,
-            pickUpTime: refinedPickUpTime ? refinedPickUpTime : null, // 사용자의 거리값을 안 보냈을 경우(update 시) null로 전송
-            caution,
+            viewCount: menu.view.viewCount,
+            caution: CAUTION_TEXT,
         };
-        await this.menusRepository.incrementView(menu, data.storeName);
+        await this.menusRepository.incrementView(menu, store.name);
+        delete menuDetailList.salePrice;
+        delete menuDetailList.view;
+        delete menuDetailList.store.detail.cookingTime; // 쓸모없는 값 제거
         return menuDetailList;
     }
 
@@ -230,7 +262,7 @@ export class MenusService {
         }
         await this.updateOrder(menu.store, { order });
         this.menusRepository.update(menu, { status: dto.updateStatus });
-        return await this.findDetailOne(menu);
+        return await this.findDetailOne(menu.id);
     }
 
     async findMaxDiscount(dto: FindAsLocationDto) {

@@ -59,4 +59,7 @@ export class CreateStoreDto {
     @ValidateNested()
     @Type(() => OperationTimes)
     operationTimes: OperationTimes;
+
+    @IsString()
+    phone: string;
 }

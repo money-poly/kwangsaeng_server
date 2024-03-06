@@ -3,7 +3,7 @@ import { CreateStoreDto } from './create-store.dto';
 import { PartialType, PickType } from '@nestjs/mapped-types';
 
 export class UpdateStoreDto extends PartialType(
-    PickType(CreateStoreDto, ['name', 'address', 'addressDetail', 'operationTimes', 'cookingTime']),
+    PickType(CreateStoreDto, ['name', 'address', 'addressDetail', 'operationTimes', 'cookingTime', 'phone']),
 ) {
     @IsUrl()
     @IsOptional()
@@ -15,5 +15,9 @@ export class UpdateStoreDto extends PartialType(
 
     @IsNumber()
     @IsOptional()
-    tagId: number;
+    tagId?: number;
+
+    @IsString()
+    @IsOptional()
+    phone?: string;
 }

@@ -40,8 +40,8 @@ export class MenusController {
 
     @SkipThrottle()
     @Get('/detail/:id')
-    async findDetailOne(@Param('id', TransformMenuPipe) menu: Menu, @Query() dto: FindOneMenuDetailDto) {
-        return this.menusService.findDetailOne(menu, dto);
+    async findDetailOne(@Param('id') menuId: number, @Query() dto: FindOneMenuDetailDto) {
+        return this.menusService.findDetailOne(menuId, dto);
     }
 
     @Post()

@@ -86,6 +86,7 @@ export class StoresService {
                 operationTimes: dto.operationTimes ?? store.detail.operationTimes,
                 cookingTime: dto.cookingTime ?? store.detail.cookingTime,
                 storePictureUrl: dto.storePictureUrl ?? store.detail.storePictureUrl,
+                phone: dto.phone ?? store.detail.storePictureUrl,
             },
             tag: tag ?? store.tag,
         });

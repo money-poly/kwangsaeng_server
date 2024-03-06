@@ -111,6 +111,7 @@ export class StoresController {
                 'detail.modifiedDate',
                 'detail.lat',
                 'detail.lon',
+                'detail.phone',
                 'tag.createdDate',
                 'tag.modifiedDate',
                 'tag.description',

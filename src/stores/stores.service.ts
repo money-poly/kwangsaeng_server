@@ -156,10 +156,10 @@ export class StoresService {
                     cookingTime: true,
                     operationTimes: { startedAt: true, endedAt: true },
                     menuOrders: true,
+                    phone: true,
                 },
-                user: { phone: true },
             },
-            { detail: true, user: true, approve: true },
+            { detail: true, approve: true },
         );
         if (!storeData) {
             throw StoresException.ENTITY_NOT_FOUND;
@@ -190,7 +190,7 @@ export class StoresService {
             id: storeData.id,
             name: storeData.name,
             categories: refinedCategories,
-            detail: { ...storeData.detail, pickUpTime, menuOrders: refinedOrder, phone: storeData.user.phone },
+            detail: { ...storeData.detail, pickUpTime, menuOrders: refinedOrder },
             menus,
         };
         return refinedReturnValue;

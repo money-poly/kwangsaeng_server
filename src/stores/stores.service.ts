@@ -148,6 +148,7 @@ export class StoresService {
                 id: true,
                 name: true,
                 detail: {
+                    description: true,
                     storePictureUrl: true,
                     address: true,
                     addressDetail: true,

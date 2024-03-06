@@ -100,6 +100,7 @@ export class MenusRepository {
             .addSelect('m.name AS name')
             .addSelect('m.discount_rate AS discountRate')
             .addSelect('m.sale_price AS salePrice')
+            .addSelect('m.description AS description')
             .addSelect('m.price AS price')
             .addSelect('m.menu_picture_url AS menuPictureUrl')
             .addSelect('m.country_of_origin AS countryOfOrigin')

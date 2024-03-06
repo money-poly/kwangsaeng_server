@@ -15,6 +15,7 @@ import { CreateMenuArgs } from './interface/create-menu.interface';
 import { Store } from 'src/stores/entity/store.entity';
 import { InjectModel, Model } from 'nestjs-dynamoose';
 import { DynamoKey, DynamoSchema } from 'src/stores/interfaces/store-menu-dynamo.interface';
+import { DynamoException } from 'src/global/exception/dynamo-exception';
 
 @Injectable()
 export class MenusRepository {
@@ -50,11 +51,16 @@ export class MenusRepository {
             .getRawOne();
     }
 
-    async incrementView(menu: Menu, storeName: string) {
+    async incrementView(menu: Menu, storeName: string): Promise<void> {
         const dynamoMenuData = await this.dynamoModel.get({ menuId: menu.id, storeName });
-        const incrementDynamoMenuData = { ...dynamoMenuData, viewCount: dynamoMenuData.viewCount + 1 };
-        await this.dynamoModel.update(incrementDynamoMenuData);
-        return await this.menuView.increment({ id: menu.id }, 'viewCount', 1);
+        if (dynamoMenuData) {
+            const incrementDynamoMenuData = { ...dynamoMenuData, viewCount: dynamoMenuData.viewCount + 1 };
+            await this.dynamoModel.update(incrementDynamoMenuData);
+        } else {
+            this.logger.error(DynamoException.ITEM_NOT_FOUND);
+        }
+        await this.menuView.increment({ id: menu.id }, 'viewCount', 1);
+        return;
     }
 
     async exist(where: FindManyOptions<Menu>) {

@@ -15,5 +15,9 @@ export class UpdateStoreDto extends PartialType(
 
     @IsNumber()
     @IsOptional()
-    tagId: number;
+    tagId?: number;
+
+    @IsString()
+    @IsOptional()
+    phone?: string;
 }

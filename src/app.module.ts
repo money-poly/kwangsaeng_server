@@ -19,6 +19,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { TagsModule } from './tags/tags.module';
 import { SearchModule } from './search/search.module';
+import { SlacktestModule } from './slacktest/slacktest.module';
 
 @Module({
     imports: [
@@ -55,6 +56,7 @@ import { SearchModule } from './search/search.module';
         BannersModule,
         TagsModule,
         SearchModule,
+        SlacktestModule,
     ],
     providers: [Logger, InitializeService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

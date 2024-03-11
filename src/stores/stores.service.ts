@@ -143,7 +143,7 @@ export class StoresService {
     async findStore(store: Store, dto: FindStoreDetailDto) {
         const { lat, lon } = dto;
         const storeData: Store = await this.storesRepository.findOneStore(
-            { id: store.id, status: StoreStatus.OPEN, approve: { isApproved: StoreApproveStatus.DONE } },
+            { id: store.id, approve: { isApproved: StoreApproveStatus.DONE } },
             {
                 id: true,
                 name: true,

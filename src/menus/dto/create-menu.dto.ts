@@ -16,7 +16,8 @@ export class CreateMenuDto implements CreateMenuArgs {
     name: string;
 
     @IsDateString()
-    expiredDate: string;
+    @IsOptional()
+    expiredDate?: string;
 
     @IsEnum(MenuStatus)
     @IsNotEmpty()

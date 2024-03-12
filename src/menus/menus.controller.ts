@@ -52,7 +52,7 @@ export class MenusController {
 
     @Put('/:id')
     @UseGuards(AuthGuard)
-    async update(@Param('id', TransformMenuPipe) menu: Menu, @Body(ModifyMenuValidationPipe) dto: UpdateMenuDto) {
+    async update(@Param('id', TransformMenuPipe) menu: Menu, @Body() dto: UpdateMenuDto) {
         return await this.menusService.update(menu, dto);
     }
 
@@ -62,6 +62,7 @@ export class MenusController {
         return await this.menusService.delete(user, menu);
     }
 
+    @SkipThrottle()
     @Get('/seller/:storeId')
     @UseGuards(AuthGuard)
     @UseEntityTransformer<Store>(TransformStoreInterceptor)

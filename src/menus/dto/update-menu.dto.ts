@@ -1,4 +1,4 @@
-import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 import { MenuStatus } from '../enum/menu-status.enum';
 import { UpdateMenuArgs } from '../interface/update-menu.interface';
 
@@ -26,4 +26,8 @@ export class UpdateMenuDto implements UpdateMenuArgs {
     @IsOptional()
     @IsString()
     description?: string;
+
+    @IsOptional()
+    @IsDateString()
+    expiredDate?: string;
 }

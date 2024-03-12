@@ -13,6 +13,9 @@ export class BusinessDetail extends WithoutTimestampEntity<BusinessDetail> {
     @Column({ comment: '사업자 등록 번호' })
     businessNum: string;
 
+    @Column({ comment: '개업일자(YYYYMMDD)' })
+    openedDate: string;
+
     @OneToOne(() => Store, (store) => store.businessDetail, { onDelete: 'CASCADE' })
     @JoinColumn()
     store: Store;

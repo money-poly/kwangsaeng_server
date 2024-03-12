@@ -33,7 +33,7 @@ import { SlacktestModule } from './slacktest/slacktest.module';
             // 전역 Throttl 설정
             {
                 ttl: 3000,
-                limit: 5,
+                limit: 10,
             },
             {
                 ttl: 10000,

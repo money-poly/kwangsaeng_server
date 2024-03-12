@@ -5,4 +5,5 @@ export interface UpdateMenuArgs {
     price?: number;
     discountRate?: number;
     sellingPrice?: number;
+    expiredDate?: string;
 }

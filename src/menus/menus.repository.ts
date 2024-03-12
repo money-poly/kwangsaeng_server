@@ -68,6 +68,9 @@ export class MenusRepository {
     }
 
     async update(menu: Menu, partialEntity: QueryDeepPartialEntity<Menu>) {
+        if (partialEntity.description === '') {
+            partialEntity.description = null;
+        } // 빈 문자열로 넘어올경우 null로 지정
         await this.menus.update(menu.id, partialEntity);
 
         return await this.menus.findOneBy({

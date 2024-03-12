@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsUrl } from 'class-validator';
+import { IsDateString, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsUrl } from 'class-validator';
 import { CreateMenuArgs } from '../interface/create-menu.interface';
 import { MenuStatus } from '../enum/menu-status.enum';
 
@@ -14,6 +14,9 @@ export class CreateMenuDto implements CreateMenuArgs {
     @IsString()
     @IsNotEmpty()
     name: string;
+
+    @IsDateString()
+    expiredDate: string;
 
     @IsEnum(MenuStatus)
     @IsNotEmpty()

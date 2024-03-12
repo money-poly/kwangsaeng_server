@@ -32,5 +32,6 @@ export class CreateMenuDto implements CreateMenuArgs {
     salePrice: number;
 
     @IsString()
-    description: string;
+    @IsOptional()
+    description?: string;
 }

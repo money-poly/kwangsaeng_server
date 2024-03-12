@@ -4,7 +4,7 @@ export interface CreateMenuArgs {
     storeId: number;
     menuPictureUrl?: string;
     name: string;
-    description: string;
+    description?: string;
     status: MenuStatus;
     price: number;
     discountRate: number;

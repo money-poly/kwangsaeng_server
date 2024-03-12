@@ -62,4 +62,7 @@ export class CreateStoreDto {
 
     @IsString()
     phone: string;
+
+    @IsString()
+    openedDate: string;
 }

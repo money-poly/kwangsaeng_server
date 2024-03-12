@@ -251,17 +251,23 @@ export class MenusService {
             return await this.menusRepository.update(menu, { status: dto.updateStatus });
         }
         // 숨김, 품절 -> 판매중 == order의 맨 앞에 붙이기
+        // 재고량 1로 수정
+        let count: 0 | 1;
         const order = await this.storesRepository.findOrder(menu.store);
         if (updateStatus === MenuStatus.SALE) {
+            count = 1;
             order.unshift(menu.id);
         }
         // 판매중 -> 숨김, 품절으로 전환시 = order에서 삭제
+        // 재고량 0으로 수정
         if (updateStatus === MenuStatus.HIDDEN || updateStatus === MenuStatus.SOLDOUT) {
+            count = 0;
             const idx = order.findIndex((id) => Number(id) === menu.id);
             order.splice(idx, 1);
         }
+
         await this.updateOrder(menu.store, { order });
-        this.menusRepository.update(menu, { status: dto.updateStatus });
+        await this.menusRepository.update(menu, { status: dto.updateStatus, count });
         return await this.findDetailOne(menu.id);
     }
 

@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 
-@Controller('slacktest')
+@Controller('slackTest')
 export class SlacktestController {
     @Get('test')
     pulltestrequest() {

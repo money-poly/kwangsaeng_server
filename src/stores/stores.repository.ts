@@ -93,6 +93,7 @@ export class StoresRepository {
 
         const newStore = this.stores.create({
             businessDetail: this.businessDetails.create({
+                openedDate: dto.openedDate,
                 address: dto.address,
                 businessNum: dto.businessNum,
                 name: dto.businessLeaderName,

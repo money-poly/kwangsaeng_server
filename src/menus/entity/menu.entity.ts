@@ -18,7 +18,7 @@ export class Menu extends SoftDeleteEntity<Menu> {
     @Column({ comment: '정가' })
     price: number;
 
-    @Column({ comment: '판매 예정 개수', default: 0 })
+    @Column({ comment: '판매 예정 개수', default: 1 })
     count: number;
 
     @Column({ comment: '메뉴 사진 URL', nullable: true })
@@ -27,7 +27,7 @@ export class Menu extends SoftDeleteEntity<Menu> {
     @Column({ comment: '인기 메뉴 여부', nullable: true })
     popularity: boolean;
 
-    @Column({ type: 'enum', enum: MenuStatus, comment: '메뉴 상태' })
+    @Column({ type: 'enum', enum: MenuStatus, comment: '메뉴 상태', default: MenuStatus.SALE })
     status: MenuStatus;
 
     @Column({ type: 'json', comment: '원산지 표기', nullable: true })
@@ -36,7 +36,7 @@ export class Menu extends SoftDeleteEntity<Menu> {
     @Column({ comment: '메뉴 유통기한', nullable: true })
     expiredDate: Date;
 
-    @Column({ comment: '메뉴에 관한 설명' })
+    @Column({ comment: '메뉴에 관한 설명', nullable: true })
     description: string;
 
     @ManyToOne(() => Store, (store) => store.menus, { onDelete: 'CASCADE', cascade: ['soft-remove'] })

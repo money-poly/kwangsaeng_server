@@ -9,6 +9,7 @@ export const mockStores: CreateStoreDto[] = [
         businessLeaderName: '유정미',
         address: '서울특별시 노원구 광운로 27-34',
         addressDetail: null,
+        openedDate: '20230103',
         businessNum: '323-65-58233',
         categories: [4],
         cookingTime: 15,
@@ -25,6 +26,7 @@ export const mockStores: CreateStoreDto[] = [
         businessLeaderName: '강태현',
         address: '서울특별시 노원구 월계로45길 28',
         businessNum: '477-33-08554',
+        openedDate: '20230302',
         categories: [4],
         cookingTime: 10,
         operationTimes: {
@@ -41,6 +43,7 @@ export const mockStores: CreateStoreDto[] = [
         address: '서울특별시 노원구 석계로 13길 11-6',
         addressDetail: null,
         businessNum: '477-02-55495',
+        openedDate: '20230704',
         categories: [3],
         cookingTime: 20,
         operationTimes: {
@@ -56,6 +59,7 @@ export const mockStores: CreateStoreDto[] = [
         businessLeaderName: '양철환',
         address: '서울특별시 노원구 광운로3길 11',
         addressDetail: null,
+        openedDate: '20231031',
         businessNum: '1207-46-99855',
         categories: [7],
         cookingTime: 25,
@@ -72,6 +76,7 @@ export const mockStores: CreateStoreDto[] = [
         businessLeaderName: '강복자',
         address: '서울특별시 노원구 광운로2길 47-13',
         businessNum: '882-99-33215',
+        openedDate: '20240301',
         categories: [4],
         cookingTime: 15,
         operationTimes: {
@@ -131,6 +136,14 @@ export const mockMenuNames = [
         '쉬림프 샐러드',
     ],
     ['잡채', '돼지수육', '김치제육', '나물무침', '순대볶음', '김밥', '알리오올리오'],
+];
+
+export const mockMenuExpiredDate = [
+    ['20240314', '20240314', '20240312', '20240314', '20240314', '20240314', '20240314'],
+    ['20240314', '20240314', '20240313', '20240314', '20240314', '20240314', '20240314'],
+    ['20240314', '20240314', '20240314', '20240314', '20240315', '20240313', '20240314'],
+    ['20240314', '20240312', '20240314', '20240313', '20240314', '20240314', '20240314'],
+    ['20240314', '20240314', '20240316', '20240318', '20240314', '20240314', '20240314'],
 ];
 
 export const mockDiscountRates = [

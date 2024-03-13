@@ -1,7 +1,25 @@
-import { IsDateString, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsUrl } from 'class-validator';
+import {
+    IsDateString,
+    IsDefined,
+    IsEnum,
+    IsNotEmpty,
+    IsNumber,
+    IsOptional,
+    IsString,
+    IsUrl,
+    ValidateNested,
+} from 'class-validator';
 import { CreateMenuArgs } from '../interface/create-menu.interface';
 import { MenuStatus } from '../enum/menu-status.enum';
+import { Type } from 'class-transformer';
 
+export class CountryOfOrigin {
+    @IsString()
+    ingredient: string;
+
+    @IsString()
+    origin: string;
+}
 export class CreateMenuDto implements CreateMenuArgs {
     @IsNumber()
     @IsNotEmpty()
@@ -38,4 +56,9 @@ export class CreateMenuDto implements CreateMenuArgs {
     @IsString()
     @IsOptional()
     description?: string;
+
+    @IsDefined()
+    @ValidateNested({ each: true })
+    @Type(() => CountryOfOrigin)
+    countryOfOrigin: CountryOfOrigin[];
 }

@@ -1,3 +1,5 @@
+import { CountryOfOrigin } from '../dto/create-menu.dto';
+
 export interface UpdateMenuArgs {
     menuPictureUrl?: string;
     name?: string;
@@ -6,4 +8,5 @@ export interface UpdateMenuArgs {
     discountRate?: number;
     sellingPrice?: number;
     expiredDate?: string;
+    countryOfOrigin?: CountryOfOrigin[];
 }

@@ -1,6 +1,7 @@
-import { IsDateString, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
-import { MenuStatus } from '../enum/menu-status.enum';
+import { IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { UpdateMenuArgs } from '../interface/update-menu.interface';
+import { Type } from 'class-transformer';
+import { CountryOfOrigin } from './create-menu.dto';
 
 export class UpdateMenuDto implements UpdateMenuArgs {
     @IsOptional()
@@ -30,4 +31,9 @@ export class UpdateMenuDto implements UpdateMenuArgs {
     @IsOptional()
     @IsDateString()
     expiredDate?: string;
+
+    @IsOptional()
+    @ValidateNested({ each: true })
+    @Type(() => CountryOfOrigin)
+    countryOfOrigin?: CountryOfOrigin[];
 }

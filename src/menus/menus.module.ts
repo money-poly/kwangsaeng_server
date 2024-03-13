@@ -8,8 +8,6 @@ import { StoresRepository } from 'src/stores/stores.repository';
 import { MenusRepository } from './menus.repository';
 import { UsersRepository } from 'src/users/users.repository';
 import { User } from 'src/users/entity/user.entity';
-import { DynamooseModule } from 'nestjs-dynamoose';
-import { DynamoSchema } from 'src/stores/dynamo.schema';
 import { MenuView } from './entity/menu-view.entity';
 import { StoreDetail } from 'src/stores/entity/store-detail.entity';
 import { BusinessDetail } from 'src/stores/entity/business-detail.entity';
@@ -23,7 +21,6 @@ import { multerS3Config } from 'src/global/config/multer-s3.config';
 @Module({
     imports: [
         TypeOrmModule.forFeature([Menu, Store, User, MenuView, StoreDetail, BusinessDetail, StoreApprove]),
-        DynamooseModule.forFeature([{ name: 'Store-Menu', schema: DynamoSchema }]),
         MulterModule.registerAsync({
             imports: [ConfigModule],
             inject: [ConfigService],

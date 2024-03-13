@@ -7,7 +7,6 @@ import { StoresModule } from './stores/stores.module';
 import { MenusModule } from './menus/menus.module';
 import databaseConfiguration from './global/config/database.configuration';
 import { AuthModule } from './auth/auth.module';
-import dynamoConfiguration from './global/config/dynamo.configuration';
 import { CategoriesModule } from './categories/categories.module';
 import { InitializeService } from './initialize.service';
 import { SmsModule } from './sms/sms.module';
@@ -25,7 +24,7 @@ import { SlacktestModule } from './slacktest/slacktest.module';
     imports: [
         ConfigModule.forRoot({
             isGlobal: true,
-            load: [databaseConfiguration, dynamoConfiguration, aligoConfiguration],
+            load: [databaseConfiguration, aligoConfiguration],
             envFilePath: __dirname + `/../src/global/config/envs/.${process.env.NODE_ENV}.env`,
             validationSchema,
         }),

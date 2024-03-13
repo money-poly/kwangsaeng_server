@@ -4,6 +4,6 @@ import { Controller, Get } from '@nestjs/common';
 export class SlacktestController {
     @Get('test')
     pulltestrequest() {
-        return 'testtesttest';
+        return 'testtesttesttest';
     }
 }

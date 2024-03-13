@@ -6,8 +6,7 @@ import { User } from 'src/users/entity/user.entity';
 import { Roles } from 'src/users/enum/roles.enum';
 import { UserStatus } from 'src/users/enum/user-status.enum';
 import { DataSource, EntityManager, Repository } from 'typeorm';
-import { mockDynamo, mockEntityManager } from 'test/config/mock-entity-manager';
-import { getModelToken } from 'nestjs-dynamoose';
+import { mockEntityManager } from 'test/config/mock-entity-manager';
 import { CategoriesService } from 'src/categories/categories.service';
 import { MenusService } from 'src/menus/menus.service';
 import { UsersService } from 'src/users/users.service';
@@ -62,7 +61,6 @@ describe('StoresService', () => {
                 { provide: EntityManager, useValue: mockEntityManager },
                 Logger,
                 { provide: DataSource, useValue: mockDataSource },
-                { provide: getModelToken('Store-Menu'), useValue: mockDynamo() },
             ],
         }).compile();
 
@@ -89,6 +87,8 @@ describe('StoresService', () => {
                     startedAt: '10:00',
                     endedAt: '23:00',
                 },
+                phone: '010-1234-1234',
+                openedDate: '20231212',
             };
 
             const user = new User({

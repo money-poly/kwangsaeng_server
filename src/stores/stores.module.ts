@@ -6,8 +6,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Store } from './entity/store.entity';
 import { UsersRepository } from 'src/users/users.repository';
 import { User } from 'src/users/entity/user.entity';
-import { DynamooseModule } from 'nestjs-dynamoose';
-import { DynamoSchema } from './dynamo.schema';
 import { StoreDetail } from './entity/store-detail.entity';
 import { BusinessDetail } from './entity/business-detail.entity';
 import { StoreApprove } from './entity/store-approve.entity';
@@ -23,7 +21,6 @@ import { MenusModule } from 'src/menus/menus.module';
 @Module({
     imports: [
         TypeOrmModule.forFeature([Store, User, StoreDetail, BusinessDetail, StoreApprove]),
-        DynamooseModule.forFeature([{ name: 'Store-Menu', schema: DynamoSchema }]),
         CategoriesModule,
         UsersModule,
         HttpModule,

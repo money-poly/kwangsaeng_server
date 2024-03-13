@@ -25,9 +25,6 @@ import { StoreStatus } from 'src/stores/enum/store-status.enum';
 import { StoreApprove } from 'src/stores/entity/store-approve.entity';
 import { UpdateStatusArgs } from './interface/update-status.interface';
 import { StoreApproveStatus } from 'src/stores/enum/store-approve-status.enum';
-import { InjectModel, Model } from 'nestjs-dynamoose';
-import { DynamoKey, DynamoSchema } from 'src/stores/interfaces/store-menu-dynamo.interface';
-import { DynamoException } from 'src/global/exception/dynamo-exception';
 import {
     mockCountryOfOrigins,
     mockDiscountRates,
@@ -48,8 +45,6 @@ export class MenusService {
         private readonly usersRepository: UsersRepository,
         private readonly storesRepository: StoresRepository,
         private readonly logger: Logger,
-        @InjectModel('Store-Menu')
-        private dynamoModel: Model<DynamoSchema, DynamoKey>,
     ) {}
 
     async create(user: User, args: CreateMenuArgs) {
@@ -64,54 +59,10 @@ export class MenusService {
         await this.validateUserRole(user, Roles.OWNER);
         const createdMenu = await this.menusRepository.create(storeData, args);
         await this.storesRepository.addOrder(storeData, createdMenu);
-        const dynamoInsertData = {
-            menuId: createdMenu.id,
-            storeName: storeData.name,
-            storeId: storeData.id,
-            menuName: createdMenu.name,
-            menuPictureUrl: createdMenu.menuPictureUrl,
-            sellingPrice: createdMenu.salePrice,
-            discountRate: createdMenu.discountRate,
-            viewCount: 0,
-        };
-        try {
-            await this.dynamoModel.create(dynamoInsertData);
-        } catch (error) {
-            switch (error.code) {
-                case 'ConditionalCheckFailedException':
-                    throw DynamoException.CONDITION_CHECK_FAILED;
-                case 'ProvisionedThroughputExceededException':
-                    throw DynamoException.PROVISIONED_THROUGHPUT_EXCEEDED;
-                case 'ItemCollectionSizeLimitExceededException':
-                    throw DynamoException.ITEM_COLLECTION_SIZE_LIMIT_EXCEEDED;
-                case 'ResourceNotFoundException':
-                    throw DynamoException.RESOURCE_NOT_FOUND;
-                case 'LimitExceededException':
-                    throw DynamoException.Limit_Exceeded;
-                case 'RequestLimitExceeded':
-                    throw DynamoException.Request_Limit_Exceeded;
-                case 'ValidationException':
-                    throw DynamoException.VALIDATION_ERROR;
-                case 'TransactionConflictException':
-                    throw DynamoException.TRANSACTION_CONFLICT;
-                case 'InternalServerError':
-                    throw DynamoException.INTERNAL_SERVER_ERROR;
-            }
-        }
         return { menuId: createdMenu.id };
     }
 
     async update(menu: Menu, args: UpdateMenuArgs) {
-        const dynamoMenuData = await this.dynamoModel.get({ menuId: menu.id, storeName: menu.store.name });
-        if (dynamoMenuData) {
-            await this.dynamoModel.update({
-                ...dynamoMenuData,
-                ...args,
-                menuName: args.name ? args.name : menu.store.name,
-            });
-        } else {
-            this.logger.error(DynamoException.ITEM_NOT_FOUND);
-        } // dynamo쪽에 해당 데이터가 없을경우 로깅
         await this.menusRepository.update(menu, { ...args });
         return this.findDetailOne(menu.id);
     }
@@ -134,7 +85,6 @@ export class MenusService {
         const findIdx = order.findIndex((id) => Number(id) === menu.id);
         order.splice(findIdx, 1);
         await this.updateOrder(menu.store, { order });
-        await this.dynamoModel.delete({ menuId: menuData.menuId, storeName: menuData.storeName });
         return this.menusRepository.delete(menu);
     }
 

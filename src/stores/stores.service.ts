@@ -5,10 +5,7 @@ import { StoresRepository } from './stores.repository';
 import { Store } from './entity/store.entity';
 import { User } from 'src/users/entity/user.entity';
 import { StoresException } from 'src/global/exception/stores-exception';
-import { InjectModel, Model } from 'nestjs-dynamoose';
-import { DynamoKey, DynamoSchema } from './interfaces/store-menu-dynamo.interface';
 import { Menu } from 'src/menus/entity/menu.entity';
-import { DynamoException } from 'src/global/exception/dynamo-exception';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { StoreDetail } from './entity/store-detail.entity';
 import { FindStoreWithLocationDto } from './dto/find-store-with-location.dto';
@@ -34,8 +31,6 @@ export class StoresService {
         private readonly menusService: MenusService,
         private readonly usersRepository: UsersRepository,
         private readonly tagsService: TagsService,
-        @InjectModel('Store-Menu')
-        private dynamoModel: Model<DynamoSchema, DynamoKey>,
     ) {}
 
     async existStore(where: FindManyOptions<Store>) {
@@ -223,66 +218,6 @@ export class StoresService {
             .select('s.id AS id')
             .where('u.id = :userId', { userId })
             .getRawMany();
-    }
-
-    async migrateDynamo() {
-        const dataList = await this.entityManager
-            .createQueryBuilder(Menu, 'm')
-            .leftJoinAndSelect(Store, 's', 's.id = m.store_id')
-            .leftJoinAndSelect(MenuView, 'mv', 'm.id = mv.menu_id')
-            .select('s.name AS storeName')
-            .addSelect('m.id AS menuId')
-            .addSelect('s.id AS storeId')
-            .addSelect('m.name AS menuName')
-            .addSelect('m.menu_picture_url AS menuPictureUrl')
-            .addSelect('m.price AS sellingPrice')
-            .addSelect('m.discount_rate AS discountRate')
-            .addSelect('mv.view_count AS viewCount')
-            .getRawMany();
-        for (const data of dataList) {
-            const isExist = await this.dynamoModel.get({
-                // dynamodb에 이미 데이터가 있는지 확인
-                menuId: data.menuId,
-                storeName: data.storeName,
-            });
-            if (!isExist) {
-                // 데이터가 없다면 dynamodb에 넣기
-                const insertData = {
-                    storeName: data.storeName,
-                    menuId: data.menuId,
-                    storeId: data.storeId,
-                    menuName: data.menuName,
-                    menuPictureUrl: data.menuPictureUrl ? data.menuPictureUrl : undefined,
-                    sellingPrice: data.sellingPrice,
-                    discountRate: data.discountRate,
-                    viewCount: data.viewCount,
-                };
-                try {
-                    await this.dynamoModel.create(insertData);
-                } catch (error) {
-                    switch (error.code) {
-                        case 'ConditionalCheckFailedException':
-                            throw DynamoException.CONDITION_CHECK_FAILED;
-                        case 'ProvisionedThroughputExceededException':
-                            throw DynamoException.PROVISIONED_THROUGHPUT_EXCEEDED;
-                        case 'ItemCollectionSizeLimitExceededException':
-                            throw DynamoException.ITEM_COLLECTION_SIZE_LIMIT_EXCEEDED;
-                        case 'ResourceNotFoundException':
-                            throw DynamoException.RESOURCE_NOT_FOUND;
-                        case 'LimitExceededException':
-                            throw DynamoException.Limit_Exceeded;
-                        case 'RequestLimitExceeded':
-                            throw DynamoException.Request_Limit_Exceeded;
-                        case 'ValidationException':
-                            throw DynamoException.VALIDATION_ERROR;
-                        case 'TransactionConflictException':
-                            throw DynamoException.TRANSACTION_CONFLICT;
-                        case 'InternalServerError':
-                            throw DynamoException.INTERNAL_SERVER_ERROR;
-                    }
-                }
-            }
-        }
     }
 
     async initMockStores() {

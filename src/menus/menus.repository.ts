@@ -13,9 +13,6 @@ import { MenuView } from './entity/menu-view.entity';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 import { CreateMenuArgs } from './interface/create-menu.interface';
 import { Store } from 'src/stores/entity/store.entity';
-import { InjectModel, Model } from 'nestjs-dynamoose';
-import { DynamoKey, DynamoSchema } from 'src/stores/interfaces/store-menu-dynamo.interface';
-import { DynamoException } from 'src/global/exception/dynamo-exception';
 
 @Injectable()
 export class MenusRepository {
@@ -27,8 +24,6 @@ export class MenusRepository {
         @InjectRepository(MenuView)
         private readonly menuView: Repository<MenuView>,
         public entityManager: EntityManager,
-        @InjectModel('Store-Menu')
-        private dynamoModel: Model<DynamoSchema, DynamoKey>,
     ) {}
 
     async findOne(
@@ -52,13 +47,6 @@ export class MenusRepository {
     }
 
     async incrementView(menu: Menu, storeName: string): Promise<void> {
-        const dynamoMenuData = await this.dynamoModel.get({ menuId: menu.id, storeName });
-        if (dynamoMenuData) {
-            const incrementDynamoMenuData = { ...dynamoMenuData, viewCount: dynamoMenuData.viewCount + 1 };
-            await this.dynamoModel.update(incrementDynamoMenuData);
-        } else {
-            this.logger.error(DynamoException.ITEM_NOT_FOUND);
-        }
         await this.menuView.increment({ id: menu.id }, 'viewCount', 1);
         return;
     }

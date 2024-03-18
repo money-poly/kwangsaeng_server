@@ -17,5 +17,6 @@ COPY .aws /root/.aws
 
 RUN cd /api
 RUN npm install
+RUN npm uninstall dynamoose nestjs-dynamoose
 CMD npm run start
 

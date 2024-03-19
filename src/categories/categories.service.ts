@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Category } from 'src/categories/entity/category.entity';
-import { EntityManager, FindOptionsWhere, TreeRepository } from 'typeorm';
+import { EntityManager, FindOptionsRelations, FindOptionsSelect, FindOptionsWhere, TreeRepository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CategoriesException } from 'src/global/exception/categories-exception';
 import { CreateSuperCategoryDto } from './dto/create-super-category.dto';
@@ -20,6 +20,19 @@ export class CategoriesService {
         return await this.categoriesRepository.exist({
             where,
         });
+    }
+
+    async findOneSub(
+        where: FindOptionsWhere<Category>,
+        select?: FindOptionsSelect<Category>,
+        relations?: FindOptionsRelations<Category>,
+    ) {
+        const superCategory = await this.findSupers();
+        const sub = await this.categoriesRepository.findOne({ where, select, relations });
+        if (superCategory.includes(sub)) {
+            throw CategoriesException.FIND_PARENT_CATEGORY;
+        }
+        return sub;
     }
 
     async createSuperCategory(dto: CreateSuperCategoryDto) {

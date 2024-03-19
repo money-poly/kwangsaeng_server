@@ -13,7 +13,6 @@ import { StoreApprove } from './entity/store-approve.entity';
 import { StoreStatus } from './enum/store-status.enum';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { FindStoreDetailDto } from './dto/find-store-detail.dto';
-import { MenuView } from 'src/menus/entity/menu-view.entity';
 import { StoreApproveStatus } from './enum/store-approve-status.enum';
 import { TagsService } from 'src/tags/tags.service';
 import { TagException } from 'src/global/exception/tag-exception';
@@ -21,6 +20,7 @@ import { mockOwners, mockStores } from 'src/global/common/mock.constant';
 import { CategoriesService } from 'src/categories/categories.service';
 import { MenusService } from 'src/menus/menus.service';
 import { FindOneStoreReturnValue } from './interfaces/find-one-store-return-value.interface';
+import { CategoriesException } from 'src/global/exception/categories-exception';
 
 @Injectable()
 export class StoresService {
@@ -58,6 +58,7 @@ export class StoresService {
 
     async updateStore(store: Store, dto: UpdateStoreDto) {
         let tag;
+        const categories = [];
 
         if (dto?.tagId) {
             tag = await this.tagsService.findOne({
@@ -69,6 +70,16 @@ export class StoresService {
             if (!tag) {
                 throw TagException.NOT_FOUND;
             }
+        }
+
+        if (dto?.categories) {
+            dto.categories.forEach(async (categoryId) => {
+                const category = await this.categoriesService.findOneSub({ id: categoryId });
+                if (!category) {
+                    throw CategoriesException.SUB_NOT_FOUND;
+                }
+                categories.push(category);
+            });
         }
 
         Object.assign(store, {
@@ -84,6 +95,7 @@ export class StoresService {
                 phone: dto.phone ?? store.detail.storePictureUrl,
             },
             tag: tag ?? store.tag,
+            categories: categories ?? store.categories,
         });
 
         return await this.storesRepository.saveStore(store);

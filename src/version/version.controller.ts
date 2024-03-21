@@ -22,4 +22,9 @@ export class VersionController {
     async updateVersion(@Body() dto: UpdateVersionDto) {
         return await this.versionService.update(dto);
     }
+
+    @Get('/health-check')
+    async healthCheck() {
+        return 'Health Check OK';
+    }
 }

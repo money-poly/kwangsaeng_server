@@ -57,7 +57,7 @@ jobs:
                   ALIGO_USER_ID: ${{ secrets.ALIGO_USER_ID }}
                   ALIGO_SENDER: ${{ secrets.ALIGO_SENDER }}
               with:
-                  service: dev-app-runner-kwangsaeng
+                  service: dev-kwangsaeng-api
                   image: ${{ steps.build-image.outputs.image }}
                   access-role-arn: ${{ secrets.ROLE_ARN }}
                   runtime: NODEJS_16

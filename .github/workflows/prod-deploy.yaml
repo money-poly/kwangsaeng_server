@@ -48,6 +48,9 @@ jobs:
                   DATABASE_PASSWORD: ${{ secrets.PROD_DATABASE_PASSWORD }}
                   DATABASE_NAME: ${{ secrets.PROD_DATABASE_NAME }}
                   DATABASE_SYNC: ${{ secrets.PROD_DATABASE_SYNC }}
+                  AWS_ACCESS_KEY: ${{ secrets.PROD_AWS_ACCESS_KEY}}
+                  AWS_SECRET_KEY: ${{ secrets.PROD_AWS_ACCESS_KEY}}
+                  AWS_REGION: ap-northeast-1
                   S3_BUCKET_NAME: ${{ secrets.PROD_S3_BUCKET_NAME}}
                   JWT_ACCESS_SECRET: ${{ secrets.JWT_ACCESS_SECRET }}
                   JWT_ACCESS_EXPIRES: ${{ secrets.JWT_ACCESS_EXPIRES }}
@@ -74,6 +77,9 @@ jobs:
                       DATABASE_PASSWORD
                       DATABASE_NAME
                       DATABASE_SYNC
+                      AWS_ACCESS_KEY
+                      AWS_SECRET_KEY
+                      AWS_REGION
                       S3_BUCKET_NAME
                       JWT_ACCESS_SECRET
                       JWT_ACCESS_EXPIRES

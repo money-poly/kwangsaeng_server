@@ -17,4 +17,4 @@ COPY . .
 
 RUN cd /api
 RUN npm install
-CMD npm run start:dev
+CMD npm run start:local

@@ -13,10 +13,6 @@ export const validationSchema = Joi.object({
     DATABASE_NAME: Joi.string().required(),
     DATABASE_SYNC: Joi.boolean().required().default(false),
 
-    AWS_ACCESS_KEY: Joi.string().required(),
-    AWS_SECRET_KEY: Joi.string().required(),
-    AWS_REGION: Joi.string().required(),
-
     // JWT
     JWT_ACCESS_SECRET: Joi.string().required(),
     JWT_ACCESS_EXPIRES: Joi.string().required(),

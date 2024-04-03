@@ -4,6 +4,6 @@ import { Controller, Get } from '@nestjs/common';
 export class LogTestController {
     @Get('test')
     pulltestrequest() {
-        return '최종 테스트';
+        return 'GET 테스트 로깅 알람 제거';
     }
 }

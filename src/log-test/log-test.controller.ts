@@ -4,6 +4,6 @@ import { Controller, Get } from '@nestjs/common';
 export class LogTestController {
     @Get('test')
     pulltestrequest() {
-        return 'GET test33333';
+        return '최종 테스트';
     }
 }

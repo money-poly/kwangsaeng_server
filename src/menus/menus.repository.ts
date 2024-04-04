@@ -13,6 +13,7 @@ import { MenuView } from './entity/menu-view.entity';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 import { CreateMenuArgs } from './interface/create-menu.interface';
 import { Store } from 'src/stores/entity/store.entity';
+import { MenuStatus } from './enum/menu-status.enum';
 
 @Injectable()
 export class MenusRepository {
@@ -97,6 +98,7 @@ export class MenusRepository {
             .addSelect('m.menu_picture_url AS menuPictureUrl')
             .addSelect('m.country_of_origin AS countryOfOrigin')
             .where('m.store_id = :storeId', { storeId: store.id })
+            .andWhere('m.status != :status', { status: MenuStatus.HIDDEN })
             .orderBy(orderBy, 'DESC')
             .getRawMany();
     }

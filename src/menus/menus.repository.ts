@@ -93,6 +93,7 @@ export class MenusRepository {
             .addSelect('m.sale_price AS salePrice')
             .addSelect('m.description AS description')
             .addSelect('m.price AS price')
+            .addSelect('m.status AS status')
             .addSelect('m.menu_picture_url AS menuPictureUrl')
             .addSelect('m.country_of_origin AS countryOfOrigin')
             .where('m.store_id = :storeId', { storeId: store.id })

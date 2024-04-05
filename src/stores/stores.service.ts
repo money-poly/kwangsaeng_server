@@ -276,18 +276,19 @@ export class StoresService {
                     id: true,
                     discountRate: true,
                 },
-                categories: {
-                    name: true,
-                },
             },
-            { categories: true, detail: true, businessDetail: true, menus: true, tag: true },
+            { detail: true, businessDetail: true, menus: true, tag: true },
         );
+
+        const categories = await this.categoriesService.findCategoriesNameByStore(store);
 
         const refinedStore = {
             name: store.name,
             status: store.status,
             businessLeaderName: store.businessDetail.name,
-            category: store.categories,
+            category: categories.map((item) => {
+                return { name: item.categoryName };
+            }),
             storePictureUrl: store.detail ? store.detail.storePictureUrl : null,
             totalMenuCount: store.menus.length,
             discountMenuCount: store.menus.filter((menu) => menu.discountRate !== 0).length,

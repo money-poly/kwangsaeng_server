@@ -404,10 +404,16 @@ export class MenusService {
         // limit으로 필요한 데이터의 개수 보내주기(기본값 10으로 설정)
         return await this.entityManager
             .createQueryBuilder(Menu, 'menus')
-            .select(
-                'menus.menu_picture_url AS menuPictureUrl, menus.id AS menuId, menus.name, menus.discount_rate AS discountRate, menus.price, menus.description',
-            )
-            .where('menus.id != :excludeMenuId AND store_id = :storeId', { excludeMenuId, storeId })
+            .select('menus.menu_picture_url', 'menuPictureUrl')
+            .addSelect('menus.id', 'menuId')
+            .addSelect('menus.name', 'name')
+            .addSelect('menus.discount_rate', 'discountRate')
+            .addSelect('menus.price', 'price')
+            .addSelect('menus.description', 'description')
+            .addSelect('menus.status', 'status')
+            .where('menus.id != :excludeMenuId', { excludeMenuId })
+            .andWhere('store_id = :storeId', { storeId })
+            .andWhere('menus.status != :status', { status: MenuStatus.HIDDEN })
             .orderBy('discountRate', 'DESC')
             .addOrderBy('price', 'DESC')
             .limit(limit)

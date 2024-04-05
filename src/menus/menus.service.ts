@@ -325,7 +325,20 @@ export class MenusService {
             return dataList;
         }
 
-        const refindedData = [{ category: '전체', menus: dataList.slice() }]; // dataList의 깊은 복사를 위해 slice함수 사용
+        const checkMenu = [];
+        const refindedData = [
+            {
+                category: '전체',
+                menus: dataList.filter((menu) => {
+                    if (!checkMenu.includes(menu.menuName)) {
+                        checkMenu.push(menu.menuName);
+                        return true;
+                    }
+                    return false;
+                }),
+            },
+        ]; // 전체 카테고리의 메뉴들이 중복으로 들어가지 않기위해 checkMenu 사용
+
         dataList.sort((menu1, menu2) => {
             if (menu1.category < menu2.category) {
                 return -1;

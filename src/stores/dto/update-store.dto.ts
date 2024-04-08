@@ -1,18 +1,23 @@
 import { ArrayNotEmpty, IsNotIn, IsNumber, IsOptional, IsString, IsUrl } from 'class-validator';
-import { CreateStoreDto } from './create-store.dto';
-import { PartialType, PickType } from '@nestjs/mapped-types';
+import { UpdateStoreArgs } from '../interfaces/update-store.interface';
+import { OperationTimes } from './create-store.dto';
 
-export class UpdateStoreDto extends PartialType(
-    PickType(CreateStoreDto, [
-        'name',
-        'address',
-        'addressDetail',
-        'operationTimes',
-        'cookingTime',
-        'phone',
-        'categories',
-    ]),
-) {
+export class UpdateStoreDto implements UpdateStoreArgs {
+    @IsString()
+    @IsOptional()
+    name?: string;
+
+    @IsString()
+    @IsOptional()
+    address?: string;
+
+    @IsString()
+    @IsOptional()
+    addressDetail?: string;
+
+    @IsOptional()
+    operationTimes?: OperationTimes;
+
     @IsUrl()
     @IsOptional()
     storePictureUrl?: string;
@@ -21,13 +26,13 @@ export class UpdateStoreDto extends PartialType(
     @IsOptional()
     description?: string;
 
-    @IsNumber()
-    @IsOptional()
-    tagId?: number;
-
     @IsString()
     @IsOptional()
     phone?: string;
+
+    @IsNumber()
+    @IsOptional()
+    tagId?: number;
 
     @ArrayNotEmpty()
     @IsNotIn([1, 2], {

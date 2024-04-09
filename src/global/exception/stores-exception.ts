@@ -31,4 +31,16 @@ export abstract class StoresException {
     static INVALID_ADDRESS = new CommonException('유효하지 않은 도로명 주소입니다.', 2007, HttpStatus.BAD_REQUEST);
 
     static ORDER_NOT_FOUND = new CommonException('메뉴의 순서를 찾을 수 없습니다.', 2008, HttpStatus.NOT_FOUND);
+
+    static NOT_ACCEPT_UPDATE_PHONE = new CommonException(
+        '휴대폰 번호의 값은 비어있을 수 없습니다.',
+        2009,
+        HttpStatus.BAD_REQUEST,
+    );
+
+    static NOT_ACCEPT_UPDATE_ADDRESS = new CommonException(
+        '주소의 값은 비어있을 수 없습니다.',
+        2010,
+        HttpStatus.BAD_REQUEST,
+    );
 }

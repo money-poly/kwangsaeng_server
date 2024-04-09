@@ -56,9 +56,17 @@ export class StoresService {
         );
     }
 
-    async updateStore(store: Store, dto: UpdateStoreDto) {
+    async updateStore(storeId: number, dto: UpdateStoreDto) {
         let tag;
         const categories = [];
+
+        if (dto.phone === null) {
+            throw StoresException.NOT_ACCEPT_UPDATE_PHONE;
+        }
+
+        if (dto.address === null) {
+            throw StoresException.NOT_ACCEPT_UPDATE_ADDRESS;
+        }
 
         if (dto?.tagId) {
             tag = await this.tagsService.findOne({
@@ -82,23 +90,63 @@ export class StoresService {
             });
         }
 
-        Object.assign(store, {
+        const store = await this.storesRepository.findOneStore(
+            { id: storeId },
+            {
+                id: true,
+                name: true,
+                detail: {
+                    id: true,
+                    address: true,
+                    addressDetail: true,
+                    description: true,
+                    operationTimes: { endedAt: true, startedAt: true },
+                    cookingTime: true,
+                    storePictureUrl: true,
+                    phone: true,
+                },
+            },
+            { detail: true, tag: true, categories: true },
+        );
+
+        const refinedStore = {
+            id: store.id,
             name: dto.name ?? store.name,
             detail: {
                 ...store.detail,
                 address: dto.address ?? store.detail.address,
-                addressDetail: dto.addressDetail ?? store.detail.addressDetail,
-                description: dto.description ?? store.detail.description,
+                phone: dto.phone ?? store.detail.phone,
                 operationTimes: dto.operationTimes ?? store.detail.operationTimes,
-                cookingTime: dto.cookingTime ?? store.detail.cookingTime,
-                storePictureUrl: dto.storePictureUrl ?? store.detail.storePictureUrl,
-                phone: dto.phone ?? store.detail.storePictureUrl,
+                cookingTime:
+                    dto.cookingTime === undefined
+                        ? store.detail.cookingTime
+                        : dto.cookingTime === null
+                        ? null
+                        : dto.cookingTime,
+                description:
+                    dto.description === undefined
+                        ? store.detail.description
+                        : dto.description === null
+                        ? null
+                        : dto.description,
+                addressDetail:
+                    dto.addressDetail === undefined
+                        ? store.detail.addressDetail
+                        : dto.addressDetail === null
+                        ? null
+                        : dto.addressDetail,
+                storePictureUrl:
+                    dto.storePictureUrl === undefined
+                        ? store.detail.storePictureUrl
+                        : dto.storePictureUrl === null
+                        ? null
+                        : dto.storePictureUrl,
             },
             tag: tag ?? store.tag,
             categories: categories ?? store.categories,
-        });
+        };
 
-        return await this.storesRepository.saveStore(store);
+        return await this.storesRepository.saveStore(refinedStore);
     }
 
     async findOneStore(

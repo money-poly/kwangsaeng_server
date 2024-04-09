@@ -7,8 +7,8 @@ export class UpdateStoreDto implements UpdateStoreArgs {
     @IsOptional()
     name?: string;
 
-    @IsString()
     @IsOptional()
+    @IsString()
     address?: string;
 
     @IsString()
@@ -17,6 +17,9 @@ export class UpdateStoreDto implements UpdateStoreArgs {
 
     @IsOptional()
     operationTimes?: OperationTimes;
+
+    @IsOptional()
+    cookingTime?: number;
 
     @IsUrl()
     @IsOptional()
@@ -35,6 +38,7 @@ export class UpdateStoreDto implements UpdateStoreArgs {
     tagId?: number;
 
     @ArrayNotEmpty()
+    @IsOptional()
     @IsNotIn([1, 2], {
         each: true,
     })

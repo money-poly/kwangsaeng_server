@@ -45,10 +45,6 @@ export class StoreDetail extends AbstractEntity<StoreDetail> {
     })
     menuOrders: number[];
 
-    @OneToOne(() => Tag, { nullable: true })
-    @JoinColumn()
-    tag: Tag;
-
     @OneToOne(() => Store, (store) => store.detail, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
     @JoinColumn()
     store: Store;

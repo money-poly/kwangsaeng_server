@@ -29,10 +29,10 @@ export class StoreDetail extends AbstractEntity<StoreDetail> {
     @Column({ nullable: true, comment: '가게 소개 사진' })
     storePictureUrl: string;
 
-    @Column({ nullable: true, comment: '가게 평균 조리 시간' })
+    @Column({ default: 0, comment: '가게 평균 조리 시간' })
     cookingTime: number;
 
-    @Column({ type: 'json', nullable: true, comment: '운영시간' })
+    @Column({ type: 'json', comment: '운영시간' })
     operationTimes: OperationTimes;
 
     @Column({ nullable: true, comment: '고정 휴무일' })
@@ -41,13 +41,9 @@ export class StoreDetail extends AbstractEntity<StoreDetail> {
     @Column({
         type: 'simple-array',
         nullable: true,
-        comment: '메뉴 순서(menuId)',
+        comment: '메뉴 순서 (menuId)',
     })
     menuOrders: number[];
-
-    @OneToOne(() => Tag, { nullable: true })
-    @JoinColumn()
-    tag: Tag;
 
     @OneToOne(() => Store, (store) => store.detail, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
     @JoinColumn()

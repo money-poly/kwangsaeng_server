@@ -8,6 +8,7 @@ import {
     Repository,
     FindOptionsSelect,
     FindOptionsRelations,
+    DeepPartial,
 } from 'typeorm';
 import { StoreDetail } from './entity/store-detail.entity';
 import { StoreApprove } from './entity/store-approve.entity';
@@ -18,7 +19,6 @@ import { CategoriesService } from 'src/categories/categories.service';
 import { Category } from 'src/categories/entity/category.entity';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 import { Menu } from 'src/menus/entity/menu.entity';
-import { StoresException } from 'src/global/exception/stores-exception';
 import { StoreApproveStatus } from './enum/store-approve-status.enum';
 
 @Injectable()
@@ -42,7 +42,7 @@ export class StoresRepository {
         return await this.categoryService.findSubs(superId);
     }
 
-    async saveStore(store: Store) {
+    async saveStore(store: DeepPartial<Store>) {
         return await this.stores.save(store);
     }
 

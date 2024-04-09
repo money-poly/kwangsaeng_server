@@ -93,37 +93,8 @@ export class StoresController {
 
     @Put('/:storeId')
     @UseGuards(AuthGuard, OwnerGuard)
-    @UseEntityTransformer<Store>(TransformStoreInterceptor, {
-        loadEntityOptions: {
-            relations: {
-                detail: true,
-            },
-        },
-        response: {
-            excludeProperties: [
-                'id',
-                'createdDate',
-                'modifiedDate',
-                'deletedDate',
-                'status',
-                'detail.id',
-                'detail.createdDate',
-                'detail.modifiedDate',
-                'detail.lat',
-                'detail.lon',
-                'detail.phone',
-                'tag.createdDate',
-                'tag.modifiedDate',
-                'tag.description',
-                'tag.icon',
-                'tag.content',
-                'tag.textColor',
-                'tag.backgroundColor',
-            ],
-        },
-    })
-    async updateStore(@CurrentStore() store: Store, @Body() dto: UpdateStoreDto) {
-        return await this.storesService.updateStore(store, dto);
+    async updateStore(@Param('storeId') storeId: number, @Body() dto: UpdateStoreDto) {
+        return await this.storesService.updateStore(storeId, dto);
     }
 
     @Get('basic/:storeId')

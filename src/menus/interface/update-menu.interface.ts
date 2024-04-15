@@ -6,7 +6,7 @@ export interface UpdateMenuArgs {
     description?: string;
     price?: number;
     discountRate?: number;
-    salePrice?: number;
+    sellingPrice?: number;
     expiredDate?: string;
     countryOfOrigin?: CountryOfOrigin[];
 }

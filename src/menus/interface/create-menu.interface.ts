@@ -9,6 +9,6 @@ export interface CreateMenuArgs {
     expiredDate?: string;
     price: number;
     discountRate: number;
-    salePrice: number;
+    sellingPrice: number;
     countryOfOrigin?: { ingredient: string; origin: string }[];
 }

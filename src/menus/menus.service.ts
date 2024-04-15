@@ -34,7 +34,7 @@ import {
     mockMenuPictureUrl,
     mockMenuStatus,
     mockPrices,
-    mockSalePrices,
+    mockSellingPrices,
 } from 'src/global/common/mock.constant';
 
 @Injectable()
@@ -98,7 +98,7 @@ export class MenusService {
                 name: true,
                 discountRate: true,
                 price: true,
-                salePrice: true,
+                sellingPrice: true,
                 count: true,
                 expiredDate: true,
                 countryOfOrigin: true,
@@ -139,14 +139,12 @@ export class MenusService {
 
         const menuDetailList = {
             ...menu,
-            sellingPrice: menu.salePrice,
             store,
             anotherMenus: anotherMenus ? anotherMenus : null, // 다른 메뉴가 없을 경우 null로 전송
             viewCount: menu.view.viewCount,
             caution: CAUTION_TEXT,
         };
         await this.menusRepository.incrementView(menu, store.name);
-        delete menuDetailList.salePrice;
         delete menuDetailList.view;
         delete menuDetailList.store.detail.cookingTime; // 쓸모없는 값 제거
         return menuDetailList;
@@ -175,7 +173,7 @@ export class MenusService {
         const data = await this.entityManager
             .createQueryBuilder(Menu, 'm')
             .select(
-                'm.id, m.name, m.discount_rate AS discountRate, m.sale_price AS sellingPrice, m.price, m.menu_picture_url AS menuPictureUrl, m.status',
+                'm.id, m.name, m.discount_rate AS discountRate, m.selling_price AS sellingPrice, m.price, m.menu_picture_url AS menuPictureUrl, m.status',
             )
             .where(where)
             .orderBy(`m.status = "${MenuStatus.SALE}"`, 'DESC')
@@ -246,7 +244,7 @@ export class MenusService {
             .addSelect('m.id', 'menuId')
             .addSelect('m.name', 'menuName')
             .addSelect('m.price', 'price')
-            .addSelect('m.sale_price', 'sellingPrice')
+            .addSelect('m.selling_price', 'sellingPrice')
             .addSelect('m.discount_rate', 'discountRate')
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
             .where('(s.id, m.discount_rate) IN (' + subQuery + ')')
@@ -305,7 +303,7 @@ export class MenusService {
             .addSelect('m.id', 'menuId')
             .addSelect('m.name', 'menuName')
             .addSelect('m.price', 'price')
-            .addSelect('m.sale_price', 'sellingPrice')
+            .addSelect('m.selling_price', 'sellingPrice')
             .addSelect('m.discount_rate', 'discountRate')
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
             .addSelect('mv.view_count', 'viewCount')
@@ -444,7 +442,7 @@ export class MenusService {
                         name: mockMenuNames[i][j],
                         discountRate: mockDiscountRates[i][j],
                         price: mockPrices[i][j],
-                        salePrice: mockSalePrices[i][j],
+                        sellingPrice: mockSellingPrices[i][j],
                         status: mockMenuStatus[i][j],
                         expiredDate: mockMenuExpiredDate[i][j],
                         description: mockMenuDescriptions[i][j],

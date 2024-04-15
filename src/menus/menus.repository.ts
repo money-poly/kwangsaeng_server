@@ -91,7 +91,7 @@ export class MenusRepository {
             .select('m.id AS id')
             .addSelect('m.name AS name')
             .addSelect('m.discount_rate AS discountRate')
-            .addSelect('m.sale_price AS salePrice')
+            .addSelect('m.selling_price AS sellingPrice')
             .addSelect('m.description AS description')
             .addSelect('m.price AS price')
             .addSelect('m.status AS status')

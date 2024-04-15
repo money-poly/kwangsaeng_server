@@ -51,7 +51,7 @@ export class CreateMenuDto implements CreateMenuArgs {
 
     @IsNumber()
     @IsNotEmpty()
-    salePrice: number;
+    sellingPrice: number;
 
     @IsString()
     @IsOptional()

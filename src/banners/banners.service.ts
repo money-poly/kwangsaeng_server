@@ -2,10 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Banner } from './entity/banner.entity';
 import { EntityManager, Repository } from 'typeorm';
-import { CreateBannerDto } from './dto/create-banner.dto';
 import { BannerException } from 'src/global/exception/banners-exception';
 import { S3Exception } from 'src/global/exception/s3-exception';
-import { CategoriesException } from 'src/global/exception/categories-exception';
 import { CreateBannerInterface } from './interface/create-banner.interface';
 
 @Injectable()

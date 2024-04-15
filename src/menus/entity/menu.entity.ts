@@ -13,7 +13,7 @@ export class Menu extends SoftDeleteEntity<Menu> {
     discountRate: number;
 
     @Column({ comment: '판매가' })
-    salePrice: number;
+    sellingPrice: number;
 
     @Column({ comment: '정가' })
     price: number;

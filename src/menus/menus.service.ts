@@ -419,7 +419,7 @@ export class MenusService {
             .addSelect('menus.id', 'menuId')
             .addSelect('menus.name', 'name')
             .addSelect('menus.discount_rate', 'discountRate')
-            .addSelect('menus.price', 'price')
+            .addSelect('menus.selling_price', 'sellingPrice')
             .addSelect('menus.description', 'description')
             .addSelect('menus.status', 'status')
             .where('menus.id != :excludeMenuId', { excludeMenuId })

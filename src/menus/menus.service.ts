@@ -172,9 +172,14 @@ export class MenusService {
 
         const data = await this.entityManager
             .createQueryBuilder(Menu, 'm')
-            .select(
-                'm.id, m.name, m.discount_rate AS discountRate, m.selling_price AS sellingPrice, m.price, m.menu_picture_url AS menuPictureUrl, m.status',
-            )
+            .select('m.id', 'id')
+            .addSelect('m.name', 'nmae')
+            .addSelect('m.discount_rate', 'discountRate')
+            .addSelect('m.selling_price', 'sellingPrice')
+            .addSelect('m.price', 'price')
+            .addSelect('m.menu_picture_url', 'menuPictureUrl')
+            .addSelect('m.status', 'status')
+            .addSelect('m.count', 'count')
             .where(where)
             .orderBy(`m.status = "${MenuStatus.SALE}"`, 'DESC')
             .addOrderBy(`m.status = "${MenuStatus.SOLDOUT}"`, 'DESC')

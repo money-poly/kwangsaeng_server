@@ -173,7 +173,7 @@ export class MenusService {
         const data = await this.entityManager
             .createQueryBuilder(Menu, 'm')
             .select('m.id', 'id')
-            .addSelect('m.name', 'nmae')
+            .addSelect('m.name', 'name')
             .addSelect('m.discount_rate', 'discountRate')
             .addSelect('m.selling_price', 'sellingPrice')
             .addSelect('m.price', 'price')

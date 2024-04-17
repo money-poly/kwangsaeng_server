@@ -20,6 +20,7 @@ import { TagsModule } from './tags/tags.module';
 import { SearchModule } from './search/search.module';
 import { SlacktestModule } from './slacktest/slacktest.module';
 import { LogTestModule } from './log-test/log-test.module';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
     imports: [
@@ -58,6 +59,7 @@ import { LogTestModule } from './log-test/log-test.module';
         SearchModule,
         SlacktestModule,
         LogTestModule,
+        OrdersModule,
     ],
     providers: [Logger, InitializeService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

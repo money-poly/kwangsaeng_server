@@ -191,7 +191,7 @@ export class StoresService {
             .addSelect('sd.description AS description')
             .addSelect('IFNULL(MAX(m.discount_rate), 0) maxDiscount')
             .where('s.id = :storeId', { storeId })
-            .andWhere('m.status != :status', { status: MenuStatus.HIDDEN })
+            .andWhere('m.status = :status', { status: MenuStatus.SALE })
             .getRawOne();
 
         return qb;

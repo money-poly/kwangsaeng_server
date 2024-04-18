@@ -234,6 +234,8 @@ export class MenusService {
             .addSelect('MAX(discount_rate) AS discount_rate')
             .where(`s.status = "${StoreStatus.OPEN}"`)
             .andWhere(`m.status = "${MenuStatus.SALE}"`)
+            .andWhere('m.count != 0')
+            .andWhere('m.discount_rate > 0')
             .groupBy('s.id')
             .getQuery();
 
@@ -314,6 +316,7 @@ export class MenusService {
             .addSelect('mv.view_count', 'viewCount')
             .where(`s.status = "${StoreStatus.OPEN}"`)
             .andWhere(`m.status = "${MenuStatus.SALE}"`)
+            .andWhere('m.count != 0')
             .andWhere('m.discount_rate > 0')
             .andWhere('sa.is_approved = :isApproved', { isApproved: StoreApproveStatus.DONE })
             .andWhere('ST_Distance_Sphere(POINT(:lon, :lat), POINT(sd.lon, sd.lat)) <= :range', {

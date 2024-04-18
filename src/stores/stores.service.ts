@@ -21,6 +21,7 @@ import { CategoriesService } from 'src/categories/categories.service';
 import { MenusService } from 'src/menus/menus.service';
 import { FindOneStoreReturnValue } from './interfaces/find-one-store-return-value.interface';
 import { CategoriesException } from 'src/global/exception/categories-exception';
+import { MenuStatus } from 'src/menus/enum/menu-status.enum';
 
 @Injectable()
 export class StoresService {
@@ -190,6 +191,7 @@ export class StoresService {
             .addSelect('sd.description AS description')
             .addSelect('IFNULL(MAX(m.discount_rate), 0) maxDiscount')
             .where('s.id = :storeId', { storeId })
+            .andWhere('m.status != :status', { status: MenuStatus.HIDDEN })
             .getRawOne();
 
         return qb;

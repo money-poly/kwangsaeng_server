@@ -36,6 +36,8 @@ import {
     mockPrices,
     mockSellingPrices,
 } from 'src/global/common/mock.constant';
+import { UpdateMenuCountArgs } from './interface/update-count.interface';
+import { OwnStore } from './interface/own-store.interface';
 
 @Injectable()
 export class MenusService {
@@ -394,6 +396,21 @@ export class MenusService {
 
     async findMenusForOrder(store: Store, orderBy: string) {
         return await this.menusRepository.findMenusForOrder(store, orderBy);
+    }
+
+    async updateCount(menuId: number, dto: UpdateMenuCountArgs, user: User) {
+        const thisMenu = await this.menusRepository.findOne({ id: menuId }, { id: true });
+        const ownStore: OwnStore = await this.menusRepository.findOwnStoreForMenuId(menuId);
+
+        if (ownStore.userId !== user.id) {
+            throw MenusException.HAS_NO_PERMISSION_UPDATE;
+        }
+
+        if (dto.count === 0) {
+            throw MenusException.COUNT_IS_NOT_ZERO;
+        }
+
+        return await this.menusRepository.update(thisMenu, { count: dto.count });
     }
 
     private processDetailMenu(data) {

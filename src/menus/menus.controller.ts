@@ -54,8 +54,8 @@ export class MenusController {
 
     @Put('/:id')
     @UseGuards(AuthGuard)
-    async update(@Param('id', TransformMenuPipe) menu: Menu, @Body() dto: UpdateMenuDto) {
-        return await this.menusService.update(menu, dto);
+    async update(@Param('id') menuId: number, @Body() dto: UpdateMenuDto, @CurrentUser() user: User) {
+        return await this.menusService.update(menuId, dto);
     }
 
     @Delete('/:id')

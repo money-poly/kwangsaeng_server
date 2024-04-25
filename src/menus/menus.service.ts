@@ -64,9 +64,16 @@ export class MenusService {
         return { menuId: createdMenu.id };
     }
 
-    async update(menu: Menu, args: UpdateMenuArgs) {
-        await this.menusRepository.update(menu, { ...args });
-        return this.findDetailOne(menu.id);
+    async update(menuId: number, args: UpdateMenuArgs, user: User) {
+        const thisMenu = await this.menusRepository.findOne({ id: menuId }, { id: true });
+        const ownStore: OwnStore = await this.menusRepository.findOwnStoreForMenuId(menuId);
+
+        if (ownStore.userId !== user.id) {
+            throw MenusException.HAS_NO_PERMISSION_UPDATE;
+        }
+
+        await this.menusRepository.update(thisMenu, { ...args });
+        return this.findDetailOne(menuId);
     }
 
     async delete(user: User, menu: Menu) {

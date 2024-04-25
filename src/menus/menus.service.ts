@@ -66,6 +66,9 @@ export class MenusService {
 
     async update(menuId: number, args: UpdateMenuArgs, user: User) {
         const thisMenu = await this.menusRepository.findOne({ id: menuId }, { id: true });
+        if (!thisMenu) {
+            throw MenusException.ENTITY_NOT_FOUND;
+        }
         const ownStore: OwnStore = await this.menusRepository.findOwnStoreForMenuId(menuId);
 
         if (ownStore.userId !== user.id) {
@@ -211,6 +214,9 @@ export class MenusService {
             { id: true, user: { id: true } },
             { user: true },
         );
+        if (!thisStore) {
+            throw StoresException.ENTITY_NOT_FOUND;
+        }
         const ownUser = await thisStore.user;
 
         if (user && ownUser.id !== user.id) {

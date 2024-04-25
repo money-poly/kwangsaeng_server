@@ -55,13 +55,13 @@ export class MenusController {
     @Put('/:id')
     @UseGuards(AuthGuard)
     async update(@Param('id') menuId: number, @Body() dto: UpdateMenuDto, @CurrentUser() user: User) {
-        return await this.menusService.update(menuId, dto);
+        return await this.menusService.update(menuId, dto, user);
     }
 
     @Delete('/:id')
     @UseGuards(AuthGuard)
-    async delete(@CurrentUser() user: User, @Param('id', TransformMenuPipe) menu: Menu) {
-        return await this.menusService.delete(user, menu);
+    async delete(@Param('id') menuId: number, @CurrentUser() user: User) {
+        return await this.menusService.delete(menuId, user);
     }
 
     @SkipThrottle()
@@ -72,11 +72,10 @@ export class MenusController {
         return await this.menusService.findManyForSeller(store, status);
     }
 
-    @Put('/order/:storeId')
+    @Put('/order/:id')
     @UseGuards(AuthGuard)
-    @UseEntityTransformer<Store>(TransformStoreInterceptor)
-    async updateOrder(@CurrentStore() store: Store, @Body() dto: UpdateMenuOrderDto) {
-        return await this.menusService.updateOrder(store, dto);
+    async updateOrder(@Param('id') storeId: number, @Body() dto: UpdateMenuOrderDto, @CurrentUser() user: User) {
+        return await this.menusService.updateOrder(storeId, dto, user);
     }
 
     @SkipThrottle()

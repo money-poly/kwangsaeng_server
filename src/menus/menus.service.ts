@@ -76,25 +76,32 @@ export class MenusService {
         return this.findDetailOne(menuId);
     }
 
-    async delete(user: User, menu: Menu) {
+    async delete(menuId: number, user: User) {
+        const thisMenu = await this.menusRepository.findOne(
+            { id: menuId },
+            { id: true, store: { id: true } },
+            { store: true },
+        );
+        if (!thisMenu) {
+            throw MenusException.ENTITY_NOT_FOUND;
+        }
+
+        const thisStore = await this.storesRepository.findOneStore(
+            { id: thisMenu.store.id },
+            { id: true, detail: { menuOrders: true }, user: { id: true } },
+            { user: true, detail: true },
+        );
+
         // 메뉴 삭제시 순서에서도 삭제
-        const menuData = await this.entityManager
-            .createQueryBuilder(Menu, 'm')
-            .leftJoinAndSelect(Store, 's', 's.id = m.store_id')
-            .leftJoinAndSelect(StoreDetail, 'sd', 'sd.store_id = m.store_id')
-            .select('m.id AS menuId')
-            .addSelect('s.name AS storeName, s.user_id AS userId')
-            .addSelect('sd.menu_orders AS orders')
-            .where('m.id = :menuId', { menuId: menu.id })
-            .getRawOne();
-        if (menuData.userId !== user.id) {
+        const ownUser = await thisStore.user;
+        if (ownUser.id !== user.id) {
             throw MenusException.HAS_NO_PERMISSION_DELETE;
         }
-        const order = menuData.orders.split(',');
-        const findIdx = order.findIndex((id) => Number(id) === menu.id);
+        const order = thisStore.detail.menuOrders.map(Number);
+        const findIdx = order.findIndex((id) => id == menuId);
         order.splice(findIdx, 1);
-        await this.updateOrder(menu.store, { order });
-        return this.menusRepository.delete(menu);
+        await this.updateOrder(thisStore.id, { order });
+        return this.menusRepository.delete(thisMenu);
     }
 
     async findDetailOne(menuId: number, loc?: FindOneMenuDetailDto): Promise<FindDetailOneMenu> {
@@ -198,9 +205,20 @@ export class MenusService {
         return data;
     }
 
-    async updateOrder(store: Store, dto: UpdateMenuOrderDto) {
+    async updateOrder(storeId: number, dto: UpdateMenuOrderDto, user?: User) {
+        const thisStore = await this.storesRepository.findOneStore(
+            { id: storeId },
+            { id: true, user: { id: true } },
+            { user: true },
+        );
+        const ownUser = await thisStore.user;
+
+        if (user && ownUser.id !== user.id) {
+            throw MenusException.HAS_NO_PERMISSION_UPDATE;
+        }
+
         const newOrder = dto.order;
-        return await this.storesRepository.updateOrder(store, newOrder);
+        return await this.storesRepository.updateOrder(thisStore, newOrder);
     }
 
     async updateStatus(menu: Menu, dto: UpdateStatusArgs) {
@@ -229,7 +247,7 @@ export class MenusService {
             order.splice(idx, 1);
         }
 
-        await this.updateOrder(menu.store, { order });
+        await this.updateOrder(menu.store.id, { order });
         await this.menusRepository.update(menu, { status: dto.updateStatus, count });
         return await this.findDetailOne(menu.id);
     }

@@ -14,6 +14,8 @@ import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity
 import { CreateMenuArgs } from './interface/create-menu.interface';
 import { Store } from 'src/stores/entity/store.entity';
 import { MenuStatus } from './enum/menu-status.enum';
+import { User } from 'src/users/entity/user.entity';
+import { OwnStore } from './interface/own-store.interface';
 
 @Injectable()
 export class MenusRepository {
@@ -101,5 +103,18 @@ export class MenusRepository {
             .andWhere('m.status != :status', { status: MenuStatus.HIDDEN })
             .orderBy(orderBy, 'DESC')
             .getRawMany();
+    }
+
+    async findOwnStoreForMenuId(menuId: number) {
+        const data = (await this.entityManager
+            .createQueryBuilder(Menu, 'm')
+            .leftJoinAndSelect(Store, 's', 'm.store_id = s.id')
+            .leftJoinAndSelect(User, 'u', 's.user_id = u.id')
+            .select('m.id AS menuId')
+            .addSelect('s.id AS storeId')
+            .addSelect('u.id AS userId')
+            .where('m.id = :menuId', { menuId })
+            .getRawOne()) as OwnStore;
+        return data;
     }
 }

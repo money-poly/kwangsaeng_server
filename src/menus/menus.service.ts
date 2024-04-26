@@ -36,6 +36,8 @@ import {
     mockPrices,
     mockSellingPrices,
 } from 'src/global/common/mock.constant';
+import { UpdateMenuCountArgs } from './interface/update-count.interface';
+import { OwnStore } from './interface/own-store.interface';
 
 @Injectable()
 export class MenusService {
@@ -62,30 +64,47 @@ export class MenusService {
         return { menuId: createdMenu.id };
     }
 
-    async update(menu: Menu, args: UpdateMenuArgs) {
-        await this.menusRepository.update(menu, { ...args });
-        return this.findDetailOne(menu.id);
+    async update(menuId: number, args: UpdateMenuArgs, user: User) {
+        const thisMenu = await this.menusRepository.findOne({ id: menuId }, { id: true });
+        if (!thisMenu) {
+            throw MenusException.ENTITY_NOT_FOUND;
+        }
+        const ownStore: OwnStore = await this.menusRepository.findOwnStoreForMenuId(menuId);
+
+        if (ownStore.userId !== user.id) {
+            throw MenusException.HAS_NO_PERMISSION_UPDATE;
+        }
+
+        await this.menusRepository.update(thisMenu, { ...args });
+        return this.findDetailOne(menuId);
     }
 
-    async delete(user: User, menu: Menu) {
+    async delete(menuId: number, user: User) {
+        const thisMenu = await this.menusRepository.findOne(
+            { id: menuId },
+            { id: true, store: { id: true } },
+            { store: true },
+        );
+        if (!thisMenu) {
+            throw MenusException.ENTITY_NOT_FOUND;
+        }
+
+        const thisStore = await this.storesRepository.findOneStore(
+            { id: thisMenu.store.id },
+            { id: true, detail: { menuOrders: true }, user: { id: true } },
+            { user: true, detail: true },
+        );
+
         // 메뉴 삭제시 순서에서도 삭제
-        const menuData = await this.entityManager
-            .createQueryBuilder(Menu, 'm')
-            .leftJoinAndSelect(Store, 's', 's.id = m.store_id')
-            .leftJoinAndSelect(StoreDetail, 'sd', 'sd.store_id = m.store_id')
-            .select('m.id AS menuId')
-            .addSelect('s.name AS storeName, s.user_id AS userId')
-            .addSelect('sd.menu_orders AS orders')
-            .where('m.id = :menuId', { menuId: menu.id })
-            .getRawOne();
-        if (menuData.userId !== user.id) {
+        const ownUser = await thisStore.user;
+        if (ownUser.id !== user.id) {
             throw MenusException.HAS_NO_PERMISSION_DELETE;
         }
-        const order = menuData.orders.split(',');
-        const findIdx = order.findIndex((id) => Number(id) === menu.id);
+        const order = thisStore.detail.menuOrders.map(Number);
+        const findIdx = order.findIndex((id) => id == menuId);
         order.splice(findIdx, 1);
-        await this.updateOrder(menu.store, { order });
-        return this.menusRepository.delete(menu);
+        await this.updateOrder(thisStore.id, { order });
+        return this.menusRepository.delete(thisMenu);
     }
 
     async findDetailOne(menuId: number, loc?: FindOneMenuDetailDto): Promise<FindDetailOneMenu> {
@@ -189,9 +208,23 @@ export class MenusService {
         return data;
     }
 
-    async updateOrder(store: Store, dto: UpdateMenuOrderDto) {
+    async updateOrder(storeId: number, dto: UpdateMenuOrderDto, user?: User) {
+        const thisStore = await this.storesRepository.findOneStore(
+            { id: storeId },
+            { id: true, user: { id: true } },
+            { user: true },
+        );
+        if (!thisStore) {
+            throw StoresException.ENTITY_NOT_FOUND;
+        }
+        const ownUser = await thisStore.user;
+
+        if (user && ownUser.id !== user.id) {
+            throw MenusException.HAS_NO_PERMISSION_UPDATE;
+        }
+
         const newOrder = dto.order;
-        return await this.storesRepository.updateOrder(store, newOrder);
+        return await this.storesRepository.updateOrder(thisStore, newOrder);
     }
 
     async updateStatus(menu: Menu, dto: UpdateStatusArgs) {
@@ -220,7 +253,7 @@ export class MenusService {
             order.splice(idx, 1);
         }
 
-        await this.updateOrder(menu.store, { order });
+        await this.updateOrder(menu.store.id, { order });
         await this.menusRepository.update(menu, { status: dto.updateStatus, count });
         return await this.findDetailOne(menu.id);
     }
@@ -394,6 +427,21 @@ export class MenusService {
 
     async findMenusForOrder(store: Store, orderBy: string) {
         return await this.menusRepository.findMenusForOrder(store, orderBy);
+    }
+
+    async updateCount(menuId: number, dto: UpdateMenuCountArgs, user: User) {
+        const thisMenu = await this.menusRepository.findOne({ id: menuId }, { id: true });
+        const ownStore: OwnStore = await this.menusRepository.findOwnStoreForMenuId(menuId);
+
+        if (ownStore.userId !== user.id) {
+            throw MenusException.HAS_NO_PERMISSION_UPDATE;
+        }
+
+        if (dto.count === 0) {
+            throw MenusException.COUNT_IS_NOT_ZERO;
+        }
+
+        return await this.menusRepository.update(thisMenu, { count: dto.count });
     }
 
     private processDetailMenu(data) {

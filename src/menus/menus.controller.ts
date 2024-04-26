@@ -4,6 +4,7 @@ import {
     Delete,
     Get,
     Param,
+    Patch,
     Post,
     Put,
     Query,
@@ -33,6 +34,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateMenuStatusDto } from './dto/update-status.dto';
 import { S3Exception } from 'src/global/exception/s3-exception';
 import { SkipThrottle } from '@nestjs/throttler';
+import { UpdateMenuCountDto } from './dto/update-count.dto';
 
 @Controller('menus')
 export class MenusController {
@@ -52,14 +54,14 @@ export class MenusController {
 
     @Put('/:id')
     @UseGuards(AuthGuard)
-    async update(@Param('id', TransformMenuPipe) menu: Menu, @Body() dto: UpdateMenuDto) {
-        return await this.menusService.update(menu, dto);
+    async update(@Param('id') menuId: number, @Body() dto: UpdateMenuDto, @CurrentUser() user: User) {
+        return await this.menusService.update(menuId, dto, user);
     }
 
     @Delete('/:id')
     @UseGuards(AuthGuard)
-    async delete(@CurrentUser() user: User, @Param('id', TransformMenuPipe) menu: Menu) {
-        return await this.menusService.delete(user, menu);
+    async delete(@Param('id') menuId: number, @CurrentUser() user: User) {
+        return await this.menusService.delete(menuId, user);
     }
 
     @SkipThrottle()
@@ -70,11 +72,10 @@ export class MenusController {
         return await this.menusService.findManyForSeller(store, status);
     }
 
-    @Put('/order/:storeId')
+    @Put('/order/:id')
     @UseGuards(AuthGuard)
-    @UseEntityTransformer<Store>(TransformStoreInterceptor)
-    async updateOrder(@CurrentStore() store: Store, @Body() dto: UpdateMenuOrderDto) {
-        return await this.menusService.updateOrder(store, dto);
+    async updateOrder(@Param('id') storeId: number, @Body() dto: UpdateMenuOrderDto, @CurrentUser() user: User) {
+        return await this.menusService.updateOrder(storeId, dto, user);
     }
 
     @SkipThrottle()
@@ -103,5 +104,11 @@ export class MenusController {
             throw S3Exception.UPLOAD_FAIL;
         }
         return file.location;
+    }
+
+    @Patch('/count/:id')
+    @UseGuards(AuthGuard)
+    async updateCount(@Param('id') menuId: number, @Body() dto: UpdateMenuCountDto, @CurrentUser() user: User) {
+        return await this.menusService.updateCount(menuId, dto, user);
     }
 }

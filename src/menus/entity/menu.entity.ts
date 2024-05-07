@@ -1,8 +1,9 @@
 import { SoftDeleteEntity } from 'src/global/common/abstract.entity';
 import { Store } from 'src/stores/entity/store.entity';
-import { Column, Entity, ManyToOne, OneToOne } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany, OneToOne } from 'typeorm';
 import { MenuStatus } from '../enum/menu-status.enum';
 import { MenuView } from './menu-view.entity';
+import { OrderDetail } from 'src/orders/entity/order-detail.entity';
 
 @Entity({ name: 'menus' })
 export class Menu extends SoftDeleteEntity<Menu> {
@@ -44,4 +45,7 @@ export class Menu extends SoftDeleteEntity<Menu> {
 
     @OneToOne(() => MenuView, (view) => view.menu, { cascade: ['insert'] })
     view: MenuView;
+
+    @OneToMany(() => OrderDetail, (orderDetail) => orderDetail.menu)
+    orderDetail: OrderDetail[];
 }

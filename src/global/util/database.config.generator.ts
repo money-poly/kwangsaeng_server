@@ -12,7 +12,8 @@ import { StoreApprove } from 'src/stores/entity/store-approve.entity';
 import { StoreDetail } from 'src/stores/entity/store-detail.entity';
 import { Store } from 'src/stores/entity/store.entity';
 import { Tag } from 'src/tags/entity/tag.entity';
-import { User } from 'src/users/entity/user.entity';
+import { Customer } from 'src/users/entity/customer.entity';
+import { Seller } from 'src/users/entity/seller.entity';
 import { Version } from 'src/version/entity/version.entity';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
@@ -48,7 +49,8 @@ export const configGenerator = (env: string): TypeOrmModuleOptions => {
                 StoreDetail,
                 StoreApprove,
                 BusinessDetail,
-                User,
+                Seller,
+                Customer,
                 Menu,
                 MenuView,
                 Category,

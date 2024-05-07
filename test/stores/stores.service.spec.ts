@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { StoresService } from '../../src/stores/stores.service';
 import { StoresRepository } from 'src/stores/stores.repository';
 import { CreateStoreDto } from 'src/stores/dto/create-store.dto';
-import { User } from 'src/users/entity/user.entity';
 import { Roles } from 'src/users/enum/roles.enum';
 import { UserStatus } from 'src/users/enum/user-status.enum';
 import { DataSource, EntityManager, Repository } from 'typeorm';
@@ -28,6 +27,7 @@ import { Token } from 'src/auth/entity/token.entity';
 import { Logger } from '@nestjs/common';
 import { mockDataSource } from 'test/config/mock-query-runner';
 import { Tag } from 'src/tags/entity/tag.entity';
+import { Seller } from 'src/users/entity/seller.entity';
 
 describe('StoresService', () => {
     let service: StoresService;
@@ -47,7 +47,7 @@ describe('StoresService', () => {
                 { provide: getRepositoryToken(Category), useValue: mockEntityManager },
                 UsersService,
                 UsersRepository,
-                { provide: getRepositoryToken(User), useValue: mockEntityManager },
+                { provide: getRepositoryToken(Seller), useValue: mockEntityManager },
                 MenusService,
                 MenusRepository,
                 { provide: getRepositoryToken(Menu), useValue: mockEntityManager },
@@ -91,7 +91,7 @@ describe('StoresService', () => {
                 openedDate: '20231212',
             };
 
-            const user = new User({
+            const user = new Seller({
                 fId: 'ABCDEFG',
                 name: '공진성',
                 phone: '010-1234-1234',
@@ -107,7 +107,7 @@ describe('StoresService', () => {
 
     describe('가게 조회', () => {
         it('가게 조회 성공(유저)', async () => {
-            const user = new User({
+            const user = new Seller({
                 fId: 'ABCDEFG',
                 name: '공진성',
                 phone: '010-1234-1234',

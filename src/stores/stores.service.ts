@@ -3,7 +3,6 @@ import { UsersRepository } from './../users/users.repository';
 import { Injectable } from '@nestjs/common';
 import { StoresRepository } from './stores.repository';
 import { Store } from './entity/store.entity';
-import { User } from 'src/users/entity/user.entity';
 import { StoresException } from 'src/global/exception/stores-exception';
 import { Menu } from 'src/menus/entity/menu.entity';
 import { CreateStoreDto } from './dto/create-store.dto';
@@ -22,6 +21,7 @@ import { MenusService } from 'src/menus/menus.service';
 import { FindOneStoreReturnValue } from './interfaces/find-one-store-return-value.interface';
 import { CategoriesException } from 'src/global/exception/categories-exception';
 import { MenuStatus } from 'src/menus/enum/menu-status.enum';
+import { Seller } from 'src/users/entity/seller.entity';
 
 @Injectable()
 export class StoresService {
@@ -38,7 +38,7 @@ export class StoresService {
         return await this.storesRepository.existStore(where);
     }
 
-    async createStore(user: User, dto: CreateStoreDto) {
+    async createStore(user: Seller, dto: CreateStoreDto) {
         return await this.storesRepository.createStore(user, dto);
     }
 
@@ -276,14 +276,14 @@ export class StoresService {
     async findStoreUsingToken(userId: number) {
         return await this.entityManager
             .createQueryBuilder(Store, 's')
-            .leftJoinAndSelect(User, 'u', 's.user_id = u.id')
+            .leftJoinAndSelect(Seller, 'u', 's.user_id = u.id')
             .select('s.id AS id')
             .where('u.id = :userId', { userId })
             .getRawMany();
     }
 
     async initMockStores() {
-        const owners: User[] = mockOwners;
+        const owners: Seller[] = mockOwners;
 
         const isExist = await this.usersRepository.exist({
             name: owners[owners.length - 1].name,

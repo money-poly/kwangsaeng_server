@@ -15,7 +15,6 @@ import {
 import { MenusService } from 'src/menus/menus.service';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { CurrentUser } from 'src/global/decorator/current-user.decorator';
-import { User } from 'src/users/entity/user.entity';
 import { CreateMenuDto } from './dto/create-menu.dto';
 import { UpdateMenuDto } from './dto/update-menu.dto';
 import { ModifyMenuValidationPipe } from './pipe/modify-menu-validation.pipe';
@@ -35,6 +34,7 @@ import { UpdateMenuStatusDto } from './dto/update-status.dto';
 import { S3Exception } from 'src/global/exception/s3-exception';
 import { SkipThrottle } from '@nestjs/throttler';
 import { UpdateMenuCountDto } from './dto/update-count.dto';
+import { Seller } from 'src/users/entity/seller.entity';
 
 @Controller('menus')
 export class MenusController {
@@ -48,19 +48,19 @@ export class MenusController {
 
     @Post()
     @UseGuards(AuthGuard)
-    async create(@CurrentUser() user: User, @Body(ModifyMenuValidationPipe) dto: CreateMenuDto) {
+    async create(@CurrentUser() user: Seller, @Body(ModifyMenuValidationPipe) dto: CreateMenuDto) {
         return await this.menusService.create(user, dto);
     }
 
     @Put('/:id')
     @UseGuards(AuthGuard)
-    async update(@Param('id') menuId: number, @Body() dto: UpdateMenuDto, @CurrentUser() user: User) {
+    async update(@Param('id') menuId: number, @Body() dto: UpdateMenuDto, @CurrentUser() user: Seller) {
         return await this.menusService.update(menuId, dto, user);
     }
 
     @Delete('/:id')
     @UseGuards(AuthGuard)
-    async delete(@Param('id') menuId: number, @CurrentUser() user: User) {
+    async delete(@Param('id') menuId: number, @CurrentUser() user: Seller) {
         return await this.menusService.delete(menuId, user);
     }
 
@@ -74,7 +74,7 @@ export class MenusController {
 
     @Put('/order/:id')
     @UseGuards(AuthGuard)
-    async updateOrder(@Param('id') storeId: number, @Body() dto: UpdateMenuOrderDto, @CurrentUser() user: User) {
+    async updateOrder(@Param('id') storeId: number, @Body() dto: UpdateMenuOrderDto, @CurrentUser() user: Seller) {
         return await this.menusService.updateOrder(storeId, dto, user);
     }
 
@@ -108,7 +108,7 @@ export class MenusController {
 
     @Patch('/count/:id')
     @UseGuards(AuthGuard)
-    async updateCount(@Param('id') menuId: number, @Body() dto: UpdateMenuCountDto, @CurrentUser() user: User) {
+    async updateCount(@Param('id') menuId: number, @Body() dto: UpdateMenuCountDto, @CurrentUser() user: Seller) {
         return await this.menusService.updateCount(menuId, dto, user);
     }
 }

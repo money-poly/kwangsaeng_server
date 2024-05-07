@@ -7,7 +7,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { StoresRepository } from 'src/stores/stores.repository';
 import { MenusRepository } from './menus.repository';
 import { UsersRepository } from 'src/users/users.repository';
-import { User } from 'src/users/entity/user.entity';
 import { MenuView } from './entity/menu-view.entity';
 import { StoreDetail } from 'src/stores/entity/store-detail.entity';
 import { BusinessDetail } from 'src/stores/entity/business-detail.entity';
@@ -17,10 +16,11 @@ import { StoresModule } from 'src/stores/stores.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { multerS3Config } from 'src/global/config/multer-s3.config';
+import { Seller } from 'src/users/entity/seller.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Menu, Store, User, MenuView, StoreDetail, BusinessDetail, StoreApprove]),
+        TypeOrmModule.forFeature([Menu, Store, Seller, MenuView, StoreDetail, BusinessDetail, StoreApprove]),
         MulterModule.registerAsync({
             imports: [ConfigModule],
             inject: [ConfigService],

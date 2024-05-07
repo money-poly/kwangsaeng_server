@@ -5,7 +5,6 @@ import { UsersRepository } from 'src/users/users.repository';
 import { StoresRepository } from 'src/stores/stores.repository';
 import { Store } from 'src/stores/entity/store.entity';
 import { Menu } from 'src/menus/entity/menu.entity';
-import { User } from 'src/users/entity/user.entity';
 import { Roles } from 'src/users/enum/roles.enum';
 import { MenuStatus } from './enum/menu-status.enum';
 import { CreateMenuArgs } from './interface/create-menu.interface';
@@ -38,6 +37,7 @@ import {
 } from 'src/global/common/mock.constant';
 import { UpdateMenuCountArgs } from './interface/update-count.interface';
 import { OwnStore } from './interface/own-store.interface';
+import { Seller } from 'src/users/entity/seller.entity';
 
 @Injectable()
 export class MenusService {
@@ -49,7 +49,7 @@ export class MenusService {
         private readonly logger: Logger,
     ) {}
 
-    async create(user: User, args: CreateMenuArgs) {
+    async create(user: Seller, args: CreateMenuArgs) {
         const storeId: number = args.storeId;
         const storeData: Store = await this.storesRepository.findOneStore({ id: storeId }, {}, { user: true });
         if (!storeData) {
@@ -64,7 +64,7 @@ export class MenusService {
         return { menuId: createdMenu.id };
     }
 
-    async update(menuId: number, args: UpdateMenuArgs, user: User) {
+    async update(menuId: number, args: UpdateMenuArgs, user: Seller) {
         const thisMenu = await this.menusRepository.findOne({ id: menuId }, { id: true });
         if (!thisMenu) {
             throw MenusException.ENTITY_NOT_FOUND;
@@ -79,7 +79,7 @@ export class MenusService {
         return this.findDetailOne(menuId);
     }
 
-    async delete(menuId: number, user: User) {
+    async delete(menuId: number, user: Seller) {
         const thisMenu = await this.menusRepository.findOne(
             { id: menuId },
             { id: true, store: { id: true } },
@@ -208,7 +208,7 @@ export class MenusService {
         return data;
     }
 
-    async updateOrder(storeId: number, dto: UpdateMenuOrderDto, user?: User) {
+    async updateOrder(storeId: number, dto: UpdateMenuOrderDto, user?: Seller) {
         const thisStore = await this.storesRepository.findOneStore(
             { id: storeId },
             { id: true, user: { id: true } },
@@ -429,7 +429,7 @@ export class MenusService {
         return await this.menusRepository.findMenusForOrder(store, orderBy);
     }
 
-    async updateCount(menuId: number, dto: UpdateMenuCountArgs, user: User) {
+    async updateCount(menuId: number, dto: UpdateMenuCountArgs, user: Seller) {
         const thisMenu = await this.menusRepository.findOne({ id: menuId }, { id: true });
         const ownStore: OwnStore = await this.menusRepository.findOwnStoreForMenuId(menuId);
 
@@ -458,7 +458,7 @@ export class MenusService {
         return pushData;
     }
 
-    private async validateUserRole(user: User, role: Roles) {
+    private async validateUserRole(user: Seller, role: Roles) {
         if (user?.role != role) throw MenusException.HAS_NO_PERMISSION_CREATE;
     }
 

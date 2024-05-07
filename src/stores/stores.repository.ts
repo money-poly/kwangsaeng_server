@@ -14,12 +14,12 @@ import { StoreDetail } from './entity/store-detail.entity';
 import { StoreApprove } from './entity/store-approve.entity';
 import { BusinessDetail } from './entity/business-detail.entity';
 import { CreateStoreDto } from './dto/create-store.dto';
-import { User } from 'src/users/entity/user.entity';
 import { CategoriesService } from 'src/categories/categories.service';
 import { Category } from 'src/categories/entity/category.entity';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 import { Menu } from 'src/menus/entity/menu.entity';
 import { StoreApproveStatus } from './enum/store-approve-status.enum';
+import { Seller } from 'src/users/entity/seller.entity';
 
 @Injectable()
 export class StoresRepository {
@@ -84,7 +84,7 @@ export class StoresRepository {
             .getRawMany();
     }
 
-    async createStore(user: User, dto: CreateStoreDto) {
+    async createStore(user: Seller, dto: CreateStoreDto) {
         const categories: Category[] = [];
 
         for (const categoryId of dto.categories) {

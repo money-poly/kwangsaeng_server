@@ -16,7 +16,6 @@ import {
 import { CreateStoreDto } from './dto/create-store.dto';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { CurrentUser } from 'src/global/decorator/current-user.decorator';
-import { User } from 'src/users/entity/user.entity';
 import { FindStoreWithLocationDto } from './dto/find-store-with-location.dto';
 import { Store } from './entity/store.entity';
 import { CreateStoreValidationPipe } from './pipe/create-store-validation.pipe';
@@ -34,6 +33,7 @@ import { AdminGuard } from 'src/auth/guard/admin.guard';
 import { S3Exception } from 'src/global/exception/s3-exception';
 import { StoresService } from './stores.service';
 import { SkipThrottle } from '@nestjs/throttler';
+import { Seller } from 'src/users/entity/seller.entity';
 
 @Controller('stores')
 export class StoresController {
@@ -42,7 +42,7 @@ export class StoresController {
     @Post()
     @UseGuards(AuthGuard)
     async create(
-        @CurrentUser(CreateStoreUserValidationPipe) user: User,
+        @CurrentUser(CreateStoreUserValidationPipe) user: Seller,
         @Body(CreateStoreValidationPipe) dto: CreateStoreDto,
     ) {
         return await this.storesService.createStore(user, dto);

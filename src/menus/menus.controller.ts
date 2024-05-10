@@ -67,9 +67,8 @@ export class MenusController {
     @SkipThrottle()
     @Get('/seller/:storeId')
     @UseGuards(AuthGuard)
-    @UseEntityTransformer<Store>(TransformStoreInterceptor)
-    async findManyForSeller(@CurrentStore() store: Store, @Query('status') status: MenuStatus) {
-        return await this.menusService.findManyForSeller(store, status);
+    async findManyForSeller(@Param('storeId') storeId: number, @Query('status') status: MenuStatus) {
+        return await this.menusService.findManyForSeller(storeId, status);
     }
 
     @Put('/order/:id')
@@ -92,8 +91,8 @@ export class MenusController {
 
     @Put('/status/:id')
     @UseGuards(AuthGuard)
-    async updateStatus(@Param('id', TransformMenuPipe) menu: Menu, @Body() dto: UpdateMenuStatusDto) {
-        return await this.menusService.updateStatus(menu, dto);
+    async updateStatus(@Param('id') menuId: number, @Body() dto: UpdateMenuStatusDto) {
+        return await this.menusService.updateStatus(menuId, dto);
     }
 
     @Post('upload/:storeId')

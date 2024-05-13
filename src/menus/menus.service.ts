@@ -228,7 +228,8 @@ export class MenusService {
         return await this.storesRepository.updateOrder(thisStore, newOrder);
     }
 
-    async updateStatus(menu: Menu, dto: UpdateStatusArgs) {
+    async updateStatus(menuId: number, dto: UpdateStatusArgs) {
+        const menu = await this.menusRepository.findOne({ id: menuId }, {}, { store: true });
         // 숨김 -> 품절 혹은 반대시 == order변동 x
         const { prevStatus, updateStatus } = dto;
         if (

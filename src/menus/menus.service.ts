@@ -169,8 +169,8 @@ export class MenusService {
         return menuDetailList;
     }
 
-    async findManyForSeller(store: Store, status?: MenuStatus) {
-        let where = `m.store_id = "${store.id}"`;
+    async findManyForSeller(storeId: number, status?: MenuStatus) {
+        let where = `m.store_id = "${storeId}"`;
         switch (status) {
             case undefined: // status가 비어있는경우 -> 메뉴 전체 조회
                 break;
@@ -186,6 +186,7 @@ export class MenusService {
             default:
                 throw MenusException.STATUS_NOT_FOUND;
         }
+        const store = await this.storesRepository.findOneStore({ id: storeId });
 
         const orderBy = await this.storesRepository.processOrderBy(store);
 

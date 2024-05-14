@@ -19,14 +19,8 @@ import { User } from 'src/users/entity/user.entity';
 import { CreateMenuDto } from './dto/create-menu.dto';
 import { UpdateMenuDto } from './dto/update-menu.dto';
 import { ModifyMenuValidationPipe } from './pipe/modify-menu-validation.pipe';
-import { TransformMenuPipe } from './pipe/transform-menu.pipe';
-import { Menu } from './entity/menu.entity';
 import { FindOneMenuDetailDto } from './dto/find-one-menu.dto';
 import { UpdateMenuOrderDto } from './dto/update-order.dto';
-import { UseEntityTransformer } from 'src/global/decorator/entity-transformer.decorator';
-import { Store } from 'src/stores/entity/store.entity';
-import { TransformStoreInterceptor } from 'src/global/interceptor/transform-entity.interceptor';
-import { CurrentStore } from 'src/global/decorator/current-store.decorator';
 import { FindAsLocationDto } from './dto/find-as-loaction.dto';
 import { MenuFilterType } from './enum/discounted-menu-filter-type.enum';
 import { MenuStatus } from './enum/menu-status.enum';
@@ -67,9 +61,8 @@ export class MenusController {
     @SkipThrottle()
     @Get('/seller/:storeId')
     @UseGuards(AuthGuard)
-    @UseEntityTransformer<Store>(TransformStoreInterceptor)
-    async findManyForSeller(@CurrentStore() store: Store, @Query('status') status: MenuStatus) {
-        return await this.menusService.findManyForSeller(store, status);
+    async findManyForSeller(@Param('storeId') storeId: number, @Query('status') status: MenuStatus) {
+        return await this.menusService.findManyForSeller(storeId, status);
     }
 
     @Put('/order/:id')
@@ -92,8 +85,8 @@ export class MenusController {
 
     @Put('/status/:id')
     @UseGuards(AuthGuard)
-    async updateStatus(@Param('id', TransformMenuPipe) menu: Menu, @Body() dto: UpdateMenuStatusDto) {
-        return await this.menusService.updateStatus(menu, dto);
+    async updateStatus(@Param('id') menuId: number, @CurrentUser() user: User, @Body() dto: UpdateMenuStatusDto) {
+        return await this.menusService.updateStatus(menuId, user, dto);
     }
 
     @Post('upload/:storeId')

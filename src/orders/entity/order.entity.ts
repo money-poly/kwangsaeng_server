@@ -35,11 +35,14 @@ export class Order extends SoftDeleteEntity<Order> {
     @Column({ comment: '결제 상태', type: 'enum', enum: PayStatus, default: PayStatus.paid })
     payStatus: PayStatus;
 
-    @Column({ comment: '주문자 성명', nullable: true })
+    @Column({ comment: '주문자 성명' })
     buyerName: string;
 
-    @Column({ comment: '주문자 번호', nullable: true })
+    @Column({ comment: '주문자 번호' })
     buyerTel: string;
+
+    @Column({ comment: '비회원주문시 비밀번호', nullable: true })
+    orderPassword: string;
 
     @ManyToOne(() => Customer, (customer) => customer.order, { nullable: true, onDelete: 'SET NULL' })
     customer: Customer;

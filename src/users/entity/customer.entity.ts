@@ -16,12 +16,6 @@ export class Customer extends SoftDeleteEntity<Customer> {
     @Column({ comment: '문자 인증 유무', default: false })
     isAuth: boolean;
 
-    @Column({ comment: '비회원 주문시 저장 비밀번호/회원시 null', nullable: true })
-    orderPassword: number;
-
-    @Column({ comment: '비회원 여부(비회원시 true)', default: false })
-    isNonmember: boolean;
-
     @OneToMany(() => Order, (order) => order.customer)
     order: Order;
 }

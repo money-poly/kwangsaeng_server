@@ -8,6 +8,7 @@ import { Category } from 'src/categories/entity/category.entity';
 import { StoreApprove } from './store-approve.entity';
 import { Tag } from 'src/tags/entity/tag.entity';
 import { Seller } from 'src/users/entity/seller.entity';
+import { Order } from 'src/orders/entity/order.entity';
 
 @Entity({ name: 'stores' })
 export class Store extends SoftDeleteEntity<Store> {
@@ -35,6 +36,9 @@ export class Store extends SoftDeleteEntity<Store> {
 
     @ManyToOne(() => Tag, (tag) => tag.stores)
     tag: Tag;
+
+    @OneToMany(() => Order, (order) => order.store)
+    order: Order[];
 
     @ManyToMany(() => Category, (category) => category.store, {
         cascade: ['insert'],

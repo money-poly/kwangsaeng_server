@@ -5,9 +5,13 @@ import { PayStatus } from '../enum/pay-status.enum';
 import { OrderDetail } from './order-detail.entity';
 import { OrderStatus } from '../enum/order-status.enum';
 import { Customer } from 'src/users/entity/customer.entity';
+import { Store } from 'src/stores/entity/store.entity';
 
 @Entity({ name: 'orders' })
 export class Order extends SoftDeleteEntity<Order> {
+    @Column({ comment: '주문번호', unique: true })
+    orderId: string;
+
     @Column({ comment: '가게 이름' })
     storeName: string;
 
@@ -40,6 +44,9 @@ export class Order extends SoftDeleteEntity<Order> {
 
     @Column({ comment: '주문자 번호' })
     buyerTel: string;
+
+    @ManyToOne(() => Store, (store) => store.order)
+    store: Store;
 
     @ManyToOne(() => Customer, (customer) => customer.order, { nullable: true, onDelete: 'SET NULL' })
     customer: Customer;

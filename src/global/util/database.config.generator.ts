@@ -20,7 +20,7 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 export const configGenerator = (env: string): TypeOrmModuleOptions => {
     if (env === 'local')
         return {
-            type: 'mysql',
+            type: 'postgres',
             host: process.env.DATABASE_HOST,
             port: Number(process.env.DATABASE_PORT),
             username: process.env.DATABASE_USERNAME,
@@ -33,7 +33,7 @@ export const configGenerator = (env: string): TypeOrmModuleOptions => {
         };
     else if (env === 'dev' || env === 'stage' || env == 'prod')
         return {
-            type: 'mysql',
+            type: 'postgres',
             host: process.env.DATABASE_HOST,
             port: Number(process.env.DATABASE_PORT),
             username: process.env.DATABASE_USERNAME,

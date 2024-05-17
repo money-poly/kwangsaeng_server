@@ -14,9 +14,9 @@ export class InitializeService implements OnModuleInit {
     ) {}
 
     async onModuleInit() {
-        // await this.categoriesService.initCategories();
-        // await this.tagsService.initTags();
-        // await this.storesService.initMockStores();
-        // await this.menusService.initMockMenus();
+        await this.categoriesService.initCategories();
+        await this.tagsService.initTags();
+        await this.storesService.initMockStores();
+        await this.menusService.initMockMenus();
     }
 }

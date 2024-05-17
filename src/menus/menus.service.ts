@@ -260,13 +260,24 @@ export class MenusService {
 
     async findMaxDiscount(dto: FindAsLocationDto) {
         let refindedData = [];
-        const subQuery = await this.entityManager
+
+        // 쿼리문 파라미터 정의
+        const params = {
+            status: StoreStatus.OPEN,
+            menuStatus: MenuStatus.SALE,
+            longitude: dto.lon,
+            latitude: dto.lat,
+            range: 3000,
+            isApproved: StoreApproveStatus.DONE,
+        };
+
+        const subQuery = this.entityManager
             .createQueryBuilder(Store, 's')
             .leftJoinAndSelect(Menu, 'm', 's.id = m.store_id')
             .select('s.id')
-            .addSelect('MAX(discount_rate) AS discount_rate')
-            .where(`s.status = "${StoreStatus.OPEN}"`)
-            .andWhere(`m.status = "${MenuStatus.SALE}"`)
+            .addSelect('MAX(m.discount_rate)', 'maxDiscountRate')
+            .where('s.status = :status')
+            .andWhere('m.status = :menuStatus')
             .andWhere('m.count != 0')
             .andWhere('m.discount_rate > 0')
             .groupBy('s.id')
@@ -287,28 +298,29 @@ export class MenusService {
             .addSelect('m.selling_price', 'sellingPrice')
             .addSelect('m.discount_rate', 'discountRate')
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
-            .where('(s.id, m.discount_rate) IN (' + subQuery + ')')
-            .andWhere('ST_Distance_Sphere(POINT(:lon, :lat), POINT(sd.lon, sd.lat)) <= :range', {
-                lon: dto.lon,
-                lat: dto.lat,
-                range: 3000,
-            })
-            .andWhere('sa.is_approved = :isApproved', { isApproved: StoreApproveStatus.DONE })
+            .where(`(s.id, m.discount_rate) IN (${subQuery})`)
+            .andWhere(
+                'ST_DWithin(ST_SetSRID(ST_MakePoint(sd.lon, sd.lat), 4326), ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326), :range)',
+            )
+            .andWhere('sa.is_approved = :isApproved')
             .orderBy('c.name')
             .addOrderBy('m.discount_rate', 'DESC')
             .addOrderBy('m.created_date')
+            .setParameters(params)
             .getRawMany();
+
         if (!dataList.length) {
-            // 검색되는 메뉴가 존재하지 않을경우 빈배열 리턴
+            // 검색되는 메뉴가 존재하지 않을 경우 빈 배열 반환
             return dataList;
         }
+
         let prevCategory;
         for (const data of dataList) {
             if (prevCategory != data.category) {
                 prevCategory = data.category;
                 refindedData.push(this.processDetailMenu(data));
-                // category, discount_rate, create_date순으로 정렬되어 있기 때문에,
-                // 반복문이 돌아가면서 카테고리가 변경됐을 경우 첫 번째 data가 그 카테고리 내에서 가장 할인율이 높고 등록된지 오래된 메뉴
+                // category, discount_rate, create_date 순으로 정렬되어 있기 때문에,
+                // 반복문이 돌아가면서 카테고리가 변경됐을 경우 첫 번째 데이터가 그 카테고리 내에서 가장 할인율이 높고 등록된지 오래된 메뉴
             }
         }
         return refindedData;

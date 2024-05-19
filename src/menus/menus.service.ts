@@ -492,7 +492,7 @@ export class MenusService {
             .where('m.id != :excludeMenuId', { excludeMenuId })
             .andWhere('store_id = :storeId', { storeId })
             .andWhere('m.status != :status', { status: MenuStatus.HIDDEN })
-            .orderBy('discountRate', 'DESC')
+            .orderBy('m.discount_rate', 'DESC')
             .addOrderBy('price', 'DESC')
             .limit(limit)
             .getRawMany();

@@ -359,16 +359,15 @@ export class MenusService {
             .addSelect('m.discount_rate', 'discountRate')
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
             .addSelect('mv.view_count', 'viewCount')
-            .where(`s.status = "${StoreStatus.OPEN}"`)
-            .andWhere(`m.status = "${MenuStatus.SALE}"`)
+            .where('s.status = :status', { status: StoreStatus.OPEN })
+            .andWhere('m.status = :menuStatus', { menuStatus: MenuStatus.SALE })
             .andWhere('m.count != 0')
             .andWhere('m.discount_rate > 0')
             .andWhere('sa.is_approved = :isApproved', { isApproved: StoreApproveStatus.DONE })
-            .andWhere('ST_Distance_Sphere(POINT(:lon, :lat), POINT(sd.lon, sd.lat)) <= :range', {
-                lon: dto.lon,
-                lat: dto.lat,
-                range: 3000,
-            })
+            .andWhere(
+                'ST_DWithin(ST_SetSRID(ST_MakePoint(sd.lon, sd.lat), 4326), ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326), :range)',
+                { longitude: dto.lon, latitude: dto.lat, range: 3000 },
+            )
             .orderBy(orderBy, 'ASC')
             .getRawMany();
         if (!dataList.length) {
@@ -482,17 +481,17 @@ export class MenusService {
         // 제외할 메뉴 ID 필요없이 모든 메뉴를 가져올경우 excludeMenuId를 0으로 지정
         // limit으로 필요한 데이터의 개수 보내주기(기본값 10으로 설정)
         return await this.entityManager
-            .createQueryBuilder(Menu, 'menus')
-            .select('menus.menu_picture_url', 'menuPictureUrl')
-            .addSelect('menus.id', 'menuId')
-            .addSelect('menus.name', 'name')
-            .addSelect('menus.discount_rate', 'discountRate')
-            .addSelect('menus.selling_price', 'sellingPrice')
-            .addSelect('menus.description', 'description')
-            .addSelect('menus.status', 'status')
-            .where('menus.id != :excludeMenuId', { excludeMenuId })
+            .createQueryBuilder(Menu, 'm')
+            .select('m.menu_picture_url', 'menuPictureUrl')
+            .addSelect('m.id', 'menuId')
+            .addSelect('m.name', 'name')
+            .addSelect('m.discount_rate', 'discountRate')
+            .addSelect('m.selling_price', 'sellingPrice')
+            .addSelect('m.description', 'description')
+            .addSelect('m.status', 'status')
+            .where('m.id != :excludeMenuId', { excludeMenuId })
             .andWhere('store_id = :storeId', { storeId })
-            .andWhere('menus.status != :status', { status: MenuStatus.HIDDEN })
+            .andWhere('m.status != :status', { status: MenuStatus.HIDDEN })
             .orderBy('discountRate', 'DESC')
             .addOrderBy('price', 'DESC')
             .limit(limit)

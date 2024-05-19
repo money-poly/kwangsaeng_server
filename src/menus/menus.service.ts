@@ -170,24 +170,24 @@ export class MenusService {
     }
 
     async findManyForSeller(store: Store, status?: MenuStatus) {
-        let where = `m.store_id = "${store.id}"`;
+        let where = 'm.store_id = ' + store.id;
         switch (status) {
             case undefined: // status가 비어있는경우 -> 메뉴 전체 조회
                 break;
             case MenuStatus.SALE:
-                where += ` AND m.status = "${MenuStatus.SALE}"`;
+                where += ` AND m.status = 'sale'`;
                 break;
             case MenuStatus.SOLDOUT:
-                where += ` AND m.status = "${MenuStatus.SOLDOUT}"`;
+                where += ` AND m.status = 'soldout'`;
                 break;
             case MenuStatus.HIDDEN:
-                where += ` AND m.status = "${MenuStatus.HIDDEN}"`;
+                where += ` AND m.status = 'hidden'`;
                 break;
             default:
                 throw MenusException.STATUS_NOT_FOUND;
         }
 
-        const orderBy = await this.storesRepository.processOrderBy(store);
+        const orderMenusList = await this.storesRepository.processOrderBy(store);
 
         const data = await this.entityManager
             .createQueryBuilder(Menu, 'm')
@@ -200,10 +200,10 @@ export class MenusService {
             .addSelect('m.status', 'status')
             .addSelect('m.count', 'count')
             .where(where)
-            .orderBy(`m.status = "${MenuStatus.SALE}"`, 'DESC')
-            .addOrderBy(`m.status = "${MenuStatus.SOLDOUT}"`, 'DESC')
-            .addOrderBy(`m.status = "${MenuStatus.HIDDEN}"`, 'DESC')
-            .addOrderBy(orderBy, 'DESC')
+            .orderBy(
+                `CASE WHEN m.status = 'sale' THEN 1 WHEN m.status = 'soldout' THEN 2 WHEN m.status = 'hidden' THEN 3 ELSE 4 END`,
+            )
+            .addOrderBy(orderMenusList, 'DESC')
             .getRawMany();
         return data;
     }

@@ -129,12 +129,7 @@ export class StoresRepository {
         if (!processingOrder) {
             return null;
         }
-        let orderBy = 'FIELD(m.id, ';
-        while (processingOrder.length > 1) {
-            const menuId = processingOrder.pop();
-            orderBy += menuId + ', ';
-        }
-        orderBy += processingOrder[0] + `)`; // 맨 마지막 id는 콤마를 붙여주면 안되니 별도로 추가
+        const orderBy = `ARRAY_POSITION(ARRAY[${String(processingOrder)}], "m"."id")`;
         return orderBy;
     }
 

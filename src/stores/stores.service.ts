@@ -263,11 +263,10 @@ export class StoresService {
             .addSelect('name')
             .addSelect('CAST(d.lat AS FLOAT) AS lat')
             .addSelect('CAST(d.lon AS FLOAT) AS lon')
-            .where('ST_Distance_Sphere(POINT(:lon, :lat), POINT(lon, lat)) <= :range', {
-                lon: dto.lon,
-                lat: dto.lat,
-                range: dto.range,
-            })
+            .where(
+                'ST_DWithin(ST_SetSRID(ST_MakePoint(lon, lat), 4326), ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326), :range)',
+                { longitude: dto.lon, latitude: dto.lat, range: dto.range },
+            )
             .andWhere('stores.status = :openStatus', { openStatus: StoreStatus.OPEN })
             .andWhere('a.isApproved = :approveStatus', { approveStatus: StoreApproveStatus.DONE })
             .getRawMany();

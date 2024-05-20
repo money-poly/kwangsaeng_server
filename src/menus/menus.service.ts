@@ -330,7 +330,7 @@ export class MenusService {
         let orderBy;
         switch (type) {
             case MenuFilterType.DISTANCE:
-                orderBy = `ST_Distance_Sphere(POINT(${dto.lon}, ${dto.lat}), POINT(sd.lon, sd.lat))`;
+                orderBy = `ST_Distance(ST_SetSRID(ST_MakePoint(${dto.lon}, ${dto.lat}), 4326), ST_SetSRID(ST_MakePoint(sd.lon, sd.lat), 4326))`;
                 break;
             case MenuFilterType.LAST:
                 orderBy = 'm.created_date';

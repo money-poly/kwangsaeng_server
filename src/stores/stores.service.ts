@@ -186,12 +186,14 @@ export class StoresService {
             .createQueryBuilder(Store, 's')
             .leftJoinAndSelect(StoreDetail, 'sd', 'sd.store_id = s.id')
             .leftJoinAndSelect(Menu, 'm', 'm.store_id = s.id')
-            .select('s.name AS name')
-            .addSelect('sd.store_picture_url AS storePictureUrl')
-            .addSelect('sd.description AS description')
-            .addSelect('IFNULL(MAX(m.discount_rate), 0) maxDiscount')
+            .select('s.name', 'name')
+            .addSelect('sd.store_picture_url', 'storePictureUrl')
+            .addSelect('sd.description', 'description')
+            .addSelect('COALESCE(MAX(m.discount_rate), 0)', 'maxDiscount')
             .where('s.id = :storeId', { storeId })
             .andWhere('m.status = :status', { status: MenuStatus.SALE })
+            .groupBy('s.id')
+            .addGroupBy('sd.id')
             .getRawOne();
 
         return qb;

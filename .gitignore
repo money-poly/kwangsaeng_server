@@ -48,3 +48,5 @@ lerna-debug.log*
 
 # test
 stress-tests/
+
+yarn.lock

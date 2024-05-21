@@ -18,6 +18,8 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { TagsModule } from './tags/tags.module';
 import { SearchModule } from './search/search.module';
+import { RedisModule } from '@nestjs-modules/ioredis';
+import { OrderModule } from './order/order.module';
 
 @Module({
     imports: [
@@ -42,6 +44,12 @@ import { SearchModule } from './search/search.module';
                 limit: 50,
             },
         ]),
+        RedisModule.forRootAsync({
+            useFactory: () => ({
+                type: 'single',
+                url: 'redis://redis-server:6379',
+            }),
+        }),
         DatabaseModule,
         UsersModule,
         StoresModule,
@@ -54,6 +62,7 @@ import { SearchModule } from './search/search.module';
         BannersModule,
         TagsModule,
         SearchModule,
+        OrderModule,
     ],
     providers: [Logger, InitializeService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

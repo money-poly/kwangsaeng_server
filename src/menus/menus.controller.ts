@@ -22,10 +22,6 @@ import { TransformMenuPipe } from './pipe/transform-menu.pipe';
 import { Menu } from './entity/menu.entity';
 import { FindOneMenuDetailDto } from './dto/find-one-menu.dto';
 import { UpdateMenuOrderDto } from './dto/update-order.dto';
-import { UseEntityTransformer } from 'src/global/decorator/entity-transformer.decorator';
-import { Store } from 'src/stores/entity/store.entity';
-import { TransformStoreInterceptor } from 'src/global/interceptor/transform-entity.interceptor';
-import { CurrentStore } from 'src/global/decorator/current-store.decorator';
 import { FindAsLocationDto } from './dto/find-as-loaction.dto';
 import { MenuFilterType } from './enum/discounted-menu-filter-type.enum';
 import { MenuStatus } from './enum/menu-status.enum';
@@ -46,6 +42,7 @@ export class MenusController {
         return this.menusService.findDetailOne(menuId, dto);
     }
 
+    // TODO 레이어 분리
     @Post()
     @UseGuards(AuthGuard)
     async create(@CurrentUser() user: Seller, @Body(ModifyMenuValidationPipe) dto: CreateMenuDto) {
@@ -95,6 +92,7 @@ export class MenusController {
 
     @Put('/status/:id')
     @UseGuards(AuthGuard)
+    // TODO 회원 예외처리 및 레이어 분리
     async updateStatus(@Param('id', TransformMenuPipe) menu: Menu, @Body() dto: UpdateMenuStatusDto) {
         return await this.menusService.updateStatus(menu, dto);
     }

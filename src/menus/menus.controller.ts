@@ -67,9 +67,12 @@ export class MenusController {
     @SkipThrottle()
     @Get('/seller/:storeId')
     @UseGuards(AuthGuard)
-    @UseEntityTransformer<Store>(TransformStoreInterceptor)
-    async findManyForSeller(@CurrentStore() store: Store, @Query('status') status: MenuStatus) {
-        return await this.menusService.findManyForSeller(store, status);
+    async findManyForSeller(
+        @Param('storeId') storeId: number,
+        @Query('status') status: MenuStatus,
+        @CurrentUser() user: Seller,
+    ) {
+        return await this.menusService.findManyForSeller(storeId, user, status);
     }
 
     @Put('/order/:id')

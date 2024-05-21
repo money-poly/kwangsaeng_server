@@ -45,6 +45,9 @@ export class Order extends SoftDeleteEntity<Order> {
     @Column({ comment: '주문자 번호' })
     buyerTel: string;
 
+    @Column({ comment: '회원 요청사항', nullable: true })
+    requestedTerm: string;
+
     @ManyToOne(() => Store, (store) => store.order)
     store: Store;
 

@@ -4,6 +4,9 @@
 .local.env
 .stage.env
 
+# certificate
+/src/global/config/certificate
+
 # jwt
 jwtConstants.ts
 

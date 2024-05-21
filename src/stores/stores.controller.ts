@@ -3,7 +3,6 @@ import {
     Controller,
     Get,
     Param,
-    ParseIntPipe,
     Patch,
     Post,
     Put,
@@ -52,7 +51,7 @@ export class StoresController {
     @SkipThrottle()
     @Get('/map/:storeId')
     @UseGuards(OperationGuard)
-    onMapFindOne(@Param('storeId', ParseIntPipe) storeId: number) {
+    async onMapFindOne(@Param('storeId') storeId: number) {
         return this.storesService.onMapFindStore(storeId);
     }
 
@@ -94,12 +93,12 @@ export class StoresController {
 
     @Get('basic/:storeId')
     @UseGuards(AuthGuard, OperationGuard, OwnerGuard)
-    async basicInfo(@Param('storeId', ParseIntPipe) storeId: number) {
+    async basicInfo(@Param('storeId') storeId: number) {
         return await this.storesService.basicInfo(storeId);
     }
 
     @Get('/operation/:id')
-    async checkOperationStatus(@Param('id', ParseIntPipe) storeId: number) {
+    async checkOperationStatus(@Param('id') storeId: number) {
         return await this.storesService.checkApprove(storeId);
     }
 

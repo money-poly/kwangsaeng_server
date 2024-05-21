@@ -126,7 +126,7 @@ export class StoresRepository {
 
     async processOrderBy(store: Store) {
         const processingOrder = await this.findOrder(store);
-        if (!processingOrder) {
+        if (!processingOrder.length) {
             return null;
         }
         const orderBy = `ARRAY_POSITION(ARRAY[${String(processingOrder)}], "m"."id")`;

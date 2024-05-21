@@ -169,10 +169,40 @@ export class MenusService {
         return menuDetailList;
     }
 
-    async findManyForSeller(store: Store, status?: MenuStatus) {
+    async findManyForSeller(storeId: number, user: Seller, status?: MenuStatus) {
+        const store: Store = await this.storesRepository.findOneStore({ id: storeId }, {}, { user: true });
+        if (!store) {
+            throw StoresException.ENTITY_NOT_FOUND;
+        }
+
+        const owner = await store.user;
+        if (owner.id !== user.id) {
+            throw StoresException.HAS_NO_PERMISSIONS;
+        }
+
+        const orderMenusList = await this.storesRepository.processOrderBy(store);
+        if (!orderMenusList) {
+            // 메뉴가 존재하지 않을 시 빈 배열 반환
+            return [];
+        }
+
+        const queryBuilder = await this.entityManager
+            .createQueryBuilder(Menu, 'm')
+            .select('m.id', 'id')
+            .addSelect('m.name', 'name')
+            .addSelect('m.discount_rate', 'discountRate')
+            .addSelect('m.selling_price', 'sellingPrice')
+            .addSelect('m.price', 'price')
+            .addSelect('m.menu_picture_url', 'menuPictureUrl')
+            .addSelect('m.status', 'status')
+            .addSelect('m.count', 'count');
+
         let where = 'm.store_id = ' + store.id;
         switch (status) {
             case undefined: // status가 비어있는경우 -> 메뉴 전체 조회
+                queryBuilder.orderBy(
+                    `CASE WHEN m.status = 'sale' THEN 1 WHEN m.status = 'soldout' THEN 2 WHEN m.status = 'hidden' THEN 3 ELSE 4 END`,
+                ); // 전체 조회시 메뉴의 상태에 따라 판매중 - 품절 - 숨김 순서대로 정렬
                 break;
             case MenuStatus.SALE:
                 where += ` AND m.status = 'sale'`;
@@ -187,25 +217,7 @@ export class MenusService {
                 throw MenusException.STATUS_NOT_FOUND;
         }
 
-        const orderMenusList = await this.storesRepository.processOrderBy(store);
-
-        const data = await this.entityManager
-            .createQueryBuilder(Menu, 'm')
-            .select('m.id', 'id')
-            .addSelect('m.name', 'name')
-            .addSelect('m.discount_rate', 'discountRate')
-            .addSelect('m.selling_price', 'sellingPrice')
-            .addSelect('m.price', 'price')
-            .addSelect('m.menu_picture_url', 'menuPictureUrl')
-            .addSelect('m.status', 'status')
-            .addSelect('m.count', 'count')
-            .where(where)
-            .orderBy(
-                `CASE WHEN m.status = 'sale' THEN 1 WHEN m.status = 'soldout' THEN 2 WHEN m.status = 'hidden' THEN 3 ELSE 4 END`,
-            )
-            .addOrderBy(orderMenusList, 'DESC')
-            .getRawMany();
-        return data;
+        return queryBuilder.where(where).addOrderBy(orderMenusList, 'DESC').getRawMany();
     }
 
     async updateOrder(storeId: number, dto: UpdateMenuOrderDto, user?: Seller) {

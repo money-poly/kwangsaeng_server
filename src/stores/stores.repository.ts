@@ -78,8 +78,8 @@ export class StoresRepository {
         await this.entityManager
             .createQueryBuilder(StoreApprove, 'a')
             .leftJoinAndSelect(Store, 's', 's.id = a.store_id')
-            .select('a.id AS id')
-            .addSelect('a.isApproved As isApproved')
+            .select('a.id', 'id')
+            .addSelect('a.isApproved', 'isApproved')
             .where('a.id = :id', { id: entity.id })
             .getRawMany();
     }

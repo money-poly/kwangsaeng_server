@@ -44,7 +44,7 @@ export class MenusRepository {
     async findView(menu: Menu) {
         return await this.entityManager
             .createQueryBuilder(MenuView, 'menus_view')
-            .select('menus_view.view_count AS viewCount')
+            .select('menus_view.view_count', 'viewCount')
             .where('menus_view.menu_id = :id', { id: menu.id })
             .getRawOne();
     }
@@ -90,15 +90,15 @@ export class MenusRepository {
     async findMenusForOrder(store: Store, orderBy: string) {
         return await this.entityManager
             .createQueryBuilder(Menu, 'm')
-            .select('m.id AS id')
-            .addSelect('m.name AS name')
-            .addSelect('m.discount_rate AS discountRate')
-            .addSelect('m.selling_price AS sellingPrice')
-            .addSelect('m.description AS description')
-            .addSelect('m.price AS price')
-            .addSelect('m.status AS status')
-            .addSelect('m.menu_picture_url AS menuPictureUrl')
-            .addSelect('m.country_of_origin AS countryOfOrigin')
+            .select('m.id', 'id')
+            .addSelect('m.name', 'name')
+            .addSelect('m.discount_rate', 'discountRate')
+            .addSelect('m.selling_price', 'sellingPrice')
+            .addSelect('m.description', 'description')
+            .addSelect('m.price', 'price')
+            .addSelect('m.status', 'status')
+            .addSelect('m.menu_picture_url', 'menuPictureUrl')
+            .addSelect('m.country_of_origin', 'countryOfOrigin')
             .where('m.store_id = :storeId', { storeId: store.id })
             .andWhere('m.status != :status', { status: MenuStatus.HIDDEN })
             .orderBy(orderBy, 'DESC')
@@ -110,9 +110,9 @@ export class MenusRepository {
             .createQueryBuilder(Menu, 'm')
             .leftJoinAndSelect(Store, 's', 'm.store_id = s.id')
             .leftJoinAndSelect(Seller, 'u', 's.user_id = u.id')
-            .select('m.id AS menuId')
-            .addSelect('s.id AS storeId')
-            .addSelect('u.id AS userId')
+            .select('m.id', 'menuId')
+            .addSelect('s.id', 'storeId')
+            .addSelect('u.id', 'userId')
             .where('m.id = :menuId', { menuId })
             .getRawOne()) as OwnStore;
         return data;

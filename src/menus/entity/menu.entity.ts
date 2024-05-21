@@ -34,7 +34,7 @@ export class Menu extends SoftDeleteEntity<Menu> {
     @Column({ type: 'json', comment: '원산지 표기' })
     countryOfOrigin: { ingredient: string; origin: string }[];
 
-    @Column({ comment: '메뉴 유통기한', nullable: true })
+    @Column({ comment: '메뉴 소비기한' })
     expiredDate: Date;
 
     @Column({ comment: '메뉴에 관한 설명', nullable: true })

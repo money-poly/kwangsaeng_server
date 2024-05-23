@@ -68,6 +68,7 @@ export class MenusController {
         @CurrentUser() user: Seller,
     ) {
         return await this.menusService.findManyForSeller(storeId, user, status);
+    }
 
     @Put('/order/:id')
     @UseGuards(AuthGuard)
@@ -90,7 +91,7 @@ export class MenusController {
     @Put('/status/:id')
     @UseGuards(AuthGuard)
     // TODO 회원 예외처리 및 레이어 분리
-    async updateStatus(@Param('id') menuId: number, @CurrentUser() user: User, @Body() dto: UpdateMenuStatusDto) {
+    async updateStatus(@Param('id') menuId: number, @CurrentUser() user: Seller, @Body() dto: UpdateMenuStatusDto) {
         return await this.menusService.updateStatus(menuId, user, dto);
     }
 

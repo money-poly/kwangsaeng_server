@@ -38,6 +38,7 @@ import {
 import { UpdateMenuCountArgs } from './interface/update-count.interface';
 import { OwnStore } from './interface/own-store.interface';
 import { Seller } from 'src/users/entity/seller.entity';
+import { UsersException } from 'src/global/exception/users-exception';
 
 @Injectable()
 export class MenusService {
@@ -217,7 +218,6 @@ export class MenusService {
             default:
                 throw MenusException.STATUS_NOT_FOUND;
         }
-        const store = await this.storesRepository.findOneStore({ id: storeId });
 
         return queryBuilder.where(where).addOrderBy(orderMenusList, 'DESC').getRawMany();
     }
@@ -241,7 +241,7 @@ export class MenusService {
         return await this.storesRepository.updateOrder(thisStore, newOrder);
     }
 
-    async updateStatus(menuId: number, user: User, dto: UpdateStatusArgs) {
+    async updateStatus(menuId: number, user: Seller, dto: UpdateStatusArgs) {
         const menu = await this.menusRepository.findOne({ id: menuId }, {}, { store: true });
         if (!menu) {
             throw MenusException.ENTITY_NOT_FOUND;

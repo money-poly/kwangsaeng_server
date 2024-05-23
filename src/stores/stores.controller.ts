@@ -3,7 +3,6 @@ import {
     Controller,
     Get,
     Param,
-    ParseIntPipe,
     Patch,
     Post,
     Put,
@@ -13,27 +12,25 @@ import {
     UseGuards,
     UseInterceptors,
 } from '@nestjs/common';
-import { CreateStoreDto } from './dto/create-store.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { SkipThrottle } from '@nestjs/throttler';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { CurrentUser } from 'src/global/decorator/current-user.decorator';
-import { User } from 'src/users/entity/user.entity';
-import { FindStoreWithLocationDto } from './dto/find-store-with-location.dto';
-import { Store } from './entity/store.entity';
-import { CreateStoreValidationPipe } from './pipe/create-store-validation.pipe';
-import { CreateStoreUserValidationPipe } from './pipe/create-store-user-validation.pipe';
-import { OperationGuard } from './guard/operation.guard';
-import { OwnerGuard } from './guard/owner.guard';
-import { UpdateStoreDto } from './dto/update-store.dto';
+import { FindStoreWithLocationDto } from 'src/stores/dto/find-store-with-location.dto';
+import { Store } from 'src/stores/entity/store.entity';
+import { CreateStoreDto } from 'src/stores/dto/create-store.dto';
+import { UpdateStoreDto } from 'src/stores/dto/update-store.dto';
+import { OperationGuard } from 'src/stores/guard/operation.guard';
+import { OwnerGuard } from 'src/stores/guard/owner.guard';
 import { TransformStoreInterceptor } from 'src/global/interceptor/transform-entity.interceptor';
 import { CurrentStore } from 'src/global/decorator/current-store.decorator';
 import { UseEntityTransformer } from 'src/global/decorator/entity-transformer.decorator';
 import { CAUTION_TEXT } from 'src/global/common/caution.constant';
-import { FindStoreDetailDto } from './dto/find-store-detail.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FindStoreDetailDto } from 'src/stores/dto/find-store-detail.dto';
 import { AdminGuard } from 'src/auth/guard/admin.guard';
 import { S3Exception } from 'src/global/exception/s3-exception';
-import { StoresService } from './stores.service';
-import { SkipThrottle } from '@nestjs/throttler';
+import { StoresService } from 'src/stores/stores.service';
+import { Seller } from 'src/users/entity/seller.entity';
 
 @Controller('stores')
 export class StoresController {
@@ -41,10 +38,7 @@ export class StoresController {
 
     @Post()
     @UseGuards(AuthGuard)
-    async create(
-        @CurrentUser(CreateStoreUserValidationPipe) user: User,
-        @Body(CreateStoreValidationPipe) dto: CreateStoreDto,
-    ) {
+    async create(@CurrentUser() user: Seller, @Body() dto: CreateStoreDto) {
         return await this.storesService.createStore(user, dto);
     }
 
@@ -57,7 +51,7 @@ export class StoresController {
     @SkipThrottle()
     @Get('/map/:storeId')
     @UseGuards(OperationGuard)
-    onMapFindOne(@Param('storeId', ParseIntPipe) storeId: number) {
+    async onMapFindOne(@Param('storeId') storeId: number) {
         return this.storesService.onMapFindStore(storeId);
     }
 
@@ -99,12 +93,12 @@ export class StoresController {
 
     @Get('basic/:storeId')
     @UseGuards(AuthGuard, OperationGuard, OwnerGuard)
-    async basicInfo(@Param('storeId', ParseIntPipe) storeId: number) {
+    async basicInfo(@Param('storeId') storeId: number) {
         return await this.storesService.basicInfo(storeId);
     }
 
     @Get('/operation/:id')
-    async checkOperationStatus(@Param('id', ParseIntPipe) storeId: number) {
+    async checkOperationStatus(@Param('id') storeId: number) {
         return await this.storesService.checkApprove(storeId);
     }
 

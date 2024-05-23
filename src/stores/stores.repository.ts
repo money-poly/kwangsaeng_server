@@ -14,12 +14,12 @@ import { StoreDetail } from './entity/store-detail.entity';
 import { StoreApprove } from './entity/store-approve.entity';
 import { BusinessDetail } from './entity/business-detail.entity';
 import { CreateStoreDto } from './dto/create-store.dto';
-import { User } from 'src/users/entity/user.entity';
 import { CategoriesService } from 'src/categories/categories.service';
 import { Category } from 'src/categories/entity/category.entity';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 import { Menu } from 'src/menus/entity/menu.entity';
 import { StoreApproveStatus } from './enum/store-approve-status.enum';
+import { Seller } from 'src/users/entity/seller.entity';
 
 @Injectable()
 export class StoresRepository {
@@ -78,13 +78,13 @@ export class StoresRepository {
         await this.entityManager
             .createQueryBuilder(StoreApprove, 'a')
             .leftJoinAndSelect(Store, 's', 's.id = a.store_id')
-            .select('a.id AS id')
-            .addSelect('a.isApproved As isApproved')
+            .select('a.id', 'id')
+            .addSelect('a.isApproved', 'isApproved')
             .where('a.id = :id', { id: entity.id })
             .getRawMany();
     }
 
-    async createStore(user: User, dto: CreateStoreDto) {
+    async createStore(user: Seller, dto: CreateStoreDto) {
         const categories: Category[] = [];
 
         for (const categoryId of dto.categories) {
@@ -126,15 +126,10 @@ export class StoresRepository {
 
     async processOrderBy(store: Store) {
         const processingOrder = await this.findOrder(store);
-        if (!processingOrder) {
+        if (!processingOrder.length) {
             return null;
         }
-        let orderBy = 'FIELD(m.id, ';
-        while (processingOrder.length > 1) {
-            const menuId = processingOrder.pop();
-            orderBy += menuId + ', ';
-        }
-        orderBy += processingOrder[0] + `)`; // 맨 마지막 id는 콤마를 붙여주면 안되니 별도로 추가
+        const orderBy = `ARRAY_POSITION(ARRAY[${String(processingOrder)}], "m"."id")`;
         return orderBy;
     }
 

@@ -132,7 +132,7 @@ export class CategoriesService {
         return await this.entityManager
             .createQueryBuilder(Category, 'c')
             .leftJoin('store_categories', 'sc', 'c.id = sc.categories_id')
-            .select('c.name AS categoryName')
+            .select('c.name', 'categoryName')
             .where('sc.stores_id = :storeId', { storeId: store.id })
             .getRawMany();
     }

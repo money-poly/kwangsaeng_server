@@ -2,15 +2,15 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { AbstractRepository } from 'src/global/common/abstract.repository';
-import { User } from './entity/user.entity';
+import { Seller } from './entity/seller.entity';
 
 @Injectable()
-export class UsersRepository extends AbstractRepository<User> {
+export class UsersRepository extends AbstractRepository<Seller> {
     protected readonly logger = new Logger(UsersRepository.name);
 
     constructor(
-        @InjectRepository(User)
-        usersRepository: Repository<User>,
+        @InjectRepository(Seller)
+        usersRepository: Repository<Seller>,
         entityManager: EntityManager,
     ) {
         super(usersRepository, entityManager);

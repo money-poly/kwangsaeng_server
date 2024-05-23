@@ -1,11 +1,11 @@
 import { StoresRepository } from 'src/stores/stores.repository';
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { User } from 'src/users/entity/user.entity';
 import { Request } from 'express';
 import { StoresException } from 'src/global/exception/stores-exception';
+import { Seller } from 'src/users/entity/seller.entity';
 
 interface RequestUser extends Request {
-    user: User;
+    user: Seller;
 }
 
 @Injectable()

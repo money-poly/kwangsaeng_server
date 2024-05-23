@@ -42,9 +42,12 @@ export const configGenerator = (env: string): TypeOrmModuleOptions => {
             database: process.env.DATABASE_NAME,
             synchronize: JSON.parse(process.env.DATABASE_SYNC),
             ssl: {
-                ca: readFileSync('src/global/config/certificate/supabase-ca.crt').toString(),
-                rejectUnauthorized: true,
+                rejectUnauthorized: false,
             },
+            // ssl: {
+            //     ca: readFileSync('src/global/config/certificate/supabase-ca.crt').toString(),
+            //     rejectUnauthorized: true,
+            // },
             //entities: [__dirname + '/../**/entity.{js,ts}'],
             entities: [
                 Store,

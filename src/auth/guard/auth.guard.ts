@@ -2,11 +2,11 @@ import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { User } from 'src/users/entity/user.entity';
 import { AuthException } from 'src/global/exception/auth-exception';
+import { Seller } from 'src/users/entity/seller.entity';
 
 interface RequestUser extends Request {
-    user: User;
+    user: Seller;
 }
 
 @Injectable()
@@ -25,7 +25,7 @@ export class AuthGuard implements CanActivate {
             const payload = this.validateToken(token);
             request.user = {
                 ...payload,
-            } as User;
+            } as Seller;
         }
         return true;
     }

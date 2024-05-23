@@ -23,7 +23,7 @@ export class BannersService {
         if (refinedIsVisible) {
             const maxOrder = await this.entityManager
                 .createQueryBuilder(Banner, 'b')
-                .select('b.orders AS orders')
+                .select('b.orders', 'orders')
                 .orderBy('orders', 'DESC')
                 .limit(1)
                 .getRawOne();
@@ -47,7 +47,7 @@ export class BannersService {
     async findAll() {
         const urlList = await this.entityManager
             .createQueryBuilder(Banner, 'b')
-            .select('b.url AS url')
+            .select('b.url', 'url')
             .where('is_visible = :isVisible', { isVisible: 1 })
             .orderBy('orders', 'ASC')
             .getRawMany();

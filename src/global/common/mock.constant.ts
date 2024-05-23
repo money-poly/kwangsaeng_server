@@ -1,6 +1,6 @@
 import { MenuStatus } from 'src/menus/enum/menu-status.enum';
 import { CreateStoreDto } from 'src/stores/dto/create-store.dto';
-import { User } from 'src/users/entity/user.entity';
+import { Seller } from 'src/users/entity/seller.entity';
 import { Roles } from 'src/users/enum/roles.enum';
 
 export const mockStores: CreateStoreDto[] = [
@@ -89,32 +89,32 @@ export const mockStores: CreateStoreDto[] = [
     },
 ];
 
-export const mockOwners: User[] = [
-    new User({
+export const mockOwners: Seller[] = [
+    new Seller({
         fId: 'IEY494xKjTS7CkxSn9MIIT9LZ0B2',
         name: '유정미',
         role: Roles.OWNER,
         phone: '010-2557-3333',
     }),
-    new User({
+    new Seller({
         fId: 'TZ3zKZC2NXMSb0T0TUujxeZVVRd2',
         name: '강태현',
         role: Roles.OWNER,
         phone: '010-8878-9669',
     }),
-    new User({
+    new Seller({
         fId: 'ipCQpH0aOkNUkLLbjhZlMv4XPwF3',
         name: '김영숙',
         role: Roles.OWNER,
         phone: '010-7787-3365',
     }),
-    new User({
+    new Seller({
         fId: 'Do0OYiAFpBbdETfdOwLM2PBHFD43',
         name: '양철환',
         role: Roles.OWNER,
         phone: '010-1357-6637',
     }),
-    new User({
+    new Seller({
         fId: '9OSbqXCX7Mhq8OZS1r9ctxNKe6y2',
         name: '강복자',
         role: Roles.OWNER,

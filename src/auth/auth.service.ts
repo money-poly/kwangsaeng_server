@@ -1,8 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { DataSource } from 'typeorm';
-
-import { User } from 'src/users/entity/user.entity';
 import { Token } from 'src/auth/entity/token.entity';
 import { TokensModel } from './model/auth.model';
 import { TokensRepository } from './auth.repository';
@@ -13,6 +11,7 @@ import { SignUpDto } from './dto/sign-up.dto';
 import { ReissueTokensDto } from './dto/reissue-token.dto';
 import { SignInDto } from './dto/sign-in.dto';
 import { UsersException } from 'src/global/exception/users-exception';
+import { Seller } from 'src/users/entity/seller.entity';
 
 @Injectable()
 export class AuthService {
@@ -25,14 +24,14 @@ export class AuthService {
     ) {}
 
     public async signUpAndIssueTokens(role: Roles, dto: SignUpDto): Promise<TokensModel> {
-        let userEntity = new User({ ...dto, role });
+        let userEntity = new Seller({ ...dto, role });
         let tokenEntity = new Token({ fId: dto.fId, refreshToken: null });
 
         const queryRunner = this.dataSource.createQueryRunner();
         try {
             await queryRunner.connect();
             await queryRunner.startTransaction();
-            await queryRunner.manager.getRepository(User).save(userEntity);
+            await queryRunner.manager.getRepository(Seller).save(userEntity);
             await queryRunner.manager.getRepository(Token).save(tokenEntity);
             await queryRunner.commitTransaction();
         } catch (e) {
@@ -94,7 +93,7 @@ export class AuthService {
         return id;
     };
 
-    private validateUserByfId = async (id: string): Promise<User> => {
+    private validateUserByfId = async (id: string): Promise<Seller> => {
         const user = await this.usersRepository.findOne({ fId: id });
         if (!user) throw UsersException.NOT_EXIST_USER;
         return user;

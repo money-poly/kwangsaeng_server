@@ -45,6 +45,7 @@
         "multer-s3": "^3.0.1",
         "mysql2": "^3.6.2",
         "nest-winston": "^1.9.4",
+        "pg": "^8.11.5",
         "reflect-metadata": "^0.1.13",
         "rxjs": "^7.8.1",
         "ts-jenum": "^2.2.2",

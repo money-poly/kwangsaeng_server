@@ -1,27 +1,27 @@
 import { EntityManager, FindManyOptions, FindOptionsRelations, FindOptionsSelect, FindOptionsWhere } from 'typeorm';
-import { UsersRepository } from './../users/users.repository';
 import { Injectable } from '@nestjs/common';
-import { StoresRepository } from './stores.repository';
-import { Store } from './entity/store.entity';
-import { User } from 'src/users/entity/user.entity';
 import { StoresException } from 'src/global/exception/stores-exception';
-import { Menu } from 'src/menus/entity/menu.entity';
-import { CreateStoreDto } from './dto/create-store.dto';
-import { StoreDetail } from './entity/store-detail.entity';
-import { FindStoreWithLocationDto } from './dto/find-store-with-location.dto';
-import { StoreApprove } from './entity/store-approve.entity';
-import { StoreStatus } from './enum/store-status.enum';
-import { UpdateStoreDto } from './dto/update-store.dto';
-import { FindStoreDetailDto } from './dto/find-store-detail.dto';
-import { StoreApproveStatus } from './enum/store-approve-status.enum';
-import { TagsService } from 'src/tags/tags.service';
 import { TagException } from 'src/global/exception/tag-exception';
 import { mockOwners, mockStores } from 'src/global/common/mock.constant';
-import { CategoriesService } from 'src/categories/categories.service';
-import { MenusService } from 'src/menus/menus.service';
-import { FindOneStoreReturnValue } from './interfaces/find-one-store-return-value.interface';
 import { CategoriesException } from 'src/global/exception/categories-exception';
+import { UsersRepository } from 'src/users/users.repository';
+import { Seller } from 'src/users/entity/seller.entity';
+import { StoresRepository } from 'src/stores/stores.repository';
+import { Store } from 'src/stores/entity/store.entity';
+import { CreateStoreDto } from 'src/stores/dto/create-store.dto';
+import { StoreDetail } from 'src/stores/entity/store-detail.entity';
+import { FindStoreWithLocationDto } from 'src/stores/dto/find-store-with-location.dto';
+import { StoreApprove } from 'src/stores/entity/store-approve.entity';
+import { StoreStatus } from 'src/stores/enum/store-status.enum';
+import { UpdateStoreDto } from 'src/stores/dto/update-store.dto';
+import { FindStoreDetailDto } from 'src/stores/dto/find-store-detail.dto';
+import { StoreApproveStatus } from 'src/stores/enum/store-approve-status.enum';
+import { FindOneStoreReturnValue } from 'src/stores/interfaces/find-one-store-return-value.interface';
+import { Menu } from 'src/menus/entity/menu.entity';
+import { MenusService } from 'src/menus/menus.service';
 import { MenuStatus } from 'src/menus/enum/menu-status.enum';
+import { TagsService } from 'src/tags/tags.service';
+import { CategoriesService } from 'src/categories/categories.service';
 
 @Injectable()
 export class StoresService {
@@ -38,7 +38,7 @@ export class StoresService {
         return await this.storesRepository.existStore(where);
     }
 
-    async createStore(user: User, dto: CreateStoreDto) {
+    async createStore(user: Seller, dto: CreateStoreDto) {
         return await this.storesRepository.createStore(user, dto);
     }
 
@@ -186,12 +186,14 @@ export class StoresService {
             .createQueryBuilder(Store, 's')
             .leftJoinAndSelect(StoreDetail, 'sd', 'sd.store_id = s.id')
             .leftJoinAndSelect(Menu, 'm', 'm.store_id = s.id')
-            .select('s.name AS name')
-            .addSelect('sd.store_picture_url AS storePictureUrl')
-            .addSelect('sd.description AS description')
-            .addSelect('IFNULL(MAX(m.discount_rate), 0) maxDiscount')
+            .select('s.name', 'name')
+            .addSelect('sd.store_picture_url', 'storePictureUrl')
+            .addSelect('sd.description', 'description')
+            .addSelect('COALESCE(MAX(m.discount_rate), 0)', 'maxDiscount')
             .where('s.id = :storeId', { storeId })
             .andWhere('m.status = :status', { status: MenuStatus.SALE })
+            .groupBy('s.id')
+            .addGroupBy('sd.id')
             .getRawOne();
 
         return qb;
@@ -259,15 +261,14 @@ export class StoresService {
             .createQueryBuilder(Store, 'stores')
             .leftJoinAndSelect(StoreDetail, 'd', 'stores.id = d.store_id')
             .leftJoinAndSelect(StoreApprove, 'a', 'stores.id = a.store_id')
-            .select('stores.id AS id')
-            .addSelect('name')
-            .addSelect('CAST(d.lat AS FLOAT) AS lat')
-            .addSelect('CAST(d.lon AS FLOAT) AS lon')
-            .where('ST_Distance_Sphere(POINT(:lon, :lat), POINT(lon, lat)) <= :range', {
-                lon: dto.lon,
-                lat: dto.lat,
-                range: dto.range,
-            })
+            .select('stores.id', 'id')
+            .addSelect('name', 'name')
+            .addSelect('CAST(d.lat AS FLOAT)', 'lat')
+            .addSelect('CAST(d.lon AS FLOAT)', 'lon')
+            .where(
+                'ST_DWithin(ST_SetSRID(ST_MakePoint(lon, lat), 4326), ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326), :range)',
+                { longitude: dto.lon, latitude: dto.lat, range: dto.range },
+            )
             .andWhere('stores.status = :openStatus', { openStatus: StoreStatus.OPEN })
             .andWhere('a.isApproved = :approveStatus', { approveStatus: StoreApproveStatus.DONE })
             .getRawMany();
@@ -276,14 +277,14 @@ export class StoresService {
     async findStoreUsingToken(userId: number) {
         return await this.entityManager
             .createQueryBuilder(Store, 's')
-            .leftJoinAndSelect(User, 'u', 's.user_id = u.id')
-            .select('s.id AS id')
+            .leftJoinAndSelect(Seller, 'u', 's.user_id = u.id')
+            .select('s.id', 'id')
             .where('u.id = :userId', { userId })
             .getRawMany();
     }
 
     async initMockStores() {
-        const owners: User[] = mockOwners;
+        const owners: Seller[] = mockOwners;
 
         const isExist = await this.usersRepository.exist({
             name: owners[owners.length - 1].name,

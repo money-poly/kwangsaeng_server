@@ -198,6 +198,7 @@ export class MenusService {
             .addSelect('m.count', 'count');
 
         let where = 'm.store_id = ' + store.id;
+
         switch (status) {
             case undefined: // status가 비어있는경우 -> 메뉴 전체 조회
                 queryBuilder.orderBy(
@@ -216,6 +217,7 @@ export class MenusService {
             default:
                 throw MenusException.STATUS_NOT_FOUND;
         }
+        const store = await this.storesRepository.findOneStore({ id: storeId });
 
         return queryBuilder.where(where).addOrderBy(orderMenusList, 'DESC').getRawMany();
     }
@@ -239,7 +241,22 @@ export class MenusService {
         return await this.storesRepository.updateOrder(thisStore, newOrder);
     }
 
-    async updateStatus(menu: Menu, dto: UpdateStatusArgs) {
+    async updateStatus(menuId: number, user: User, dto: UpdateStatusArgs) {
+        const menu = await this.menusRepository.findOne({ id: menuId }, {}, { store: true });
+        if (!menu) {
+            throw MenusException.ENTITY_NOT_FOUND;
+        }
+        const store = await this.storesRepository.findOneStore({ id: menu.store.id }, {}, { user: true });
+        if (!store) {
+            throw StoresException.ENTITY_NOT_FOUND;
+        }
+        const ownerUser = await store.user;
+        if (!ownerUser) {
+            throw UsersException.NOT_EXIST_USER;
+        }
+        if (user.id !== ownerUser.id) {
+            throw MenusException.HAS_NO_PERMISSION_UPDATE;
+        }
         // 숨김 -> 품절 혹은 반대시 == order변동 x
         const { prevStatus, updateStatus } = dto;
         if (

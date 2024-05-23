@@ -18,8 +18,6 @@ import { CurrentUser } from 'src/global/decorator/current-user.decorator';
 import { CreateMenuDto } from './dto/create-menu.dto';
 import { UpdateMenuDto } from './dto/update-menu.dto';
 import { ModifyMenuValidationPipe } from './pipe/modify-menu-validation.pipe';
-import { TransformMenuPipe } from './pipe/transform-menu.pipe';
-import { Menu } from './entity/menu.entity';
 import { FindOneMenuDetailDto } from './dto/find-one-menu.dto';
 import { UpdateMenuOrderDto } from './dto/update-order.dto';
 import { FindAsLocationDto } from './dto/find-as-loaction.dto';
@@ -70,7 +68,6 @@ export class MenusController {
         @CurrentUser() user: Seller,
     ) {
         return await this.menusService.findManyForSeller(storeId, user, status);
-    }
 
     @Put('/order/:id')
     @UseGuards(AuthGuard)
@@ -93,8 +90,8 @@ export class MenusController {
     @Put('/status/:id')
     @UseGuards(AuthGuard)
     // TODO 회원 예외처리 및 레이어 분리
-    async updateStatus(@Param('id', TransformMenuPipe) menu: Menu, @Body() dto: UpdateMenuStatusDto) {
-        return await this.menusService.updateStatus(menu, dto);
+    async updateStatus(@Param('id') menuId: number, @CurrentUser() user: User, @Body() dto: UpdateMenuStatusDto) {
+        return await this.menusService.updateStatus(menuId, user, dto);
     }
 
     @Post('upload/:storeId')

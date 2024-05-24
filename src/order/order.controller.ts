@@ -5,7 +5,8 @@ import { Redis } from 'ioredis';
 
 @Controller('order')
 export class OrderController {
-    constructor(private readonly orderService: OrderService,
+    constructor(
+        private readonly orderService: OrderService,
         @InjectRedis() private readonly redis: Redis,
     ) {}
 

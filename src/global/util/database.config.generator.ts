@@ -1,5 +1,4 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { readFileSync } from 'fs';
 import { Token } from 'src/auth/entity/token.entity';
 import { Banner } from 'src/banners/entity/banner.entity';
 import { Category } from 'src/categories/entity/category.entity';
@@ -42,12 +41,9 @@ export const configGenerator = (env: string): TypeOrmModuleOptions => {
             database: process.env.DATABASE_NAME,
             synchronize: JSON.parse(process.env.DATABASE_SYNC),
             ssl: {
-                rejectUnauthorized: false,
+                ca: Buffer.from(process.env.DATABASE_CRT, 'base64').toString(),
+                rejectUnauthorized: true,
             },
-            // ssl: {
-            //     ca: readFileSync('src/global/config/certificate/supabase-ca.crt').toString(),
-            //     rejectUnauthorized: true,
-            // },
             //entities: [__dirname + '/../**/entity.{js,ts}'],
             entities: [
                 Store,

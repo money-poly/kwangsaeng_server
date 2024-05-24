@@ -41,6 +41,7 @@ export const configGenerator = (env: string): TypeOrmModuleOptions => {
             database: process.env.DATABASE_NAME,
             synchronize: JSON.parse(process.env.DATABASE_SYNC),
             ssl: {
+                // Base63로 인코딩되어있는 CRT 디코딩
                 ca: Buffer.from(process.env.DATABASE_CRT, 'base64').toString(),
                 rejectUnauthorized: true,
             },

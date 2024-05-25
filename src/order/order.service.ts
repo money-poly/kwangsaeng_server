@@ -29,14 +29,13 @@ export class OrderService {
         const locks: Lock[] = [];
 
         try {
-            // Step 1: Acquire locks for all menu items
+            // Step 1: 모든 메뉴 항목에 대한 잠금 획득
             for (const item of order.orders) {
-                const lockKey = `order:<span class="math-inline">\{order\.id\}\:menu\:</span>{item.menuId}`; // 사용자 정의 락 키 이름
-                const lock = await this.redlock.acquire([lockKey], 10000); // 락 만료 시간 설정
+                const lock = await this.redlock.acquire([`lock:${item.menuId}:id`], 1000);
                 locks.push(lock);
             }
 
-            // Step 2: Check stock and update if sufficient
+            // Step 2: 재고 확인 및 충분한 경우 업데이트
             for (const item of order.orders) {
                 const stockKey = `menu:${item.menuId}:id`;
                 const stockQuantity = await this.redis.get(stockKey);
@@ -51,16 +50,9 @@ export class OrderService {
                 }
             }
 
-            // Step 3: If any menu item has insufficient stock, release locks and return response
+            // Step 3: 메뉴 항목에 재고가 부족한 경우 잠금 해제 및 반품 응답
             if (insufficientStock.length > 0) {
-                for (const lock of locks) {
-                    try {
-                        // Lock 객체의 release() 메서드를 호출하여 락을 해제
-                        await lock.release();
-                    } catch (unlockError) {
-                        console.error('Failed to release lock:', unlockError);
-                    }
-                }
+                throw new HttpException('주문 처리 중 오류가 발생했습니다.', HttpStatus.INTERNAL_SERVER_ERROR);
                 return {
                     success: true,
                     message: '재고가 부족한 메뉴가 있습니다 !',
@@ -68,9 +60,14 @@ export class OrderService {
                 };
             }
 
-            // Step 4: Update stock in MySQL first
+            // Step 4: Update stock in MySQL and Redis
             for (const item of order.orders) {
+                // Update stock in MySQL
                 await this.menuRepository.decrement({ id: item.menuId }, 'count', item.quantity);
+
+                // Update stock in Redis
+                const stockKey = `menu:${item.menuId}:id`;
+                await this.redis.decrby(stockKey, item.quantity);
             }
 
             return {
@@ -80,7 +77,7 @@ export class OrderService {
         } catch (error) {
             throw new HttpException('주문 처리 중 오류가 발생했습니다.', HttpStatus.INTERNAL_SERVER_ERROR);
         } finally {
-            // Step 5: Release all acquired locks
+            // Step 5: 획득한 모든 잠금 해제
             for (const lock of locks) {
                 try {
                     // Lock 객체의 release() 메서드를 호출하여 락을 해제

@@ -2,7 +2,9 @@ import { InjectRedis } from '@nestjs-modules/ioredis';
 import { Body, Controller, Get, Patch } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { Redis } from 'ioredis';
+import { SkipThrottle } from '@nestjs/throttler';
 
+@SkipThrottle()
 @Controller('order')
 export class OrderController {
     constructor(
@@ -12,8 +14,16 @@ export class OrderController {
 
     @Patch()
     async createOrder(@Body() orderRequest: { phone: string; orders: { menuId: number; quantity: number }[] }) {
+        console.log(orderRequest.phone);
+
         const response = await this.orderService.checkStockAndLock({ orders: orderRequest.orders });
         return response;
+    }
+    @Patch('/test')
+    async jmeterTestr(@Body() orderRequest) {
+        console.log(orderRequest);
+
+        return orderRequest;
     }
 
     @Get()

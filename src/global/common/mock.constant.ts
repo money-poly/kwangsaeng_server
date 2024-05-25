@@ -489,3 +489,6 @@ export const mockMenuPictureUrl = [
         'https://postfiles.pstatic.net/MjAyNDAxMjJfMTAw/MDAxNzA1OTE5NTA2MjQx.x0PE2NyRwZoYnY0N83BiGkji7eA0tWuBS5Gi2zjaaewg.8pOEr40pox5KYuWkOV6zw2tpNV0RvAieKBfx8TuERNQg.JPEG.sdg612/spaghetti-781795_1920.jpg?type=w966',
     ],
 ];
+
+export const mockCategorySuperNames = ['가게 대분류', '메뉴 대분류'];
+export const mockCategorySubNames = ['한식', '중식', '일식', '양식', '분식', '카페', '디저트'];

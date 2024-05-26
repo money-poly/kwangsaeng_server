@@ -11,7 +11,7 @@ export const mockStores: CreateStoreDto[] = [
         addressDetail: null,
         openedDate: '20230103',
         businessNum: '323-65-58233',
-        categories: [4],
+        categories: [7],
         cookingTime: 15,
         operationTimes: {
             startedAt: '07:00',
@@ -61,7 +61,7 @@ export const mockStores: CreateStoreDto[] = [
         addressDetail: null,
         openedDate: '20231031',
         businessNum: '1207-46-99855',
-        categories: [7],
+        categories: [3, 7],
         cookingTime: 25,
         operationTimes: {
             startedAt: '09:00',
@@ -77,7 +77,7 @@ export const mockStores: CreateStoreDto[] = [
         address: '서울특별시 노원구 광운로2길 47-13',
         businessNum: '882-99-33215',
         openedDate: '20240301',
-        categories: [4],
+        categories: [5],
         cookingTime: 15,
         operationTimes: {
             startedAt: '10:00',

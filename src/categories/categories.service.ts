@@ -5,8 +5,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CategoriesException } from 'src/global/exception/categories-exception';
 import { CreateSuperCategoryDto } from './dto/create-super-category.dto';
 import { CreateSubCategoryDto } from './dto/create-sub-category.dto';
-import { subNames, superNames } from './categories.constants';
 import { Store } from 'src/stores/entity/store.entity';
+import { mockCategorySubNames, mockCategorySuperNames } from 'src/global/common/mock.constant';
 
 @Injectable()
 export class CategoriesService {
@@ -90,13 +90,13 @@ export class CategoriesService {
 
     async initSuperCategories() {
         const exist = await this.exist({
-            name: superNames[superNames.length - 1],
+            name: mockCategorySuperNames[mockCategorySuperNames.length - 1],
         });
 
         const supers: Category[] = [];
 
         if (!exist) {
-            for (const name of superNames) {
+            for (const name of mockCategorySuperNames) {
                 const superCategory = await this.categoriesRepository.save({
                     name,
                 });
@@ -110,11 +110,11 @@ export class CategoriesService {
 
     async initSubCategories(supers: Category[]) {
         const exist = await this.exist({
-            name: subNames[subNames.length - 1],
+            name: mockCategorySubNames[mockCategorySubNames.length - 1],
         });
 
         if (!exist) {
-            for (const name of subNames) {
+            for (const name of mockCategorySubNames) {
                 await this.categoriesRepository.save({
                     name,
                     super: supers[0],

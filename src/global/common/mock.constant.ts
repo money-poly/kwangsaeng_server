@@ -11,7 +11,7 @@ export const mockStores: CreateStoreDto[] = [
         addressDetail: null,
         openedDate: '20230103',
         businessNum: '323-65-58233',
-        categories: [4],
+        categories: [7],
         cookingTime: 15,
         operationTimes: {
             startedAt: '07:00',
@@ -61,7 +61,7 @@ export const mockStores: CreateStoreDto[] = [
         addressDetail: null,
         openedDate: '20231031',
         businessNum: '1207-46-99855',
-        categories: [7],
+        categories: [3, 7],
         cookingTime: 25,
         operationTimes: {
             startedAt: '09:00',
@@ -77,7 +77,7 @@ export const mockStores: CreateStoreDto[] = [
         address: '서울특별시 노원구 광운로2길 47-13',
         businessNum: '882-99-33215',
         openedDate: '20240301',
-        categories: [4],
+        categories: [5],
         cookingTime: 15,
         operationTimes: {
             startedAt: '10:00',
@@ -489,3 +489,6 @@ export const mockMenuPictureUrl = [
         'https://postfiles.pstatic.net/MjAyNDAxMjJfMTAw/MDAxNzA1OTE5NTA2MjQx.x0PE2NyRwZoYnY0N83BiGkji7eA0tWuBS5Gi2zjaaewg.8pOEr40pox5KYuWkOV6zw2tpNV0RvAieKBfx8TuERNQg.JPEG.sdg612/spaghetti-781795_1920.jpg?type=w966',
     ],
 ];
+
+export const mockCategorySuperNames = ['가게 대분류', '메뉴 대분류'];
+export const mockCategorySubNames = ['한식', '중식', '일식', '양식', '분식', '카페', '디저트'];

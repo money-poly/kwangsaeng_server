@@ -84,11 +84,11 @@ export class OrderService {
             const stockInt = parseInt(stockQuantity, 10);
             redisRollbackData.push({ key: stockKey, value: stockInt }); // 현재 상태를 저장
             // if (item.menuId === 3) {
-            //     //  트랜잭션 테스트
-            //     throw new Error('인위적으로 발생시킨 예외');
+            //     throw new Error('인위적으로 발생시킨 예외'); //  트랜잭션 테스트
             // }
 
             if (item.quantity > stockInt) {
+                // throw new Error('재고 수량이 부족합니다 !!!');  // jmeter 부하테스트  가독성
                 insufficientStock.push({
                     menuId: item.menuId,
                     requestedQuantity: item.quantity,

@@ -15,10 +15,7 @@ export class OrderController {
 
     @Patch()
     async createOrder(@Body() orderRequest: OrderMenuDto) {
-        console.log(orderRequest);
-
-        const response = await this.orderService.checkStockAndLock(orderRequest);
-        return response;
+        return await this.orderService.checkStockAndLock(orderRequest);
     }
 
     @Patch('/test')

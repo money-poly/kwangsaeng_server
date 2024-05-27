@@ -26,25 +26,29 @@ export class OrderService {
 
     async checkStockAndLock(order: OrderMenuDto) {
         const queryRunner = this.dataSource.createQueryRunner();
-        const locks: Lock[] = [];
-        const redisRollbackData: { key: string; value: number }[] = [];
+        const locks: Lock[] = []; // 잠금 획들한 데이터
+        const redisRollbackData: { key: string; value: number }[] = []; // Redis 롤백 데이터
 
         try {
             await queryRunner.connect();
             await queryRunner.startTransaction();
+            // Step 1: 모든 메뉴 항목에 대한 잠금 획득
             await this.acquireLocks(order, locks);
+            // Step 2: 재고 확인 및 충분하지 않은 항목 insufficientStock에 저장
             const insufficientStock = await this.checkStock(order, redisRollbackData);
 
+            // Step 3: 메뉴 항목에 재고가 부족한 경우 부족한 재료 메뉴들 응답
             if (insufficientStock.length > 0) {
                 return insufficientStock;
             }
-
+            // Step 4: 재고가 충분할 시 MySQL 및 Redis의 재고 업데이트
             await this.updateStock(order, queryRunner, redisRollbackData);
             await queryRunner.commitTransaction();
             return;
         } catch (e) {
             await queryRunner.rollbackTransaction();
-            await this.rollbackRedis(redisRollbackData);
+
+            await this.rollbackRedis(redisRollbackData); // Redis 상태 롤백
 
             this.logger.error(e);
             if (e instanceof CommonException) {
@@ -52,6 +56,7 @@ export class OrderService {
             }
             throw OrderExceotion.FAIL_ORDER_TRANSACTION;
         } finally {
+            // Step 5: 획득한 모든 잠금 해제
             await this.releaseLocks(locks);
             await queryRunner.release();
         }
@@ -77,7 +82,11 @@ export class OrderService {
                 throw OrderExceotion.REDIS_NOT_FOUND;
             }
             const stockInt = parseInt(stockQuantity, 10);
-            redisRollbackData.push({ key: stockKey, value: stockInt });
+            redisRollbackData.push({ key: stockKey, value: stockInt }); // 현재 상태를 저장
+            // if (item.menuId === 3) {
+            //     //  트랜잭션 테스트
+            //     throw new Error('인위적으로 발생시킨 예외');
+            // }
 
             if (item.quantity > stockInt) {
                 insufficientStock.push({

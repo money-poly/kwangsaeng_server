@@ -44,7 +44,7 @@ export class OrderService {
             // Step 4: 재고가 충분할 시 MySQL 및 Redis의 재고 업데이트
             await this.updateStock(order, queryRunner, redisRollbackData);
             await queryRunner.commitTransaction();
-            return;
+            return { orderId: this.generateOrderId() };
         } catch (e) {
             await queryRunner.rollbackTransaction();
 
@@ -60,6 +60,13 @@ export class OrderService {
             await this.releaseLocks(locks);
             await queryRunner.release();
         }
+    }
+    private generateOrderId(): string {
+        const digits = Array.from({ length: 5 }, () => Math.floor(Math.random() * 10)).join('');
+        const letters = Array.from({ length: 3 }, () => String.fromCharCode(65 + Math.floor(Math.random() * 26))).join(
+            '',
+        );
+        return digits + letters;
     }
 
     // Step 1: 모든 메뉴 항목에 대한 잠금 획득

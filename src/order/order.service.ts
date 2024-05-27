@@ -8,6 +8,7 @@ import { InjectRedis } from '@nestjs-modules/ioredis';
 import { OrderMenuDto } from './dto/order-menu.dto';
 
 import { OrderExceotion } from 'src/global/exception/order-exceptoin';
+import { CommonException } from 'src/global/exception/common-exception';
 
 @Injectable()
 export class OrderService {
@@ -20,17 +21,14 @@ export class OrderService {
         @InjectRedis() private readonly redis: Redis,
     ) {
         this.redlock = new Redlock([redis], {
-            driftFactor: 0.01, // 드리프트 요인
             retryCount: 10, // 재시도 횟수
             retryDelay: 200, // 재시도 지연 (밀리초)
-            retryJitter: 200, // 재시도 지터 (밀리초)
-            automaticExtensionThreshold: 500, // 자동 확장 임계값 (밀리초)
         });
     }
 
     async checkStockAndLock(order: OrderMenuDto) {
-        const insufficientStock = [];
-        const locks: Lock[] = [];
+        const insufficientStock = []; //수량 부족한 메뉴 데이터
+        const locks: Lock[] = []; // 잠금 획들한 데이터
 
         try {
             // Step 1: 모든 메뉴 항목에 대한 잠금 획득
@@ -43,7 +41,10 @@ export class OrderService {
             for (const item of order.orders) {
                 const stockKey = `menu:${item.menuId}:id`;
                 const stockQuantity = await this.redis.get(stockKey);
-                const stockInt = stockQuantity ? parseInt(stockQuantity, 10) : 0;
+                if (stockQuantity === null) {
+                    throw OrderExceotion.REDIS_NOT_FOUND;
+                }
+                const stockInt = parseInt(stockQuantity, 10);
 
                 if (item.quantity > stockInt) {
                     insufficientStock.push({
@@ -70,6 +71,9 @@ export class OrderService {
             return;
         } catch (e) {
             this.logger.error(e);
+            if (e instanceof CommonException) {
+                throw e; // CommonException 타입의 예외는 그대로 던집니다.
+            }
             throw OrderExceotion.FAIL_ORDER_MENU;
         } finally {
             // Step 5: 획득한 모든 잠금 해제

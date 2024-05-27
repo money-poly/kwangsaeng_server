@@ -62,6 +62,7 @@ export class OrderService {
         }
     }
 
+    // Step 1: 모든 메뉴 항목에 대한 잠금 획득
     private async acquireLocks(order: OrderMenuDto, locks: Lock[]): Promise<void> {
         for (const item of order.orders) {
             const lock = await this.redlock.acquire([`lock:${item.menuId}:id`], 1000);
@@ -69,6 +70,7 @@ export class OrderService {
         }
     }
 
+    // Step 2: 재고 확인 및 충분하지 않은 항목 insufficientStock에 저장
     private async checkStock(
         order: OrderMenuDto,
         redisRollbackData: { key: string; value: number }[],
@@ -100,6 +102,7 @@ export class OrderService {
         return insufficientStock;
     }
 
+    // Step 4: 재고가 충분할 시 MySQL 및 Redis의 재고 업데이트
     private async updateStock(
         order: OrderMenuDto,
         queryRunner: QueryRunner,
@@ -120,7 +123,7 @@ export class OrderService {
             await this.redis.set(item.key, item.value.toString());
         }
     }
-
+    // Step 5: 획득한 모든 잠금 해제
     private async releaseLocks(locks: Lock[]): Promise<void> {
         for (const lock of locks) {
             try {

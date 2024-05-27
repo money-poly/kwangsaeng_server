@@ -13,7 +13,7 @@ export class Franchise extends WithoutTimestampEntity<Franchise> {
     @Column({ comment: '글자로고' })
     wordMark: string;
 
-    @OneToMany(() => Store, (store) => store.franchise, { onDelete: 'CASCADE', nullable: true })
+    @OneToMany(() => Store, (store) => store.franchise)
     @JoinColumn()
     store: Store[];
 }

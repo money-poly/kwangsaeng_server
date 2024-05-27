@@ -29,7 +29,7 @@ describe('OrderController', () => {
     });
 
     describe('createOrder컨트롤러 테스트', () => {
-        it(' OrderService.checkStockAndLock잘 호출하는지 테스트', async () => {
+        it(' OrderService.checkStockAndLock 잘 호출하는지 테스트', async () => {
             const orderRequest: OrderMenuDto = {
                 orders: [
                     { menuId: 1, quantity: 3 },

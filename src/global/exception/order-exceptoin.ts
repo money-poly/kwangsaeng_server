@@ -2,8 +2,8 @@ import { HttpStatus } from '@nestjs/common';
 import { CommonException } from './common-exception';
 
 export abstract class OrderExceotion {
-    static FAIL_ORDER_MENU = new CommonException(
-        '주문 요청 오류 : 주문 요청 중에 오류가 발생했습니다.',
+    static FAIL_ORDER_TRANSACTION = new CommonException(
+        '주문 요청 오류 : 주문 요청 트랜잭션 중 오류가 발생했습니다.',
         12001,
         HttpStatus.INTERNAL_SERVER_ERROR,
     );

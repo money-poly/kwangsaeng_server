@@ -79,22 +79,44 @@ describe('OrderService', () => {
     describe('checkStock ', () => {
         it('수량이 충분하지 않으면 재고 부족목록을 반환하는지 테스트 ', async () => {
             const orderRequest: OrderMenuDto = {
-                orders: [{ menuId: 1, quantity: 10 }],
+                orders: [
+                    { menuId: 1, quantity: 3 },
+                    { menuId: 2, quantity: 2 },
+                    { menuId: 3, quantity: 3 },
+                ],
             };
 
-            (redisMock.get as jest.Mock).mockResolvedValue('5');
+            // Redis mock 설정
+            (redisMock.get as jest.Mock).mockImplementation((key: string) => {
+                if (key === 'menu:1:id') return Promise.resolve('5');
+                if (key === 'menu:2:id') return Promise.resolve('1'); // 재고 부족
+                if (key === 'menu:3:id') return Promise.resolve('5');
+                return Promise.resolve(null);
+            });
+
             const redisRollbackData = [];
             const result = await service['checkStock'](orderRequest, redisRollbackData);
 
-            expect(result).toEqual([{ menuId: 1, requestedQuantity: 10, stockQuantity: 5 }]);
+            expect(result).toEqual([{ menuId: 2, requestedQuantity: 2, stockQuantity: 1 }]);
         });
 
         it('재고가 Redis에서 찾을 수 없는 경우 REDIS_NOT_FOUND를 발생하는지 테스트 ', async () => {
             const orderRequest: OrderMenuDto = {
-                orders: [{ menuId: 1, quantity: 1 }],
+                orders: [
+                    { menuId: 1, quantity: 3 },
+                    { menuId: 2, quantity: 2 },
+                    { menuId: 3, quantity: 3 },
+                ],
             };
 
-            (redisMock.get as jest.Mock).mockResolvedValue(null);
+            // Redis mock 설정
+            (redisMock.get as jest.Mock).mockImplementation((key: string) => {
+                if (key === 'menu:1:id') return Promise.resolve('10');
+                if (key === 'menu:2:id') return Promise.resolve('11');
+                if (key === 'menu:3:id') return Promise.resolve(null); // Redis에 menu정보가 없음
+                return Promise.resolve(null);
+            });
+
             const redisRollbackData = [];
 
             await expect(service['checkStock'](orderRequest, redisRollbackData)).rejects.toThrow(
@@ -106,26 +128,44 @@ describe('OrderService', () => {
     describe('updateStock ', () => {
         it('MySQL과 Redis에서 재고를 업데이트하는지 테스트', async () => {
             const orderRequest: OrderMenuDto = {
-                orders: [{ menuId: 1, quantity: 3 }],
+                orders: [
+                    { menuId: 1, quantity: 3 },
+                    { menuId: 2, quantity: 2 },
+                    { menuId: 3, quantity: 3 },
+                ],
             };
 
             const redisRollbackData = [];
-            (redisMock.get as jest.Mock).mockResolvedValue('10');
+            (redisMock.get as jest.Mock).mockImplementation((key: string) => {
+                if (key === 'menu:1:id') return Promise.resolve('10');
+                if (key === 'menu:2:id') return Promise.resolve('11');
+                if (key === 'menu:3:id') return Promise.resolve('10');
+                return Promise.resolve(null);
+            });
 
             await service['updateStock'](orderRequest, queryRunnerMock, redisRollbackData);
 
             expect(queryRunnerMock.manager.decrement).toHaveBeenCalledWith(Menu, { id: 1 }, 'count', 3);
+            expect(queryRunnerMock.manager.decrement).toHaveBeenCalledWith(Menu, { id: 2 }, 'count', 2);
+            expect(queryRunnerMock.manager.decrement).toHaveBeenCalledWith(Menu, { id: 3 }, 'count', 3);
             expect(redisMock.decrby).toHaveBeenCalledWith('menu:1:id', 3);
+            expect(redisMock.decrby).toHaveBeenCalledWith('menu:2:id', 2);
+            expect(redisMock.decrby).toHaveBeenCalledWith('menu:3:id', 3);
         });
     });
-
     describe('rollbackRedis', () => {
         it('Redis 데이터를 원래 상태로 롤백하는지 테스트 ', async () => {
-            const redisRollbackData = [{ key: 'menu:1:id', value: 10 }];
+            const redisRollbackData = [
+                { key: 'menu:1:id', value: 10 },
+                { key: 'menu:2:id', value: 11 },
+                { key: 'menu:3:id', value: 10 },
+            ];
 
             await service['rollbackRedis'](redisRollbackData);
 
             expect(redisMock.set).toHaveBeenCalledWith('menu:1:id', '10');
+            expect(redisMock.set).toHaveBeenCalledWith('menu:2:id', '11');
+            expect(redisMock.set).toHaveBeenCalledWith('menu:3:id', '10');
         });
     });
 });

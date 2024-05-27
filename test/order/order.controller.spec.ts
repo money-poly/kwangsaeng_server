@@ -1,65 +1,49 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { Redis } from 'ioredis';
 import { OrderController } from 'src/order/order.controller';
 import { OrderService } from 'src/order/order.service';
+import { OrderMenuDto } from 'src/order/dto/order-menu.dto';
 
 describe('OrderController', () => {
     let controller: OrderController;
-    let redis: Redis;
+    let service: OrderService;
 
-    // OrderController와 관련된 의존성들을 모킹(mocking)
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
-            controllers: [OrderController], // 테스트 대상으로 지정
+            controllers: [OrderController],
             providers: [
                 {
                     provide: OrderService,
                     useValue: {
-                        // 필요에 따라 모킹할 메서드를 정의
                         checkStockAndLock: jest.fn(),
-                    },
-                },
-                {
-                    provide: 'default_IORedisModuleConnectionToken', // 레디스 클라이언트 모킹
-                    useValue: {
-                        set: jest.fn(),
-                        get: jest.fn(),
                     },
                 },
             ],
         }).compile();
 
         controller = module.get<OrderController>(OrderController);
-        redis = module.get<Redis>('default_IORedisModuleConnectionToken');
+        service = module.get<OrderService>(OrderService);
     });
 
-    it('should be defined', () => {
-        // OrderController가 정의되어 있는지 확인
+    it('orderController가 정의되있는지 확인', () => {
         expect(controller).toBeDefined();
     });
 
-    describe('jmeterTest', () => {
-        it('should log and return the order request', async () => {
-            const consoleSpy = jest.spyOn(console, 'log');
-            const orderRequest = { message: 'test' };
+    describe('createOrder컨트롤러 테스트', () => {
+        it(' OrderService.checkStockAndLock잘 호출하는지 테스트', async () => {
+            const orderRequest: OrderMenuDto = {
+                orders: [
+                    { menuId: 1, quantity: 3 },
+                    { menuId: 2, quantity: 2 },
+                    { menuId: 3, quantity: 3 },
+                ],
+            };
+            //service 객체의 checkStockAndLock 메서드를 추적하여
+            //checkStockAndLock가 호출되었는지, 호출된 인수는 무엇인지 추적
+            const serviceSpy = jest.spyOn(service, 'checkStockAndLock').mockResolvedValueOnce(undefined);
 
-            const result = await controller.jmeterTestr(orderRequest);
-
-            expect(consoleSpy).toHaveBeenCalledWith(orderRequest);
-            expect(result).toEqual(orderRequest);
-        });
-    });
-
-    describe('getHello', () => {
-        it('should set and get a value from Redis', async () => {
-            const redisSetSpy = jest.spyOn(redis, 'set').mockResolvedValue('OK');
-            const redisGetSpy = jest.spyOn(redis, 'get').mockResolvedValue('Redis data!');
-
-            const result = await controller.getHello();
-
-            expect(redisSetSpy).toHaveBeenCalledWith('key', 'Redis dadta!');
-            expect(redisGetSpy).toHaveBeenCalledWith('key');
-            expect(result).toEqual({ redisData: 'Redis data!' });
+            await controller.createOrder(orderRequest); //실제 테스트 수행
+            //checkStockAndLock 메서드가 orderRequest 인수와 함께 호출되었는지 검증
+            expect(serviceSpy).toHaveBeenCalledWith(orderRequest);
         });
     });
 });

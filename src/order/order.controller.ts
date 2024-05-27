@@ -10,7 +10,7 @@ import { OrderMenuDto } from './dto/order-menu.dto';
 export class OrderController {
     constructor(
         private readonly orderService: OrderService,
-        @InjectRedis() private readonly redis: Redis,
+        // @InjectRedis() private readonly redis: Redis,
     ) {}
 
     @Patch()
@@ -18,17 +18,17 @@ export class OrderController {
         return await this.orderService.checkStockAndLock(orderRequest);
     }
 
-    @Patch('/test')
-    async jmeterTestr(@Body() orderRequest) {
-        console.log(orderRequest);
+    // @Patch('/test')
+    // async jmeterTestr(@Body() orderRequest) {
+    //     console.log(orderRequest);
 
-        return orderRequest;
-    }
+    //     return orderRequest;
+    // }
 
-    @Get()
-    async getHello() {
-        await this.redis.set('key', 'Redis dadta!');
-        const redisData = await this.redis.get('key');
-        return { redisData };
-    }
+    // @Get()
+    // async getHello() {
+    //     await this.redis.set('key', 'Redis dadta!');
+    //     const redisData = await this.redis.get('key');
+    //     return { redisData };
+    // }
 }

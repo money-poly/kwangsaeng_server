@@ -168,4 +168,101 @@ describe('OrderService', () => {
             expect(redisMock.set).toHaveBeenCalledWith('menu:3:id', '10');
         });
     });
+
+    describe('checkStockAndLock', () => {
+        it('재고가 충분한 경우 트랜잭션을 커밋하고 랜덤한5개의 숫자와 3개의문자인 orderId를 반환하는지 테스트', async () => {
+            const orderRequest: OrderMenuDto = {
+                orders: [
+                    { menuId: 1, quantity: 3 },
+                    { menuId: 2, quantity: 2 },
+                    { menuId: 3, quantity: 3 },
+                ],
+            };
+
+            // Redis mock 설정
+            (redisMock.get as jest.Mock).mockImplementation((key: string) => {
+                if (key === 'menu:1:id') return Promise.resolve('10');
+                if (key === 'menu:2:id') return Promise.resolve('11');
+                if (key === 'menu:3:id') return Promise.resolve('10');
+                return Promise.resolve(null);
+            });
+
+            const result = await service.checkStockAndLock(orderRequest);
+
+            expect(queryRunnerMock.startTransaction).toHaveBeenCalled();
+            expect(queryRunnerMock.commitTransaction).toHaveBeenCalled();
+            expect(result).toHaveProperty('orderId');
+            if (!Array.isArray(result)) {
+                expect(result.orderId).toMatch(/^\d{5}[A-Z]{3}$/); // orderId 형식 확인
+            }
+        });
+
+        it('재고가 부족한 경우 insufficientStock을 반환하는지 테스트', async () => {
+            const orderRequest: OrderMenuDto = {
+                orders: [
+                    { menuId: 1, quantity: 3 },
+                    { menuId: 2, quantity: 2 },
+                    { menuId: 3, quantity: 3 },
+                ],
+            };
+
+            // Redis mock 설정
+            (redisMock.get as jest.Mock).mockImplementation((key: string) => {
+                if (key === 'menu:1:id') return Promise.resolve('10');
+                if (key === 'menu:2:id') return Promise.resolve('1'); // 재고 부족
+                if (key === 'menu:3:id') return Promise.resolve('10');
+                return Promise.resolve(null);
+            });
+
+            const result = await service.checkStockAndLock(orderRequest);
+
+            expect(queryRunnerMock.startTransaction).toHaveBeenCalled();
+            expect(result).toEqual([{ menuId: 2, requestedQuantity: 2, stockQuantity: 1 }]);
+        });
+
+        it('재고가 Redis에서 찾을 수 없는 경우 트랜잭션을 롤백하고 예외를 발생하는지 테스트', async () => {
+            const orderRequest: OrderMenuDto = {
+                orders: [
+                    { menuId: 1, quantity: 3 },
+                    { menuId: 2, quantity: 2 },
+                    { menuId: 3, quantity: 3 },
+                ],
+            };
+
+            (redisMock.get as jest.Mock).mockImplementation((key: string) => {
+                if (key === 'menu:1:id') return Promise.resolve('10');
+                if (key === 'menu:2:id') return Promise.resolve('11');
+                if (key === 'menu:3:id') return Promise.resolve(null); // Redis에 menu정보가 없음
+                return Promise.resolve(null);
+            });
+
+            await expect(service.checkStockAndLock(orderRequest)).rejects.toThrow(OrderExceotion.REDIS_NOT_FOUND);
+            expect(queryRunnerMock.startTransaction).toHaveBeenCalled();
+            expect(queryRunnerMock.rollbackTransaction).toHaveBeenCalled();
+        });
+
+        it('예외가 발생하면 트랜잭션을 롤백하고 Redis 데이터를 롤백하는지 테스트', async () => {
+            const orderRequest: OrderMenuDto = {
+                orders: [
+                    { menuId: 1, quantity: 3 },
+                    { menuId: 2, quantity: 2 },
+                    { menuId: 3, quantity: 3 },
+                ],
+            };
+
+            // Redis mock 설정
+            (redisMock.get as jest.Mock).mockResolvedValue('10');
+
+            // 일부러 예외를 발생시키기 위해 acquireLocks에서 예외를 발생시킴
+            jest.spyOn(service as any, 'acquireLocks').mockImplementation(() => {
+                throw new Error('acquireLocks failed');
+            });
+
+            await expect(service.checkStockAndLock(orderRequest)).rejects.toThrow(
+                OrderExceotion.FAIL_ORDER_TRANSACTION,
+            );
+
+            expect(queryRunnerMock.rollbackTransaction).toHaveBeenCalled();
+        });
+    });
 });

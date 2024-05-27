@@ -1,9 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { OrderService } from 'src/order/order.service';
-import { DataSource } from 'typeorm';
+import { DataSource, QueryRunner } from 'typeorm';
 import { Redis } from 'ioredis';
-import Redlock from 'redlock';
+import Redlock, { Lock } from 'redlock';
 import { OrderMenuDto } from 'src/order/dto/order-menu.dto';
+import { Menu } from 'src/menus/entity/menu.entity';
 import { OrderExceotion } from 'src/global/exception/order-exceptoin';
 
 describe('OrderService', () => {
@@ -11,7 +12,7 @@ describe('OrderService', () => {
     let dataSourceMock: DataSource;
     let redisMock: Redis;
     let redlockMock: Redlock;
-    let queryRunnerMock;
+    let queryRunnerMock: QueryRunner;
 
     beforeEach(async () => {
         queryRunnerMock = {
@@ -23,50 +24,42 @@ describe('OrderService', () => {
             manager: {
                 decrement: jest.fn(),
             },
-        };
+        } as unknown as QueryRunner;
 
         dataSourceMock = {
-            createQueryRunner: jest.fn().mockReturnValue(queryRunnerMock), // 모의 함수가 호출될 때 반환할 값을 설정
-        } as any;
+            createQueryRunner: jest.fn().mockReturnValue(queryRunnerMock),
+        } as unknown as DataSource;
 
         redisMock = {
             get: jest.fn(),
             set: jest.fn(),
             decrby: jest.fn(),
-        } as any;
+        } as unknown as Redis;
 
         redlockMock = {
-            //비동기 함수가 성공적으로 실행된 후 반환할 값을 설정
             acquire: jest.fn().mockResolvedValue({
                 release: jest.fn(),
-            } as any),
-        } as any;
+            } as unknown as Lock),
+        } as unknown as Redlock;
 
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 OrderService,
-                {
-                    provide: DataSource,
-                    useValue: dataSourceMock,
-                },
-                {
-                    provide: 'default_IORedisModuleConnectionToken',
-                    useValue: redisMock,
-                },
+                { provide: DataSource, useValue: dataSourceMock },
+                { provide: 'default_IORedisModuleConnectionToken', useValue: redisMock },
             ],
         }).compile();
 
         service = module.get<OrderService>(OrderService);
-        // Replace redlock instance with a mock
         service['redlock'] = redlockMock;
     });
 
-    it('OrderService가 정의 되어 있는지 확인', () => {
+    it('OrderService 잘 존재하는지 확인', () => {
         expect(service).toBeDefined();
     });
 
-    describe('checkStockAndLock함수 ', () => {
-        it('재고가 충분할 때 트랜잭션을 커밋하고 orderId를 반환하는지 테스트', async () => {
+    describe('acquireLocks ', () => {
+        it('모든 메뉴 항목에 대해 잠금을 획득하는지 테스트', async () => {
             const orderRequest: OrderMenuDto = {
                 orders: [
                     { menuId: 1, quantity: 3 },
@@ -75,32 +68,64 @@ describe('OrderService', () => {
                 ],
             };
 
-            (redisMock.get as jest.Mock).mockResolvedValue('10');
-            const result = await service.checkStockAndLock(orderRequest);
+            const locks: Lock[] = [];
+            await service['acquireLocks'](orderRequest, locks);
 
-            expect(queryRunnerMock.startTransaction).toHaveBeenCalled();
-            expect(queryRunnerMock.commitTransaction).toHaveBeenCalled();
-            if (Array.isArray(result)) {
-                throw new Error('Expected orderId but got insufficientStock');
-            }
-            expect(result.orderId).toMatch(/^\d{5}[A-Z]{3}$/); // Check format of orderId
+            expect(redlockMock.acquire).toHaveBeenCalledTimes(orderRequest.orders.length);
+            expect(locks.length).toBe(orderRequest.orders.length);
+        });
+    });
+
+    describe('checkStock ', () => {
+        it('수량이 충분하지 않으면 재고 부족목록을 반환하는지 테스트 ', async () => {
+            const orderRequest: OrderMenuDto = {
+                orders: [{ menuId: 1, quantity: 10 }],
+            };
+
+            (redisMock.get as jest.Mock).mockResolvedValue('5');
+            const redisRollbackData = [];
+            const result = await service['checkStock'](orderRequest, redisRollbackData);
+
+            expect(result).toEqual([{ menuId: 1, requestedQuantity: 10, stockQuantity: 5 }]);
         });
 
-        it('should rollback transaction and rethrow error when an error occurs', async () => {
+        it('재고가 Redis에서 찾을 수 없는 경우 REDIS_NOT_FOUND를 발생하는지 테스트 ', async () => {
             const orderRequest: OrderMenuDto = {
-                orders: [
-                    { menuId: 1, quantity: 3 },
-                    { menuId: 2, quantity: 2 },
-                    { menuId: 3, quantity: 3 },
-                ],
+                orders: [{ menuId: 1, quantity: 1 }],
             };
 
-            (redisMock.get as jest.Mock).mockResolvedValue(null); // Simulate Redis not found error
+            (redisMock.get as jest.Mock).mockResolvedValue(null);
+            const redisRollbackData = [];
 
-            await expect(service.checkStockAndLock(orderRequest)).rejects.toThrow(OrderExceotion.REDIS_NOT_FOUND);
+            await expect(service['checkStock'](orderRequest, redisRollbackData)).rejects.toThrow(
+                OrderExceotion.REDIS_NOT_FOUND,
+            );
+        });
+    });
 
-            expect(queryRunnerMock.rollbackTransaction).toHaveBeenCalled();
-            expect(queryRunnerMock.release).toHaveBeenCalled();
+    describe('updateStock ', () => {
+        it('MySQL과 Redis에서 재고를 업데이트하는지 테스트', async () => {
+            const orderRequest: OrderMenuDto = {
+                orders: [{ menuId: 1, quantity: 3 }],
+            };
+
+            const redisRollbackData = [];
+            (redisMock.get as jest.Mock).mockResolvedValue('10');
+
+            await service['updateStock'](orderRequest, queryRunnerMock, redisRollbackData);
+
+            expect(queryRunnerMock.manager.decrement).toHaveBeenCalledWith(Menu, { id: 1 }, 'count', 3);
+            expect(redisMock.decrby).toHaveBeenCalledWith('menu:1:id', 3);
+        });
+    });
+
+    describe('rollbackRedis', () => {
+        it('Redis 데이터를 원래 상태로 롤백하는지 테스트 ', async () => {
+            const redisRollbackData = [{ key: 'menu:1:id', value: 10 }];
+
+            await service['rollbackRedis'](redisRollbackData);
+
+            expect(redisMock.set).toHaveBeenCalledWith('menu:1:id', '10');
         });
     });
 });

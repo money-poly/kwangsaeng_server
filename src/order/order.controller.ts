@@ -3,6 +3,7 @@ import { Body, Controller, Get, Patch } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { Redis } from 'ioredis';
 import { SkipThrottle } from '@nestjs/throttler';
+import { OrderMenuDto } from './dto/order-menu.dto';
 
 @SkipThrottle()
 @Controller('order')
@@ -13,12 +14,13 @@ export class OrderController {
     ) {}
 
     @Patch()
-    async createOrder(@Body() orderRequest: { phone: string; orders: { menuId: number; quantity: number }[] }) {
-        console.log(orderRequest.phone);
+    async createOrder(@Body() orderRequest: OrderMenuDto) {
+        console.log(orderRequest);
 
-        const response = await this.orderService.checkStockAndLock({ orders: orderRequest.orders });
+        const response = await this.orderService.checkStockAndLock(orderRequest);
         return response;
     }
+
     @Patch('/test')
     async jmeterTestr(@Body() orderRequest) {
         console.log(orderRequest);
@@ -28,7 +30,7 @@ export class OrderController {
 
     @Get()
     async getHello() {
-        await this.redis.set('key', 'Redis data!');
+        await this.redis.set('key', 'Redis dadta!');
         const redisData = await this.redis.get('key');
         return { redisData };
     }

@@ -1,14 +1,16 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Redis } from 'ioredis';
-import Redlock, { Lock } from 'redlock'; // 여기에서 Lock 타입을 가져옴
+import Redlock, { Lock } from 'redlock';
 import { Menu } from 'src/menus/entity/menu.entity';
 import { Repository } from 'typeorm';
 import { InjectRedis } from '@nestjs-modules/ioredis';
+import { OrderMenuDto } from './dto/order-menu.dto';
 
 @Injectable()
 export class OrderService {
     private redlock: Redlock;
+    private readonly logger = new Logger(OrderService.name);
 
     constructor(
         @InjectRepository(Menu)
@@ -24,7 +26,7 @@ export class OrderService {
         });
     }
 
-    async checkStockAndLock(order: { orders: { menuId: number; quantity: number }[] }) {
+    async checkStockAndLock(order: OrderMenuDto) {
         const insufficientStock = [];
         const locks: Lock[] = [];
 
@@ -52,15 +54,15 @@ export class OrderService {
 
             // Step 3: 메뉴 항목에 재고가 부족한 경우 잠금 해제 및 반품 응답
             if (insufficientStock.length > 0) {
-                throw new HttpException('주문 처리 중 오류가 발생했습니다.', HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new HttpException('주문 재고가 소진되었습니다..', HttpStatus.INTERNAL_SERVER_ERROR);
                 return {
-                    success: true,
-                    message: '재고가 부족한 메뉴가 있습니다 !',
+                    success: false,
+                    message: '재고가 부족한 메뉴가 있습니다!',
                     data: insufficientStock,
                 };
             }
 
-            // Step 4: Update stock in MySQL and Redis
+            // Step 4: MySQL 및 Redis의 재고 업데이트
             for (const item of order.orders) {
                 // Update stock in MySQL
                 await this.menuRepository.decrement({ id: item.menuId }, 'count', item.quantity);
@@ -75,7 +77,15 @@ export class OrderService {
                 message: '주문이 성공적으로 처리되었습니다.',
             };
         } catch (error) {
-            throw new HttpException('주문 처리 중 오류가 발생했습니다.', HttpStatus.INTERNAL_SERVER_ERROR);
+            this.logger.error('Error processing order', error.stack);
+            throw new HttpException(
+                {
+                    status: HttpStatus.INTERNAL_SERVER_ERROR,
+                    error: '주문 처리 중 오류가 발생했습니다.',
+                    message: error.message,
+                },
+                HttpStatus.INTERNAL_SERVER_ERROR,
+            );
         } finally {
             // Step 5: 획득한 모든 잠금 해제
             for (const lock of locks) {
@@ -83,7 +93,7 @@ export class OrderService {
                     // Lock 객체의 release() 메서드를 호출하여 락을 해제
                     await lock.release();
                 } catch (unlockError) {
-                    console.error('Failed to release lock:', unlockError);
+                    this.logger.error('Failed to release lock', unlockError.stack);
                 }
             }
         }

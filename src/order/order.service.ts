@@ -77,7 +77,8 @@ export class OrderService {
                 try {
                     await lock.release();
                 } catch (unlockError) {
-                    this.logger.error('Failed to release lock', unlockError.stack);
+                    this.logger.error(unlockError);
+                    throw OrderExceotion.FAIL_UNLOCK_REDIS;
                 }
             }
         }

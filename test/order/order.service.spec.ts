@@ -135,15 +135,7 @@ describe('OrderService', () => {
                 ],
             };
 
-            const redisRollbackData = [];
-            (redisMock.get as jest.Mock).mockImplementation((key: string) => {
-                if (key === 'menu:1:id') return Promise.resolve('10');
-                if (key === 'menu:2:id') return Promise.resolve('11');
-                if (key === 'menu:3:id') return Promise.resolve('10');
-                return Promise.resolve(null);
-            });
-
-            await service['updateStock'](orderRequest, queryRunnerMock, redisRollbackData);
+            await service['updateStock'](orderRequest, queryRunnerMock);
 
             expect(queryRunnerMock.manager.decrement).toHaveBeenCalledWith(Menu, { id: 1 }, 'count', 3);
             expect(queryRunnerMock.manager.decrement).toHaveBeenCalledWith(Menu, { id: 2 }, 'count', 2);

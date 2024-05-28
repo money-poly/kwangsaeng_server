@@ -9,6 +9,7 @@ import { StoreApprove } from './store-approve.entity';
 import { Tag } from 'src/tags/entity/tag.entity';
 import { Seller } from 'src/users/entity/seller.entity';
 import { Order } from 'src/orders/entity/order.entity';
+import { Franchise } from './franchise.entity';
 
 @Entity({ name: 'stores' })
 export class Store extends SoftDeleteEntity<Store> {
@@ -33,6 +34,9 @@ export class Store extends SoftDeleteEntity<Store> {
 
     @OneToMany(() => Menu, (menu) => menu.store)
     menus: Menu[];
+
+    @ManyToOne(() => Franchise, (franchise) => franchise.store, { nullable: true })
+    franchise: Franchise;
 
     @ManyToOne(() => Tag, (tag) => tag.stores)
     tag: Tag;

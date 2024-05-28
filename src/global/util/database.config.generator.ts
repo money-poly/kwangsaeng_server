@@ -8,6 +8,7 @@ import { OrderDetail } from 'src/orders/entity/order-detail.entity';
 import { Order } from 'src/orders/entity/order.entity';
 import { Keyword } from 'src/search/entity/keyword.entity';
 import { BusinessDetail } from 'src/stores/entity/business-detail.entity';
+import { Franchise } from 'src/stores/entity/franchise.entity';
 import { StoreApprove } from 'src/stores/entity/store-approve.entity';
 import { StoreDetail } from 'src/stores/entity/store-detail.entity';
 import { Store } from 'src/stores/entity/store.entity';
@@ -63,6 +64,7 @@ export const configGenerator = (env: string): TypeOrmModuleOptions => {
                 Keyword,
                 Order,
                 OrderDetail,
+                Franchise,
             ],
             namingStrategy: new SnakeNamingStrategy(),
         };

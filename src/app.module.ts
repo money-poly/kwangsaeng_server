@@ -47,7 +47,7 @@ import { OrderModule } from './order/order.module';
         RedisModule.forRootAsync({
             useFactory: () => ({
                 type: 'single',
-                url: 'redis://redis-server:6379',
+                url: `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
             }),
         }),
         DatabaseModule,

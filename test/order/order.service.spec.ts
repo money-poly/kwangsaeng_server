@@ -54,11 +54,11 @@ describe('OrderService', () => {
         service['redlock'] = redlockMock;
     });
 
-    it('OrderService 잘 존재하는지 확인', () => {
+    it('OrderService가 의존성을 잘 주입받은채 생성됬는지 확인', () => {
         expect(service).toBeDefined();
     });
 
-    describe('acquireLocks ', () => {
+    describe('acquireLocks 메서드 테스트 ', () => {
         it('모든 메뉴 항목에 대해 잠금을 획득하는지 테스트', async () => {
             const orderRequest: OrderMenuDto = {
                 orders: [
@@ -76,7 +76,7 @@ describe('OrderService', () => {
         });
     });
 
-    describe('checkStock ', () => {
+    describe('checkStock 메서드 테스트', () => {
         it('수량이 충분하지 않으면 재고 부족목록을 반환하는지 테스트 ', async () => {
             const orderRequest: OrderMenuDto = {
                 orders: [
@@ -125,7 +125,7 @@ describe('OrderService', () => {
         });
     });
 
-    describe('updateStock ', () => {
+    describe('updateStock 메서드 테스트', () => {
         it('MySQL과 Redis에서 재고를 업데이트하는지 테스트', async () => {
             const orderRequest: OrderMenuDto = {
                 orders: [
@@ -153,7 +153,8 @@ describe('OrderService', () => {
             expect(redisMock.decrby).toHaveBeenCalledWith('menu:3:id', 3);
         });
     });
-    describe('rollbackRedis', () => {
+
+    describe('rollbackRedis 메서드 테스트', () => {
         it('Redis 데이터를 원래 상태로 롤백하는지 테스트 ', async () => {
             const redisRollbackData = [
                 { key: 'menu:1:id', value: 10 },
@@ -169,7 +170,7 @@ describe('OrderService', () => {
         });
     });
 
-    describe('checkStockAndLock', () => {
+    describe('checkStockAndLock 메서드 성공 및 다양한 에러 시나리오 테스트', () => {
         it('재고가 충분한 경우 트랜잭션을 커밋하고 랜덤한5개의 숫자와 3개의문자인 orderId를 반환하는지 테스트', async () => {
             const orderRequest: OrderMenuDto = {
                 orders: [

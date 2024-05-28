@@ -42,7 +42,7 @@ export class OrderService {
                 return insufficientStock;
             }
             // Step 4: 재고가 충분할 시 MySQL 및 Redis의 재고 업데이트
-            await this.updateStock(order, queryRunner, redisRollbackData);
+            await this.updateStock(order, queryRunner);
             await queryRunner.commitTransaction();
             return { orderId: this.generateOrderId() };
         } catch (e) {
@@ -61,6 +61,7 @@ export class OrderService {
             await queryRunner.release();
         }
     }
+
     private generateOrderId(): string {
         const digits = Array.from({ length: 5 }, () => Math.floor(Math.random() * 10)).join('');
         const letters = Array.from({ length: 3 }, () => String.fromCharCode(65 + Math.floor(Math.random() * 26))).join(
@@ -110,17 +111,11 @@ export class OrderService {
     }
 
     // Step 4: 재고가 충분할 시 MySQL 및 Redis의 재고 업데이트
-    private async updateStock(
-        order: OrderMenuDto,
-        queryRunner: QueryRunner,
-        redisRollbackData: { key: string; value: number }[],
-    ): Promise<void> {
+    private async updateStock(order: OrderMenuDto, queryRunner: QueryRunner): Promise<void> {
         for (const item of order.orders) {
             await queryRunner.manager.decrement(Menu, { id: item.menuId }, 'count', item.quantity);
 
             const stockKey = `menu:${item.menuId}:id`;
-            const currentStock = await this.redis.get(stockKey);
-            redisRollbackData.push({ key: stockKey, value: parseInt(currentStock, 10) });
             await this.redis.decrby(stockKey, item.quantity);
         }
     }

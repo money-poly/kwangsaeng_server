@@ -12,6 +12,8 @@ services:
         depends_on:
             ks_db:
                 condition: service_healthy
+            redis-server:
+                condition: service_healthy
         networks:
             - local-network
         deploy:
@@ -37,7 +39,18 @@ services:
             - ${DATABASE_PORT}:${DATABASE_PORT}
         networks:
             - local-network
-
+    redis-server:
+        image: redis
+        container_name: redis-server
+        healthcheck:
+            test: ['CMD', 'redis-cli', 'ping']
+            interval: 30s
+            timeout: 10s
+            retries: 5
+        ports:
+            - '6379:6379'
+        networks:
+            - local-network
 volumes:
     db:
 

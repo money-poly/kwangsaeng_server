@@ -1,11 +1,11 @@
 import { UserStatus } from '../enum/user-status.enum';
-import { Column, Entity, OneToOne } from 'typeorm';
+import { Column, Entity, OneToMany, OneToOne } from 'typeorm';
 import { SoftDeleteEntity } from 'src/global/common/abstract.entity';
 import { Store } from 'src/stores/entity/store.entity';
 import { Roles } from '../enum/roles.enum';
 
-@Entity({ name: 'users' })
-export class User extends SoftDeleteEntity<User> {
+@Entity({ name: 'sellers' })
+export class Seller extends SoftDeleteEntity<Seller> {
     @Column({ comment: 'firebase uid', unique: true })
     fId: string;
 

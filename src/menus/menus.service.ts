@@ -5,7 +5,6 @@ import { UsersRepository } from 'src/users/users.repository';
 import { StoresRepository } from 'src/stores/stores.repository';
 import { Store } from 'src/stores/entity/store.entity';
 import { Menu } from 'src/menus/entity/menu.entity';
-import { User } from 'src/users/entity/user.entity';
 import { Roles } from 'src/users/enum/roles.enum';
 import { MenuStatus } from './enum/menu-status.enum';
 import { CreateMenuArgs } from './interface/create-menu.interface';
@@ -38,6 +37,7 @@ import {
 } from 'src/global/common/mock.constant';
 import { UpdateMenuCountArgs } from './interface/update-count.interface';
 import { OwnStore } from './interface/own-store.interface';
+import { Seller } from 'src/users/entity/seller.entity';
 import { UsersException } from 'src/global/exception/users-exception';
 
 @Injectable()
@@ -50,7 +50,7 @@ export class MenusService {
         private readonly logger: Logger,
     ) {}
 
-    async create(user: User, args: CreateMenuArgs) {
+    async create(user: Seller, args: CreateMenuArgs) {
         const storeId: number = args.storeId;
         const storeData: Store = await this.storesRepository.findOneStore({ id: storeId }, {}, { user: true });
         if (!storeData) {
@@ -65,7 +65,7 @@ export class MenusService {
         return { menuId: createdMenu.id };
     }
 
-    async update(menuId: number, args: UpdateMenuArgs, user: User) {
+    async update(menuId: number, args: UpdateMenuArgs, user: Seller) {
         const thisMenu = await this.menusRepository.findOne({ id: menuId }, { id: true });
         if (!thisMenu) {
             throw MenusException.ENTITY_NOT_FOUND;
@@ -80,7 +80,7 @@ export class MenusService {
         return this.findDetailOne(menuId);
     }
 
-    async delete(menuId: number, user: User) {
+    async delete(menuId: number, user: Seller) {
         const thisMenu = await this.menusRepository.findOne(
             { id: menuId },
             { id: true, store: { id: true } },
@@ -170,28 +170,24 @@ export class MenusService {
         return menuDetailList;
     }
 
-    async findManyForSeller(storeId: number, status?: MenuStatus) {
-        let where = `m.store_id = "${storeId}"`;
-        switch (status) {
-            case undefined: // status가 비어있는경우 -> 메뉴 전체 조회
-                break;
-            case MenuStatus.SALE:
-                where += ` AND m.status = "${MenuStatus.SALE}"`;
-                break;
-            case MenuStatus.SOLDOUT:
-                where += ` AND m.status = "${MenuStatus.SOLDOUT}"`;
-                break;
-            case MenuStatus.HIDDEN:
-                where += ` AND m.status = "${MenuStatus.HIDDEN}"`;
-                break;
-            default:
-                throw MenusException.STATUS_NOT_FOUND;
+    async findManyForSeller(storeId: number, user: Seller, status?: MenuStatus) {
+        const store: Store = await this.storesRepository.findOneStore({ id: storeId }, {}, { user: true });
+        if (!store) {
+            throw StoresException.ENTITY_NOT_FOUND;
         }
-        const store = await this.storesRepository.findOneStore({ id: storeId });
 
-        const orderBy = await this.storesRepository.processOrderBy(store);
+        const owner = await store.user;
+        if (owner.id !== user.id) {
+            throw StoresException.HAS_NO_PERMISSIONS;
+        }
 
-        const data = await this.entityManager
+        const orderMenusList = await this.storesRepository.processOrderBy(store);
+        if (!orderMenusList) {
+            // 메뉴가 존재하지 않을 시 빈 배열 반환
+            return [];
+        }
+
+        const queryBuilder = await this.entityManager
             .createQueryBuilder(Menu, 'm')
             .select('m.id', 'id')
             .addSelect('m.name', 'name')
@@ -200,17 +196,33 @@ export class MenusService {
             .addSelect('m.price', 'price')
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
             .addSelect('m.status', 'status')
-            .addSelect('m.count', 'count')
-            .where(where)
-            .orderBy(`m.status = "${MenuStatus.SALE}"`, 'DESC')
-            .addOrderBy(`m.status = "${MenuStatus.SOLDOUT}"`, 'DESC')
-            .addOrderBy(`m.status = "${MenuStatus.HIDDEN}"`, 'DESC')
-            .addOrderBy(orderBy, 'DESC')
-            .getRawMany();
-        return data;
+            .addSelect('m.count', 'count');
+
+        let where = 'm.store_id = ' + store.id;
+
+        switch (status) {
+            case undefined: // status가 비어있는경우 -> 메뉴 전체 조회
+                queryBuilder.orderBy(
+                    `CASE WHEN m.status = 'sale' THEN 1 WHEN m.status = 'soldout' THEN 2 WHEN m.status = 'hidden' THEN 3 ELSE 4 END`,
+                ); // 전체 조회시 메뉴의 상태에 따라 판매중 - 품절 - 숨김 순서대로 정렬
+                break;
+            case MenuStatus.SALE:
+                where += ` AND m.status = 'sale'`;
+                break;
+            case MenuStatus.SOLDOUT:
+                where += ` AND m.status = 'soldout'`;
+                break;
+            case MenuStatus.HIDDEN:
+                where += ` AND m.status = 'hidden'`;
+                break;
+            default:
+                throw MenusException.STATUS_NOT_FOUND;
+        }
+
+        return queryBuilder.where(where).addOrderBy(orderMenusList, 'DESC').getRawMany();
     }
 
-    async updateOrder(storeId: number, dto: UpdateMenuOrderDto, user?: User) {
+    async updateOrder(storeId: number, dto: UpdateMenuOrderDto, user?: Seller) {
         const thisStore = await this.storesRepository.findOneStore(
             { id: storeId },
             { id: true, user: { id: true } },
@@ -229,7 +241,7 @@ export class MenusService {
         return await this.storesRepository.updateOrder(thisStore, newOrder);
     }
 
-    async updateStatus(menuId: number, user: User, dto: UpdateStatusArgs) {
+    async updateStatus(menuId: number, user: Seller, dto: UpdateStatusArgs) {
         const menu = await this.menusRepository.findOne({ id: menuId }, {}, { store: true });
         if (!menu) {
             throw MenusException.ENTITY_NOT_FOUND;
@@ -277,13 +289,24 @@ export class MenusService {
 
     async findMaxDiscount(dto: FindAsLocationDto) {
         let refindedData = [];
-        const subQuery = await this.entityManager
+
+        // 쿼리문 파라미터 정의
+        const params = {
+            status: StoreStatus.OPEN,
+            menuStatus: MenuStatus.SALE,
+            longitude: dto.lon,
+            latitude: dto.lat,
+            range: 3000,
+            isApproved: StoreApproveStatus.DONE,
+        };
+
+        const subQuery = this.entityManager
             .createQueryBuilder(Store, 's')
             .leftJoinAndSelect(Menu, 'm', 's.id = m.store_id')
             .select('s.id')
-            .addSelect('MAX(discount_rate) AS discount_rate')
-            .where(`s.status = "${StoreStatus.OPEN}"`)
-            .andWhere(`m.status = "${MenuStatus.SALE}"`)
+            .addSelect('MAX(m.discount_rate)', 'maxDiscountRate')
+            .where('s.status = :status')
+            .andWhere('m.status = :menuStatus')
             .andWhere('m.count != 0')
             .andWhere('m.discount_rate > 0')
             .groupBy('s.id')
@@ -304,28 +327,29 @@ export class MenusService {
             .addSelect('m.selling_price', 'sellingPrice')
             .addSelect('m.discount_rate', 'discountRate')
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
-            .where('(s.id, m.discount_rate) IN (' + subQuery + ')')
-            .andWhere('ST_Distance_Sphere(POINT(:lon, :lat), POINT(sd.lon, sd.lat)) <= :range', {
-                lon: dto.lon,
-                lat: dto.lat,
-                range: 3000,
-            })
-            .andWhere('sa.is_approved = :isApproved', { isApproved: StoreApproveStatus.DONE })
+            .where(`(s.id, m.discount_rate) IN (${subQuery})`)
+            .andWhere(
+                'ST_DWithin(ST_SetSRID(ST_MakePoint(sd.lon, sd.lat), 4326), ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326), :range)',
+            )
+            .andWhere('sa.is_approved = :isApproved')
             .orderBy('c.name')
             .addOrderBy('m.discount_rate', 'DESC')
             .addOrderBy('m.created_date')
+            .setParameters(params)
             .getRawMany();
+
         if (!dataList.length) {
-            // 검색되는 메뉴가 존재하지 않을경우 빈배열 리턴
+            // 검색되는 메뉴가 존재하지 않을 경우 빈 배열 반환
             return dataList;
         }
+
         let prevCategory;
         for (const data of dataList) {
             if (prevCategory != data.category) {
                 prevCategory = data.category;
                 refindedData.push(this.processDetailMenu(data));
-                // category, discount_rate, create_date순으로 정렬되어 있기 때문에,
-                // 반복문이 돌아가면서 카테고리가 변경됐을 경우 첫 번째 data가 그 카테고리 내에서 가장 할인율이 높고 등록된지 오래된 메뉴
+                // category, discount_rate, create_date 순으로 정렬되어 있기 때문에,
+                // 반복문이 돌아가면서 카테고리가 변경됐을 경우 첫 번째 데이터가 그 카테고리 내에서 가장 할인율이 높고 등록된지 오래된 메뉴
             }
         }
         return refindedData;
@@ -335,7 +359,7 @@ export class MenusService {
         let orderBy;
         switch (type) {
             case MenuFilterType.DISTANCE:
-                orderBy = `ST_Distance_Sphere(POINT(${dto.lon}, ${dto.lat}), POINT(sd.lon, sd.lat))`;
+                orderBy = `ST_Distance(ST_SetSRID(ST_MakePoint(${dto.lon}, ${dto.lat}), 4326), ST_SetSRID(ST_MakePoint(sd.lon, sd.lat), 4326))`;
                 break;
             case MenuFilterType.LAST:
                 orderBy = 'm.created_date';
@@ -364,16 +388,15 @@ export class MenusService {
             .addSelect('m.discount_rate', 'discountRate')
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
             .addSelect('mv.view_count', 'viewCount')
-            .where(`s.status = "${StoreStatus.OPEN}"`)
-            .andWhere(`m.status = "${MenuStatus.SALE}"`)
+            .where('s.status = :status', { status: StoreStatus.OPEN })
+            .andWhere('m.status = :menuStatus', { menuStatus: MenuStatus.SALE })
             .andWhere('m.count != 0')
             .andWhere('m.discount_rate > 0')
             .andWhere('sa.is_approved = :isApproved', { isApproved: StoreApproveStatus.DONE })
-            .andWhere('ST_Distance_Sphere(POINT(:lon, :lat), POINT(sd.lon, sd.lat)) <= :range', {
-                lon: dto.lon,
-                lat: dto.lat,
-                range: 3000,
-            })
+            .andWhere(
+                'ST_DWithin(ST_SetSRID(ST_MakePoint(sd.lon, sd.lat), 4326), ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326), :range)',
+                { longitude: dto.lon, latitude: dto.lat, range: 3000 },
+            )
             .orderBy(orderBy, 'ASC')
             .getRawMany();
         if (!dataList.length) {
@@ -446,7 +469,7 @@ export class MenusService {
         return await this.menusRepository.findMenusForOrder(store, orderBy);
     }
 
-    async updateCount(menuId: number, dto: UpdateMenuCountArgs, user: User) {
+    async updateCount(menuId: number, dto: UpdateMenuCountArgs, user: Seller) {
         const thisMenu = await this.menusRepository.findOne({ id: menuId }, { id: true });
         const ownStore: OwnStore = await this.menusRepository.findOwnStoreForMenuId(menuId);
 
@@ -475,7 +498,7 @@ export class MenusService {
         return pushData;
     }
 
-    private async validateUserRole(user: User, role: Roles) {
+    private async validateUserRole(user: Seller, role: Roles) {
         if (user?.role != role) throw MenusException.HAS_NO_PERMISSION_CREATE;
     }
 
@@ -487,18 +510,18 @@ export class MenusService {
         // 제외할 메뉴 ID 필요없이 모든 메뉴를 가져올경우 excludeMenuId를 0으로 지정
         // limit으로 필요한 데이터의 개수 보내주기(기본값 10으로 설정)
         return await this.entityManager
-            .createQueryBuilder(Menu, 'menus')
-            .select('menus.menu_picture_url', 'menuPictureUrl')
-            .addSelect('menus.id', 'menuId')
-            .addSelect('menus.name', 'name')
-            .addSelect('menus.discount_rate', 'discountRate')
-            .addSelect('menus.selling_price', 'sellingPrice')
-            .addSelect('menus.description', 'description')
-            .addSelect('menus.status', 'status')
-            .where('menus.id != :excludeMenuId', { excludeMenuId })
+            .createQueryBuilder(Menu, 'm')
+            .select('m.menu_picture_url', 'menuPictureUrl')
+            .addSelect('m.id', 'menuId')
+            .addSelect('m.name', 'name')
+            .addSelect('m.discount_rate', 'discountRate')
+            .addSelect('m.selling_price', 'sellingPrice')
+            .addSelect('m.description', 'description')
+            .addSelect('m.status', 'status')
+            .where('m.id != :excludeMenuId', { excludeMenuId })
             .andWhere('store_id = :storeId', { storeId })
-            .andWhere('menus.status != :status', { status: MenuStatus.HIDDEN })
-            .orderBy('discountRate', 'DESC')
+            .andWhere('m.status != :status', { status: MenuStatus.HIDDEN })
+            .orderBy('m.discount_rate', 'DESC')
             .addOrderBy('price', 'DESC')
             .limit(limit)
             .getRawMany();

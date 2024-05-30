@@ -20,6 +20,7 @@ import { TagsModule } from './tags/tags.module';
 import { SearchModule } from './search/search.module';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { OrderModule } from './order/order.module';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
     imports: [
@@ -63,6 +64,7 @@ import { OrderModule } from './order/order.module';
         TagsModule,
         SearchModule,
         OrderModule,
+        OrdersModule,
     ],
     providers: [Logger, InitializeService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

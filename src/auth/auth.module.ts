@@ -5,10 +5,10 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Token } from './entity/token.entity';
-import { User } from 'src/users/entity/user.entity';
 import { TokensRepository } from './auth.repository';
 import { UsersRepository } from 'src/users/users.repository';
 import { SmsModule } from 'src/sms/sms.module';
+import { Seller } from 'src/users/entity/seller.entity';
 
 @Module({
     imports: [
@@ -17,7 +17,7 @@ import { SmsModule } from 'src/sms/sms.module';
             global: true,
             secret: process.env.JWT_ACCESS_SECRET,
         }),
-        TypeOrmModule.forFeature([Token, User]),
+        TypeOrmModule.forFeature([Token, Seller]),
         SmsModule,
     ],
     controllers: [AuthController],

@@ -48,6 +48,7 @@ jobs:
                   DATABASE_PASSWORD: ${{ secrets.PROD_DATABASE_PASSWORD }}
                   DATABASE_NAME: ${{ secrets.PROD_DATABASE_NAME }}
                   DATABASE_SYNC: ${{ secrets.PROD_DATABASE_SYNC }}
+                  DATABASE_CRT: ${{ secrets.PROD_DATABASE_CRT }}
                   AWS_ACCESS_KEY: ${{ secrets.PROD_AWS_ACCESS_KEY}}
                   AWS_SECRET_KEY: ${{ secrets.PROD_AWS_SECRET_KEY}}
                   AWS_REGION: ap-northeast-1
@@ -77,6 +78,7 @@ jobs:
                       DATABASE_PASSWORD
                       DATABASE_NAME
                       DATABASE_SYNC
+                      DATABASE_CRT
                       AWS_ACCESS_KEY
                       AWS_SECRET_KEY
                       AWS_REGION

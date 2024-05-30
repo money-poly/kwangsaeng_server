@@ -3,11 +3,13 @@ import { SoftDeleteEntity } from 'src/global/common/abstract.entity';
 import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, OneToOne } from 'typeorm';
 import { Menu } from 'src/menus/entity/menu.entity';
 import { StoreStatus } from '../enum/store-status.enum';
-import { User } from 'src/users/entity/user.entity';
 import { StoreDetail } from './store-detail.entity';
 import { Category } from 'src/categories/entity/category.entity';
 import { StoreApprove } from './store-approve.entity';
 import { Tag } from 'src/tags/entity/tag.entity';
+import { Seller } from 'src/users/entity/seller.entity';
+import { Order } from 'src/orders/entity/order.entity';
+import { Franchise } from './franchise.entity';
 
 @Entity({ name: 'stores' })
 export class Store extends SoftDeleteEntity<Store> {
@@ -17,9 +19,9 @@ export class Store extends SoftDeleteEntity<Store> {
     @Column({ type: 'enum', enum: StoreStatus, default: StoreStatus.CLOSED })
     status: string;
 
-    @OneToOne(() => User, (user) => user.store, { onDelete: 'CASCADE', lazy: true })
+    @OneToOne(() => Seller, (seller) => seller.store, { onDelete: 'CASCADE', lazy: true })
     @JoinColumn()
-    user: User;
+    user: Seller;
 
     @OneToOne(() => StoreApprove, (approve) => approve.store, { cascade: ['insert'] })
     approve: StoreApprove;
@@ -33,8 +35,14 @@ export class Store extends SoftDeleteEntity<Store> {
     @OneToMany(() => Menu, (menu) => menu.store)
     menus: Menu[];
 
+    @ManyToOne(() => Franchise, (franchise) => franchise.store, { nullable: true })
+    franchise: Franchise;
+
     @ManyToOne(() => Tag, (tag) => tag.stores)
     tag: Tag;
+
+    @OneToMany(() => Order, (order) => order.store)
+    order: Order[];
 
     @ManyToMany(() => Category, (category) => category.store, {
         cascade: ['insert'],

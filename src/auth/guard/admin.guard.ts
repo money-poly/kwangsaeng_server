@@ -1,14 +1,12 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { User } from 'src/users/entity/user.entity';
 import { AuthException } from 'src/global/exception/auth-exception';
 import { Roles } from 'src/users/enum/roles.enum';
 import { UsersException } from 'src/global/exception/users-exception';
+import { Seller } from 'src/users/entity/seller.entity';
 
 interface RequestUser extends Request {
-    user: User;
+    user: Seller;
 }
 
 @Injectable()

@@ -60,6 +60,8 @@ jobs:
                   ALIGO_API_KEY: ${{ secrets.ALIGO_API_KEY }}
                   ALIGO_USER_ID: ${{ secrets.ALIGO_USER_ID }}
                   ALIGO_SENDER: ${{ secrets.ALIGO_SENDER }}
+                  REDIS_HOST: ${{ secrets.PROD_REDIS_HOST }}
+
               with:
                   service: prod-kwangsaeng-api-server
                   image: ${{ steps.build-image.outputs.image }}
@@ -90,6 +92,7 @@ jobs:
                       ALIGO_API_KEY
                       ALIGO_USER_ID
                       ALIGO_SENDER
+                      REDIS_HOST
                   wait-for-service-stability: true
 
             - name: App Runner output

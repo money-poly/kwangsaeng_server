@@ -23,7 +23,7 @@ services:
                     memory: 2048M
 
     ks_db:
-        image: postgis/postgis:15-master
+        image: postgis/postgis:15-3.4
         restart: always
         container_name: db
         environment:
@@ -39,6 +39,7 @@ services:
             - ${DATABASE_PORT}:${DATABASE_PORT}
         networks:
             - local-network
+
     redis-server:
         image: redis
         container_name: redis-server

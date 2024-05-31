@@ -74,7 +74,7 @@ export class MenusController {
     @UseGuards(AuthGuard)
     async updateOrder(@Param('id') storeId: number, @Body() dto: UpdateMenuOrderDto, @CurrentUser() user: Seller) {
         return await this.menusService.updateOrder(storeId, dto, user);
-    } //
+    }
 
     @SkipThrottle()
     @Get('/max-discount')

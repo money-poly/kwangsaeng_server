@@ -18,8 +18,8 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { TagsModule } from './tags/tags.module';
 import { SearchModule } from './search/search.module';
-import { SlacktestModule } from './slacktest/slacktest.module';
-import { LogTestModule } from './log-test/log-test.module';
+import { RedisModule } from '@nestjs-modules/ioredis';
+import { OrderModule } from './order/order.module';
 import { OrdersModule } from './orders/orders.module';
 
 @Module({
@@ -45,6 +45,15 @@ import { OrdersModule } from './orders/orders.module';
                 limit: 50,
             },
         ]),
+        RedisModule.forRootAsync({
+            useFactory: () => ({
+                type: 'single',
+                url: process.env.REDIS_HOST,
+                tls: {
+                    rejectUnauthorized: false,
+                },
+            }),
+        }),
         DatabaseModule,
         UsersModule,
         StoresModule,
@@ -57,8 +66,7 @@ import { OrdersModule } from './orders/orders.module';
         BannersModule,
         TagsModule,
         SearchModule,
-        SlacktestModule,
-        LogTestModule,
+        OrderModule,
         OrdersModule,
     ],
     providers: [Logger, InitializeService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

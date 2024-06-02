@@ -31,6 +31,9 @@ export class Menu extends SoftDeleteEntity<Menu> {
     @Column({ type: 'enum', enum: MenuStatus, comment: '메뉴 상태', default: MenuStatus.SALE })
     status: MenuStatus;
 
+    @Column({ comment: '세일 판매 예정 시간', nullable: true })
+    prearrangedSaleTime: Date;
+
     @Column({ type: 'json', comment: '원산지 표기' })
     countryOfOrigin: { ingredient: string; origin: string }[];
 

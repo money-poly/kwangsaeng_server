@@ -484,6 +484,10 @@ export class MenusService {
         return await this.menusRepository.update(thisMenu, { count: dto.count });
     }
 
+    async recommendation(dto: FindAsLocationDto) {
+        return await this.menusRepository.recommendation(dto);
+    }
+
     private processDetailMenu(data) {
         const menu = {
             id: data.menuId,

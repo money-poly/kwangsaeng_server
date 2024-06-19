@@ -485,7 +485,28 @@ export class MenusService {
     }
 
     async recommendation(dto: FindAsLocationDto) {
-        return await this.menusRepository.recommendation(dto);
+        const recommendedData = await this.menusRepository.recommendation(dto);
+        const refinedData = [];
+
+        recommendedData.forEach((menus) => {
+            refinedData.push({
+                menu: {
+                    id: menus.menuId,
+                    menuPictureUrl: menus.menuPictureUrl ?? null,
+                    name: menus.menuName,
+                    price: menus.price,
+                    sellingPrice: menus.sellingPrice,
+                    discountRate: menus.discountRate,
+                    expiredDate: menus.expiredDate,
+                },
+                store: {
+                    id: menus.storeId,
+                    name: menus.storeName,
+                },
+            });
+        });
+        // TODO) redis 모듈 분릴 후, 재고 stock 값 넣기
+        return refinedData;
     }
 
     private processDetailMenu(data) {

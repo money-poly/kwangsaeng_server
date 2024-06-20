@@ -279,6 +279,7 @@ export class MenusService {
         return await this.findDetailOne(menu.id);
     }
 
+    // TODO 홈 리디자인으로 인한 삭제 예정
     async findMaxDiscount(dto: FindAsLocationDto) {
         let refindedData = [];
 
@@ -347,6 +348,7 @@ export class MenusService {
         return refindedData;
     }
 
+    // TODO 홈 리디자인으로 인한 삭제 예정
     async findManyDiscount(type: MenuFilterType, dto: FindAsLocationDto) {
         let orderBy;
         switch (type) {

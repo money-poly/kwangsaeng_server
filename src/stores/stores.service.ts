@@ -16,12 +16,14 @@ import { StoreStatus } from 'src/stores/enum/store-status.enum';
 import { UpdateStoreDto } from 'src/stores/dto/update-store.dto';
 import { FindStoreDetailDto } from 'src/stores/dto/find-store-detail.dto';
 import { StoreApproveStatus } from 'src/stores/enum/store-approve-status.enum';
-import { FindOneStoreReturnValue } from 'src/stores/interfaces/find-one-store-return-value.interface';
 import { Menu } from 'src/menus/entity/menu.entity';
 import { MenusService } from 'src/menus/menus.service';
 import { MenuStatus } from 'src/menus/enum/menu-status.enum';
 import { TagsService } from 'src/tags/tags.service';
 import { CategoriesService } from 'src/categories/categories.service';
+import { ResponseRefiner } from 'src/global/util/response-refiner';
+import { FindStoreRes } from './dto/refine-response.dto';
+import { measurePickUpTime } from './util/measure-pickup-time';
 
 @Injectable()
 export class StoresService {
@@ -122,26 +124,26 @@ export class StoresService {
                     dto.cookingTime === undefined
                         ? store.detail.cookingTime
                         : dto.cookingTime === null
-                        ? null
-                        : dto.cookingTime,
+                          ? null
+                          : dto.cookingTime,
                 description:
                     dto.description === undefined
                         ? store.detail.description
                         : dto.description === null
-                        ? null
-                        : dto.description,
+                          ? null
+                          : dto.description,
                 addressDetail:
                     dto.addressDetail === undefined
                         ? store.detail.addressDetail
                         : dto.addressDetail === null
-                        ? null
-                        : dto.addressDetail,
+                          ? null
+                          : dto.addressDetail,
                 storePictureUrl:
                     dto.storePictureUrl === undefined
                         ? store.detail.storePictureUrl
                         : dto.storePictureUrl === null
-                        ? null
-                        : dto.storePictureUrl,
+                          ? null
+                          : dto.storePictureUrl,
             },
             tag: tag ?? store.tag,
             categories: categories ?? store.categories,
@@ -226,9 +228,6 @@ export class StoresService {
         }
 
         const categories = await this.categoriesService.findCategoriesNameByStore(store);
-        const refinedCategories = categories.map((item) => {
-            return { name: item.categoryName };
-        });
 
         let menus = [];
         let refinedOrder = null;
@@ -238,22 +237,21 @@ export class StoresService {
             refinedOrder = storeData.detail.menuOrders.join(',');
         }
 
-        const pickUpTime = await this.storesRepository.measurePickUpTime(
-            storeData.detail.cookingTime,
-            storeData.detail.lat,
-            lat,
-            storeData.detail.lon,
-            lon,
+        return ResponseRefiner.refineObject(
+            {
+                store: storeData,
+                categories,
+                pickUpTime: await measurePickUpTime(
+                    storeData.detail.cookingTime,
+                    storeData.detail.lat,
+                    lat,
+                    storeData.detail.lon,
+                    lon,
+                ),
+                refinedOrder,
+            },
+            FindStoreRes,
         );
-
-        const refinedReturnValue: FindOneStoreReturnValue = {
-            id: storeData.id,
-            name: storeData.name,
-            categories: refinedCategories,
-            detail: { ...storeData.detail, pickUpTime, menuOrders: refinedOrder },
-            menus,
-        };
-        return refinedReturnValue;
     }
 
     async findStoresWithLocation(dto: FindStoreWithLocationDto) {

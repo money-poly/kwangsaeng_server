@@ -16,6 +16,8 @@ import { Store } from 'src/stores/entity/store.entity';
 import { MenuStatus } from './enum/menu-status.enum';
 import { OwnStore } from './interface/own-store.interface';
 import { Seller } from 'src/users/entity/seller.entity';
+import { LocationInfo } from './interface/location-info.interface';
+import { StoreDetail } from 'src/stores/entity/store-detail.entity';
 
 @Injectable()
 export class MenusRepository {
@@ -116,5 +118,34 @@ export class MenusRepository {
             .where('m.id = :menuId', { menuId })
             .getRawOne()) as OwnStore;
         return data;
+    }
+
+    async recommendation(args: LocationInfo) {
+        return await this.entityManager
+            .createQueryBuilder(Menu, 'm')
+            .leftJoinAndSelect(Store, 's', 'm.store_id = s.id')
+            .leftJoinAndSelect(StoreDetail, 'sd', 's.id = sd.store_id')
+            .leftJoinAndSelect(MenuView, 'mv', 'm.id = mv.menu_id')
+            .select('m.id', 'menuId')
+            .addSelect('m.menu_picture_url', 'menuPictureUrl')
+            .addSelect('m.name', 'menuName')
+            .addSelect('m.price', 'price')
+            .addSelect('m.discount_rate', 'discountRate')
+            .addSelect('m.selling_price', 'sellingPrice')
+            .addSelect('m.expired_date', 'expiredDate')
+            .addSelect('s.id', 'storeId')
+            .addSelect('s.name', 'storeName')
+            .addSelect('m.count', 'count')
+            .orderBy('m.selling_price', 'ASC') // 가격 낮은 순
+            .addOrderBy('m.discount_rate', 'DESC') // 할인율 높은 순
+            .addOrderBy('mv.view_count', 'DESC') // 인기 많은 순(조회수가 높은 순)
+            .addOrderBy('m.expired_date', 'DESC') // 소비기한 긴 순
+            .where(
+                'ST_DWithin(ST_SetSRID(ST_MakePoint(sd.lon, sd.lat), 4326), ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326), :range)',
+                { longitude: args.lon, latitude: args.lat, range: 3000 },
+            )
+            .where('m.status = :status', { status: MenuStatus.SALE })
+            .limit(5) // 5개 제한
+            .getRawMany();
     }
 }

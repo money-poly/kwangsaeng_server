@@ -39,6 +39,9 @@ import { UpdateMenuCountArgs } from './interface/update-count.interface';
 import { OwnStore } from './interface/own-store.interface';
 import { Seller } from 'src/users/entity/seller.entity';
 import { UsersException } from 'src/global/exception/users-exception';
+import { ResponseRefiner } from 'src/global/util/response-refiner';
+import { FindDeatailOneRes, RecommendationRes } from './dto/refine-response.dto';
+import { measurePickUpTime } from 'src/stores/util/measure-pickup-time';
 
 @Injectable()
 export class MenusService {
@@ -131,8 +134,11 @@ export class MenusService {
             },
             { view: true, store: true },
         );
+        if (!menu) {
+            throw MenusException.ENTITY_NOT_FOUND;
+        }
 
-        const store: any = await this.storesRepository.findOneStore(
+        const store = await this.storesRepository.findOneStore(
             { id: menu.store.id },
             {
                 id: true,
@@ -144,30 +150,25 @@ export class MenusService {
 
         const anotherMenus = await this.getMenusInStore(store.id, menu.id, 3);
 
-        let refinedPickUpTime;
-        if (loc) {
-            const { lat, lon } = loc;
-            refinedPickUpTime = await this.storesRepository.measurePickUpTime(
-                store.detail.cookingTime,
-                lat,
-                store.detail.lat,
-                lon,
-                store.detail.lon,
-            );
-        }
-        store.detail.pickUpTime = refinedPickUpTime;
-
-        const menuDetailList = {
-            ...menu,
-            store,
-            anotherMenus: anotherMenus ? anotherMenus : null, // 다른 메뉴가 없을 경우 null로 전송
-            viewCount: menu.view.viewCount,
-            caution: CAUTION_TEXT,
-        };
         await this.menusRepository.incrementView(menu, store.name);
-        delete menuDetailList.view;
-        delete menuDetailList.store.detail.cookingTime; // 쓸모없는 값 제거
-        return menuDetailList;
+
+        return ResponseRefiner.refineObject(
+            {
+                menu,
+                store,
+                anotherMenus,
+                pickUpTime: loc.lat
+                    ? await measurePickUpTime(
+                          store.detail.cookingTime,
+                          loc.lat,
+                          store.detail.lat,
+                          loc.lon,
+                          store.detail.lon,
+                      )
+                    : null,
+            },
+            FindDeatailOneRes,
+        );
     }
 
     async findManyForSeller(storeId: number, user: Seller, status?: MenuStatus) {
@@ -287,6 +288,7 @@ export class MenusService {
         return await this.findDetailOne(menu.id);
     }
 
+    // TODO 홈 리디자인으로 인한 삭제 예정
     async findMaxDiscount(dto: FindAsLocationDto) {
         let refindedData = [];
 
@@ -355,6 +357,7 @@ export class MenusService {
         return refindedData;
     }
 
+    // TODO 홈 리디자인으로 인한 삭제 예정
     async findManyDiscount(type: MenuFilterType, dto: FindAsLocationDto) {
         let orderBy;
         switch (type) {
@@ -482,6 +485,11 @@ export class MenusService {
         }
 
         return await this.menusRepository.update(thisMenu, { count: dto.count });
+    }
+
+    async recommendation(dto: FindAsLocationDto) {
+        const recommendedData = await this.menusRepository.recommendation(dto);
+        return ResponseRefiner.refineArray(recommendedData, RecommendationRes);
     }
 
     private processDetailMenu(data) {

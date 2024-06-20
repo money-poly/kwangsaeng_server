@@ -110,4 +110,9 @@ export class MenusController {
     async updateCount(@Param('id') menuId: number, @Body() dto: UpdateMenuCountDto, @CurrentUser() user: Seller) {
         return await this.menusService.updateCount(menuId, dto, user);
     }
+
+    @Get('/recommendation')
+    async recommendation(@Query() dto: FindAsLocationDto) {
+        return await this.menusService.recommendation(dto);
+    }
 }

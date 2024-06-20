@@ -1,18 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { OrderController } from 'src/order/order.controller';
-import { OrderService } from 'src/order/order.service';
-import { OrderMenuDto } from 'src/order/dto/order-menu.dto';
+import { OrdersController } from 'src/orders/orders.controller';
+import { OrdersService } from 'src/orders/orders.service';
+import { OrderMenuDto } from 'src/orders/dto/order-menu.dto';
 
 describe('OrderController', () => {
-    let controller: OrderController;
-    let service: OrderService;
+    let controller: OrdersController;
+    let service: OrdersService;
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
-            controllers: [OrderController],
+            controllers: [OrdersController],
             providers: [
                 {
-                    provide: OrderService,
+                    provide: OrdersService,
                     useValue: {
                         checkStockAndLock: jest.fn(),
                     },
@@ -20,8 +20,8 @@ describe('OrderController', () => {
             ],
         }).compile();
 
-        controller = module.get<OrderController>(OrderController);
-        service = module.get<OrderService>(OrderService);
+        controller = module.get<OrdersController>(OrdersController);
+        service = module.get<OrdersService>(OrdersService);
     });
 
     it('orderController가 정의되있는지 확인', () => {

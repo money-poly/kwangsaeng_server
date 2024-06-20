@@ -41,6 +41,7 @@ import { Seller } from 'src/users/entity/seller.entity';
 import { UsersException } from 'src/global/exception/users-exception';
 import { ResponseRefiner } from 'src/global/util/response-refiner';
 import { FindDeatailOneRes, RecommendationRes } from './dto/refine-response.dto';
+import { measurePickUpTime } from 'src/stores/util/measure-pickup-time';
 
 @Injectable()
 export class MenusService {
@@ -133,8 +134,11 @@ export class MenusService {
             },
             { view: true, store: true },
         );
+        if (!menu) {
+            throw MenusException.ENTITY_NOT_FOUND;
+        }
 
-        const store: any = await this.storesRepository.findOneStore(
+        const store = await this.storesRepository.findOneStore(
             { id: menu.store.id },
             {
                 id: true,
@@ -146,20 +150,25 @@ export class MenusService {
 
         const anotherMenus = await this.getMenusInStore(store.id, menu.id, 3);
 
-        let refinedPickUpTime;
-        if (loc) {
-            const { lat, lon } = loc;
-            refinedPickUpTime = await this.storesRepository.measurePickUpTime(
-                store.detail.cookingTime,
-                lat,
-                store.detail.lat,
-                lon,
-                store.detail.lon,
-            );
-        }
         await this.menusRepository.incrementView(menu, store.name);
 
-        return ResponseRefiner.refineObject({ menu, store, anotherMenus }, FindDeatailOneRes);
+        return ResponseRefiner.refineObject(
+            {
+                menu,
+                store,
+                anotherMenus,
+                pickUpTime: loc.lat
+                    ? await measurePickUpTime(
+                          store.detail.cookingTime,
+                          loc.lat,
+                          store.detail.lat,
+                          loc.lon,
+                          store.detail.lon,
+                      )
+                    : null,
+            },
+            FindDeatailOneRes,
+        );
     }
 
     async findManyForSeller(storeId: number, user: Seller, status?: MenuStatus) {

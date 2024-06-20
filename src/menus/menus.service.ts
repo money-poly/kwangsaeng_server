@@ -39,6 +39,8 @@ import { UpdateMenuCountArgs } from './interface/update-count.interface';
 import { OwnStore } from './interface/own-store.interface';
 import { Seller } from 'src/users/entity/seller.entity';
 import { UsersException } from 'src/global/exception/users-exception';
+import { ResponseRefiner } from 'src/global/util/response-refiner';
+import { FindDeatailOneRes, RecommendationRes } from './dto/refine-response.dto';
 
 @Injectable()
 export class MenusService {
@@ -155,19 +157,9 @@ export class MenusService {
                 store.detail.lon,
             );
         }
-        store.detail.pickUpTime = refinedPickUpTime;
-
-        const menuDetailList = {
-            ...menu,
-            store,
-            anotherMenus: anotherMenus ? anotherMenus : null, // 다른 메뉴가 없을 경우 null로 전송
-            viewCount: menu.view.viewCount,
-            caution: CAUTION_TEXT,
-        };
         await this.menusRepository.incrementView(menu, store.name);
-        delete menuDetailList.view;
-        delete menuDetailList.store.detail.cookingTime; // 쓸모없는 값 제거
-        return menuDetailList;
+
+        return ResponseRefiner.refineObject({ menu, store, anotherMenus }, FindDeatailOneRes);
     }
 
     async findManyForSeller(storeId: number, user: Seller, status?: MenuStatus) {
@@ -486,27 +478,7 @@ export class MenusService {
 
     async recommendation(dto: FindAsLocationDto) {
         const recommendedData = await this.menusRepository.recommendation(dto);
-        const refinedData = [];
-
-        recommendedData.forEach((menus) => {
-            refinedData.push({
-                menu: {
-                    id: menus.menuId,
-                    menuPictureUrl: menus.menuPictureUrl ?? null,
-                    name: menus.menuName,
-                    price: menus.price,
-                    sellingPrice: menus.sellingPrice,
-                    discountRate: menus.discountRate,
-                    expiredDate: menus.expiredDate,
-                },
-                store: {
-                    id: menus.storeId,
-                    name: menus.storeName,
-                },
-            });
-        });
-        // TODO) redis 모듈 분릴 후, 재고 stock 값 넣기
-        return refinedData;
+        return ResponseRefiner.refineArray(recommendedData, RecommendationRes);
     }
 
     private processDetailMenu(data) {

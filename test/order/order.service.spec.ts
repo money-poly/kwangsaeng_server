@@ -1,14 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { OrderService } from 'src/order/order.service';
+import { OrdersService } from 'src/orders/orders.service';
 import { DataSource, QueryRunner } from 'typeorm';
 import { Redis } from 'ioredis';
 import Redlock, { Lock } from 'redlock';
-import { OrderMenuDto } from 'src/order/dto/order-menu.dto';
+import { OrderMenuDto } from 'src/orders/dto/order-menu.dto';
 import { Menu } from 'src/menus/entity/menu.entity';
 import { OrderExceotion } from 'src/global/exception/order-exceptoin';
 
 describe('OrderService', () => {
-    let service: OrderService;
+    let service: OrdersService;
     let dataSourceMock: DataSource;
     let redisMock: Redis;
     let redlockMock: Redlock;
@@ -44,13 +44,13 @@ describe('OrderService', () => {
 
         const module: TestingModule = await Test.createTestingModule({
             providers: [
-                OrderService,
+                OrdersService,
                 { provide: DataSource, useValue: dataSourceMock },
                 { provide: 'default_IORedisModuleConnectionToken', useValue: redisMock },
             ],
         }).compile();
 
-        service = module.get<OrderService>(OrderService);
+        service = module.get<OrdersService>(OrdersService);
         service['redlock'] = redlockMock;
     });
 

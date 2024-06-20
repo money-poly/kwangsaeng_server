@@ -135,6 +135,7 @@ export class MenusRepository {
             .addSelect('m.expired_date', 'expiredDate')
             .addSelect('s.id', 'storeId')
             .addSelect('s.name', 'storeName')
+            .addSelect('m.count', 'count')
             .orderBy('m.selling_price', 'ASC') // 가격 낮은 순
             .addOrderBy('m.discount_rate', 'DESC') // 할인율 높은 순
             .addOrderBy('mv.view_count', 'DESC') // 인기 많은 순(조회수가 높은 순)
@@ -143,6 +144,7 @@ export class MenusRepository {
                 'ST_DWithin(ST_SetSRID(ST_MakePoint(sd.lon, sd.lat), 4326), ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326), :range)',
                 { longitude: args.lon, latitude: args.lat, range: 3000 },
             )
+            .where('m.status = :status', { status: MenuStatus.SALE })
             .limit(5) // 5개 제한
             .getRawMany();
     }

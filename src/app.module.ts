@@ -44,16 +44,8 @@ import { OrdersModule } from './orders/orders.module';
                 limit: 50,
             },
         ]),
-        RedisModule.forRootAsync({
-            useFactory: () => ({
-                type: 'single',
-                url: process.env.REDIS_HOST,
-                tls: {
-                    rejectUnauthorized: false,
-                },
-            }),
-        }),
         DatabaseModule,
+        RedisModule,
         UsersModule,
         StoresModule,
         MenusModule,

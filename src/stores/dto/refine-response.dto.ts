@@ -1,3 +1,4 @@
+import { CAUTION_TEXT } from 'src/global/common/caution.constant';
 import { MenuStatus } from 'src/menus/enum/menu-status.enum';
 
 export class FindStoreRes {
@@ -18,7 +19,6 @@ export class FindStoreRes {
         pickUpTime: string;
         menuOrders: string;
     };
-
     menus: {
         id: number;
         name: string;
@@ -33,8 +33,7 @@ export class FindStoreRes {
             origin: string;
         }[];
     };
-
-    // const rsefinedCategories = categories
+    caution: string[];
 
     constructor(data: any) {
         this.id = data.store.id;
@@ -56,7 +55,8 @@ export class FindStoreRes {
             pickUpTime: data.pickUpTime,
             menuOrders: data.refinedOrder,
         };
-        this.menus = data.menu;
+        this.menus = data.menus;
+        this.caution = CAUTION_TEXT;
     }
 }
 

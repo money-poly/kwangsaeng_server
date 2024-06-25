@@ -81,8 +81,7 @@ export class StoresController {
     @UseGuards(OperationGuard)
     @UseEntityTransformer<Store>(TransformStoreInterceptor)
     async findOneStore(@CurrentStore() store: Store, @Query() dto: FindStoreDetailDto) {
-        const storeData = await this.storesService.findStore(store, dto);
-        return { ...storeData, caution: CAUTION_TEXT };
+        return await this.storesService.findStore(store, dto);
     }
 
     @Put('/:storeId')

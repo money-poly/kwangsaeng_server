@@ -24,6 +24,7 @@ import { CategoriesService } from 'src/categories/categories.service';
 import { ResponseRefiner } from 'src/global/util/response-refiner';
 import { FindStoreRes } from './dto/refine-response.dto';
 import { measurePickUpTime } from './util/measure-pickup-time';
+import { CAUTION_TEXT } from 'src/global/common/caution.constant';
 
 @Injectable()
 export class StoresService {
@@ -241,6 +242,7 @@ export class StoresService {
             {
                 store: storeData,
                 categories,
+                menus,
                 pickUpTime: await measurePickUpTime(
                     storeData.detail.cookingTime,
                     storeData.detail.lat,
@@ -249,6 +251,7 @@ export class StoresService {
                     lon,
                 ),
                 refinedOrder,
+                caution: CAUTION_TEXT,
             },
             FindStoreRes,
         );

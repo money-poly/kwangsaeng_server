@@ -79,9 +79,8 @@ export class StoresController {
     @SkipThrottle()
     @Get(':storeId')
     @UseGuards(OperationGuard)
-    @UseEntityTransformer<Store>(TransformStoreInterceptor)
-    async findOneStore(@CurrentStore() store: Store, @Query() dto: FindStoreDetailDto) {
-        return await this.storesService.findStore(store, dto);
+    async findOneStore(@Param('storeId') storeId: number, @Query() dto: FindStoreDetailDto) {
+        return await this.storesService.findStore(storeId, dto);
     }
 
     @Put('/:storeId')

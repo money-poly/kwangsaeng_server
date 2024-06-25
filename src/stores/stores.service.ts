@@ -24,6 +24,7 @@ import { CategoriesService } from 'src/categories/categories.service';
 import { ResponseRefiner } from 'src/global/util/response-refiner';
 import { FindStoreRes } from './dto/refine-response.dto';
 import { measurePickUpTime } from './util/measure-pickup-time';
+import { CAUTION_TEXT } from 'src/global/common/caution.constant';
 
 @Injectable()
 export class StoresService {
@@ -201,10 +202,10 @@ export class StoresService {
         return qb;
     }
 
-    async findStore(store: Store, dto: FindStoreDetailDto) {
+    async findStore(storeId: number, dto: FindStoreDetailDto) {
         const { lat, lon } = dto;
         const storeData: Store = await this.storesRepository.findOneStore(
-            { id: store.id, approve: { isApproved: StoreApproveStatus.DONE } },
+            { id: storeId, approve: { isApproved: StoreApproveStatus.DONE } },
             {
                 id: true,
                 name: true,
@@ -227,13 +228,13 @@ export class StoresService {
             throw StoresException.ENTITY_NOT_FOUND;
         }
 
-        const categories = await this.categoriesService.findCategoriesNameByStore(store);
+        const categories = await this.categoriesService.findCategoriesNameByStore(storeData);
 
         let menus = [];
         let refinedOrder = null;
-        const orderBy = await this.storesRepository.processOrderBy(store);
+        const orderBy = await this.storesRepository.processOrderBy(storeData);
         if (orderBy) {
-            menus = await this.menusService.findMenusForOrder(store, orderBy);
+            menus = await this.menusService.findMenusForOrder(storeData, orderBy);
             refinedOrder = storeData.detail.menuOrders.join(',');
         }
 
@@ -241,6 +242,7 @@ export class StoresService {
             {
                 store: storeData,
                 categories,
+                menus,
                 pickUpTime: await measurePickUpTime(
                     storeData.detail.cookingTime,
                     storeData.detail.lat,
@@ -248,7 +250,7 @@ export class StoresService {
                     storeData.detail.lon,
                     lon,
                 ),
-                refinedOrder,
+                caution: CAUTION_TEXT,
             },
             FindStoreRes,
         );

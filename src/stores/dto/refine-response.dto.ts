@@ -17,7 +17,6 @@ export class FindStoreRes {
             startedAt: string;
         };
         pickUpTime: string;
-        menuOrders: string;
     };
     menus: {
         id: number;
@@ -53,7 +52,6 @@ export class FindStoreRes {
                 endedAt: data.store.detail.operationTimes.endedAt,
             },
             pickUpTime: data.pickUpTime,
-            menuOrders: data.refinedOrder,
         };
         this.menus = data.menus;
         this.caution = CAUTION_TEXT;

@@ -18,7 +18,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { TagsModule } from './tags/tags.module';
 import { SearchModule } from './search/search.module';
-import { RedisModule } from '@nestjs-modules/ioredis';
+import { RedisModule } from 'src/redis/redis.module';
 import { OrdersModule } from './orders/orders.module';
 
 @Module({

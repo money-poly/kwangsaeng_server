@@ -91,7 +91,7 @@ export class FindDeatailOneRes {
                 lat: data.store.detail.lat,
                 lon: data.store.detail.lon,
                 pickUpTime: data.pickUpTime,
-                phone: data.store.detail,
+                phone: data.store.detail.phone,
             },
         };
         this.anotherMenus = data.anotherMenus ?? null;

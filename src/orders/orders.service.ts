@@ -1,33 +1,28 @@
+// src/orders/orders.service.ts
 import { Injectable, Logger } from '@nestjs/common';
-import { Redis } from 'ioredis';
-import Redlock, { Lock } from 'redlock';
 import { Menu } from 'src/menus/entity/menu.entity';
 import { DataSource, QueryRunner } from 'typeorm';
-import { InjectRedis } from '@nestjs-modules/ioredis';
+import { Lock } from 'redlock';
 import { OrderMenuDto } from './dto/order-menu.dto';
-
 import { OrderExceotion } from 'src/global/exception/order-exceptoin';
 import { CommonException } from 'src/global/exception/common-exception';
+import { RedisService } from 'src/redis/redis.service';
+import { RedlockService } from 'src/redis/redlock.service';
 
 @Injectable()
 export class OrdersService {
-    private redlock: Redlock;
     private readonly logger = new Logger(OrdersService.name);
 
     constructor(
         private readonly dataSource: DataSource,
-        @InjectRedis() private readonly redis: Redis,
-    ) {
-        this.redlock = new Redlock([redis], {
-            retryCount: 10, // 재시도 횟수
-            retryDelay: 200, // 재시도 지연 (밀리초)
-        });
-    }
+        private readonly redisService: RedisService,
+        private readonly redlockService: RedlockService,
+    ) {}
 
     async checkStockAndLock(order: OrderMenuDto) {
         const queryRunner = this.dataSource.createQueryRunner();
-        const locks: Lock[] = []; // 잠금 획들한 데이터
-        const redisRollbackData: { key: string; value: number }[] = []; // Redis 롤백 데이터
+        const locks: Lock[] = [];
+        const redisRollbackData: { key: string; value: number }[] = [];
 
         try {
             await queryRunner.connect();
@@ -47,9 +42,7 @@ export class OrdersService {
             return { orderId: this.generateOrderId() };
         } catch (e) {
             await queryRunner.rollbackTransaction();
-
             await this.rollbackRedis(redisRollbackData); // Redis 상태 롤백
-
             this.logger.error(e);
             if (e instanceof CommonException) {
                 throw e;
@@ -57,14 +50,14 @@ export class OrdersService {
             throw OrderExceotion.FAIL_ORDER_TRANSACTION;
         } finally {
             // Step 5: 획득한 모든 잠금 해제
-            await this.releaseLocks(locks);
+            await this.redlockService.releaseLocks(locks);
             await queryRunner.release();
         }
     }
 
     async getStock(menuId: number): Promise<Number> {
         const stockKey = `menu:${menuId}:id`;
-        const stockQuantity = await this.redis.get(stockKey);
+        const stockQuantity = await this.redisService.get(stockKey);
         if (stockQuantity === null) {
             throw OrderExceotion.REDIS_NOT_FOUND;
         }
@@ -79,15 +72,13 @@ export class OrdersService {
         return digits + letters;
     }
 
-    // Step 1: 모든 메뉴 항목에 대한 잠금 획득
     private async acquireLocks(order: OrderMenuDto, locks: Lock[]): Promise<void> {
-        for (const item of order.orders) {
-            const lock = await this.redlock.acquire([`lock:${item.menuId}:id`], 1000);
-            locks.push(lock);
-        }
+        const resources = order.orders.map((item) => `lock:${item.menuId}:id`);
+        const acquiredLocks = await this.redlockService.acquireLocks(resources, 1000);
+        console.log(acquiredLocks);
+        locks.push(...acquiredLocks);
     }
 
-    // Step 2: 재고 확인 및 충분하지 않은 항목 insufficientStock에 저장
     private async checkStock(
         order: OrderMenuDto,
         redisRollbackData: { key: string; value: number }[],
@@ -96,18 +87,14 @@ export class OrdersService {
 
         for (const item of order.orders) {
             const stockKey = `menu:${item.menuId}:id`;
-            const stockQuantity = await this.redis.get(stockKey);
+            const stockQuantity = await this.redisService.get(stockKey);
             if (stockQuantity === null) {
                 throw OrderExceotion.REDIS_NOT_FOUND;
             }
             const stockInt = parseInt(stockQuantity, 10);
-            redisRollbackData.push({ key: stockKey, value: stockInt }); // 현재 상태를 저장
-            // if (item.menuId === 3) {
-            //     throw new Error('인위적으로 발생시킨 예외'); //  트랜잭션 테스트
-            // }
+            redisRollbackData.push({ key: stockKey, value: stockInt });
 
             if (item.quantity > stockInt) {
-                // throw new Error('재고 수량이 부족합니다 !!!');  // jmeter 부하테스트  가독성
                 insufficientStock.push({
                     menuId: item.menuId,
                     requestedQuantity: item.quantity,
@@ -119,30 +106,17 @@ export class OrdersService {
         return insufficientStock;
     }
 
-    // Step 4: 재고가 충분할 시 MySQL 및 Redis의 재고 업데이트
     private async updateStock(order: OrderMenuDto, queryRunner: QueryRunner): Promise<void> {
         for (const item of order.orders) {
             await queryRunner.manager.decrement(Menu, { id: item.menuId }, 'count', item.quantity);
-
             const stockKey = `menu:${item.menuId}:id`;
-            await this.redis.decrby(stockKey, item.quantity);
+            await this.redisService.decrby(stockKey, item.quantity);
         }
     }
 
     private async rollbackRedis(redisRollbackData: { key: string; value: number }[]): Promise<void> {
         for (const item of redisRollbackData) {
-            await this.redis.set(item.key, item.value.toString());
-        }
-    }
-    // Step 5: 획득한 모든 잠금 해제
-    private async releaseLocks(locks: Lock[]): Promise<void> {
-        for (const lock of locks) {
-            try {
-                await lock.release();
-            } catch (unlockError) {
-                this.logger.error(unlockError);
-                throw OrderExceotion.FAIL_UNLOCK_REDIS;
-            }
+            await this.redisService.set(item.key, item.value.toString());
         }
     }
 }

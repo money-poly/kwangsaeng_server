@@ -45,7 +45,6 @@ import { OrdersModule } from './orders/orders.module';
             },
         ]),
         DatabaseModule,
-        RedisModule,
         UsersModule,
         StoresModule,
         MenusModule,

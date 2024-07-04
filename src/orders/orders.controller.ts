@@ -11,7 +11,7 @@ export class OrdersController {
         // @InjectRedis() private readonly redis: Redis,
     ) {}
 
-    @Patch()
+    @Patch('create-order-number')
     async createOrder(@Body() orderRequest: OrderMenuDto) {
         return await this.orderService.checkStockAndLock(orderRequest);
     }

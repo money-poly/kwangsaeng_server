@@ -17,15 +17,11 @@ import { SkipThrottle } from '@nestjs/throttler';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { CurrentUser } from 'src/global/decorator/current-user.decorator';
 import { FindStoreWithLocationDto } from 'src/stores/dto/find-store-with-location.dto';
-import { Store } from 'src/stores/entity/store.entity';
 import { CreateStoreDto } from 'src/stores/dto/create-store.dto';
 import { UpdateStoreDto } from 'src/stores/dto/update-store.dto';
 import { OperationGuard } from 'src/stores/guard/operation.guard';
 import { OwnerGuard } from 'src/stores/guard/owner.guard';
-import { TransformStoreInterceptor } from 'src/global/interceptor/transform-entity.interceptor';
 import { CurrentStore } from 'src/global/decorator/current-store.decorator';
-import { UseEntityTransformer } from 'src/global/decorator/entity-transformer.decorator';
-import { CAUTION_TEXT } from 'src/global/common/caution.constant';
 import { FindStoreDetailDto } from 'src/stores/dto/find-store-detail.dto';
 import { AdminGuard } from 'src/auth/guard/admin.guard';
 import { S3Exception } from 'src/global/exception/s3-exception';
@@ -63,9 +59,8 @@ export class StoresController {
 
     @Patch('approve/:storeId')
     @UseGuards(AuthGuard, AdminGuard)
-    @UseEntityTransformer<Store>(TransformStoreInterceptor)
-    async approve(@CurrentStore() store: Store) {
-        return await this.storesService.approve(store);
+    async approve(@CurrentStore() storeId: number) {
+        return await this.storesService.approve(storeId);
     }
 
     @Get('/find-using-token')

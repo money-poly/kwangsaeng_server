@@ -158,10 +158,10 @@ export class StoresService {
         return await this.storesRepository.findOneStore(where, select, relations);
     }
 
-    async approve(store: Store) {
+    async approve(storeId: number) {
         const approve = await this.storesRepository.findOneApprove({
             store: {
-                id: store.id,
+                id: storeId,
             },
         });
 

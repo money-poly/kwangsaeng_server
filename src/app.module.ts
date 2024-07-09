@@ -18,8 +18,9 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { TagsModule } from './tags/tags.module';
 import { SearchModule } from './search/search.module';
-import { RedisModule } from 'src/redis/redis.module';
 import { OrdersModule } from './orders/orders.module';
+import { Stores2Module } from './stores2.0/stores2.module';
+import { Menus2Module } from './menus2.0/menus2.module';
 
 @Module({
     imports: [
@@ -57,6 +58,8 @@ import { OrdersModule } from './orders/orders.module';
         TagsModule,
         SearchModule,
         OrdersModule,
+        Stores2Module,
+        Menus2Module,
     ],
     providers: [Logger, InitializeService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

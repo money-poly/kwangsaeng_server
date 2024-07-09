@@ -45,19 +45,16 @@ export class StoresService {
         return await this.storesRepository.createStore(user, dto);
     }
 
-    async toggleStoreStatus(store: Store) {
+    async toggleStoreStatus(storeId: number) {
+        const store = await this.storesRepository.findOneStore({ id: storeId }, { id: true, status: true });
+
         if (store.status == StoreStatus.OPEN) {
             await this.storesRepository.updateStore(store, { status: StoreStatus.CLOSED });
         } else {
             await this.storesRepository.updateStore(store, { status: StoreStatus.OPEN });
         }
 
-        return await this.storesRepository.findOneStore(
-            { id: store.id },
-            {
-                status: true,
-            },
-        );
+        return store;
     }
 
     async updateStore(storeId: number, dto: UpdateStoreDto) {
@@ -161,10 +158,10 @@ export class StoresService {
         return await this.storesRepository.findOneStore(where, select, relations);
     }
 
-    async approve(store: Store) {
+    async approve(storeId: number) {
         const approve = await this.storesRepository.findOneApprove({
             store: {
-                id: store.id,
+                id: storeId,
             },
         });
 

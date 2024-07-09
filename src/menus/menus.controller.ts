@@ -29,6 +29,8 @@ import { S3Exception } from 'src/global/exception/s3-exception';
 import { SkipThrottle } from '@nestjs/throttler';
 import { UpdateMenuCountDto } from './dto/update-count.dto';
 import { Seller } from 'src/users/entity/seller.entity';
+import { OperationGuard } from 'src/stores/guard/operation.guard';
+import { OwnerGuard } from 'src/stores/guard/owner.guard';
 
 @Controller('menus')
 export class MenusController {
@@ -89,8 +91,7 @@ export class MenusController {
     }
 
     @Put('/status/:id')
-    @UseGuards(AuthGuard)
-    // TODO 회원 예외처리 및 레이어 분리
+    @UseGuards(AuthGuard, OperationGuard, OwnerGuard)
     async updateStatus(@Param('id') menuId: number, @CurrentUser() user: Seller, @Body() dto: UpdateMenuStatusDto) {
         return await this.menusService.updateStatus(menuId, user, dto);
     }

@@ -57,9 +57,8 @@ export class StoresController {
 
     @Patch('status/:storeId')
     @UseGuards(AuthGuard, OperationGuard, OwnerGuard)
-    @UseEntityTransformer<Store>(TransformStoreInterceptor)
-    async toggleStatus(@CurrentStore() store: Store) {
-        return await this.storesService.toggleStoreStatus(store);
+    async toggleStatus(@Param('storeId') storeId: number) {
+        return await this.storesService.toggleStoreStatus(storeId);
     }
 
     @Patch('approve/:storeId')

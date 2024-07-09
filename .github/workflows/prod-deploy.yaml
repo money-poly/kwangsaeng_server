@@ -1,4 +1,4 @@
-name: Deploy to App Runner - Image based
+name: Deploy to App Runner For Prod - Image based
 on:
     push:
         branches: [production] # Trigger workflow on git push to main branch

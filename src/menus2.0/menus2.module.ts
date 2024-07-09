@@ -4,9 +4,10 @@ import { Menus2Controller } from './menus2.controller';
 import { Menus2Appender } from './implement/menus2.appender';
 import { Menus2Reader } from './implement/menus2.reader';
 import { Menus2Manager } from './implement/menus2.manager';
+import { Menus2Repository } from './menus2.repository';
 
 @Module({
-    providers: [Menus2Service, Menus2Appender, Menus2Reader, Menus2Manager],
+    providers: [Menus2Service, Menus2Appender, Menus2Reader, Menus2Manager, Menus2Repository],
     controllers: [Menus2Controller],
 })
 export class Menus2Module {}

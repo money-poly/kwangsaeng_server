@@ -23,6 +23,8 @@ import { BusinessDetail } from 'src/stores/entity/business-detail.entity';
 @Module({
     imports: [
         TypeOrmModule.forFeature([Store, Seller, StoreDetail, BusinessDetail, StoreApprove]),
+        // 초기단계에서는 스토어와 메뉴를 제외한 다른 모듈은 모듈 자체를 imports
+        // TODO) 아래의 모듈 마저도 implement layer를 통해 의존성 주입
         CategoriesModule,
         UsersModule,
         HttpModule,

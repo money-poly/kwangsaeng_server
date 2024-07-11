@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { Menus2Service } from './menus2.service';
 import { Menus2Controller } from './menus2.controller';
 import { Menus2Appender } from './implement/menus2.appender';
@@ -18,6 +18,7 @@ import { StoreDetail } from 'src/stores/entity/store-detail.entity';
 import { BusinessDetail } from 'src/stores/entity/business-detail.entity';
 import { StoreApprove } from 'src/stores/entity/store-approve.entity';
 import { Stores2Reader } from 'src/stores2.0/implement/stores2.reader';
+import { Stores2Module } from 'src/stores2.0/stores2.module';
 
 @Module({
     imports: [
@@ -27,8 +28,8 @@ import { Stores2Reader } from 'src/stores2.0/implement/stores2.reader';
             inject: [ConfigService],
             useFactory: (configService: ConfigService) => multerS3Config(configService),
         }),
-        // 초기단계에서는 스토어와 메뉴를 제외한 다른 모듈은 모듈 자체를 imports
-        // TODO) 아래의 모듈 마저도 implement layer를 통해 의존성 주입
+        // Store의 Implement Layer를 사용하기 위해서는 Store Module DI해야함.
+        forwardRef(() => Stores2Module),
         CategoriesModule,
     ],
     providers: [Menus2Service, Menus2Appender, Menus2Reader, Menus2Manager, Menus2Repository, Stores2Reader],

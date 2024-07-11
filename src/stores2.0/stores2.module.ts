@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { Stores2Service } from './stores2.service';
 import { Stores2Controller } from './stores2.controller';
 import { Stores2Appender } from './implement/stores2.appender';
@@ -19,6 +19,9 @@ import { Seller } from 'src/users/entity/seller.entity';
 import { StoreDetail } from 'src/stores/entity/store-detail.entity';
 import { StoreApprove } from 'src/stores/entity/store-approve.entity';
 import { BusinessDetail } from 'src/stores/entity/business-detail.entity';
+import { Menus2Module } from 'src/menus2.0/menus2.module';
+import { Menus2Manager } from 'src/menus2.0/implement/menus2.manager';
+import { Menus2Appender } from 'src/menus2.0/implement/menus2.appender';
 
 @Module({
     imports: [
@@ -34,8 +37,25 @@ import { BusinessDetail } from 'src/stores/entity/business-detail.entity';
             inject: [ConfigService],
             useFactory: (configService: ConfigService) => multerS3Config(configService),
         }),
+        // Menu의 Implement Layer를 사용하기 위해서는 Menu Module DI해야함.
+        forwardRef(() => Menus2Module),
     ],
-    providers: [Stores2Service, Stores2Appender, Stores2Manager, Stores2Reader, Stores2Repository, Menus2Reader],
+    providers: [
+        // Service
+        Stores2Service,
+
+        // Implement
+        Stores2Appender,
+        Stores2Manager,
+        Stores2Reader,
+        Menus2Appender,
+        Menus2Reader,
+        Menus2Manager,
+
+        // Repository
+        Stores2Repository,
+    ],
     controllers: [Stores2Controller],
+    exports: [Stores2Appender, Stores2Manager, Stores2Reader, Stores2Repository],
 })
 export class Stores2Module {}

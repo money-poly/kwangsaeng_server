@@ -19,6 +19,8 @@ import { BusinessDetail } from 'src/stores/entity/business-detail.entity';
 import { StoreApprove } from 'src/stores/entity/store-approve.entity';
 import { Stores2Reader } from 'src/stores2.0/implement/stores2.reader';
 import { Stores2Module } from 'src/stores2.0/stores2.module';
+import { Stores2Appender } from 'src/stores2.0/implement/stores2.appender';
+import { Stores2Manager } from 'src/stores2.0/implement/stores2.manager';
 
 @Module({
     imports: [
@@ -32,7 +34,22 @@ import { Stores2Module } from 'src/stores2.0/stores2.module';
         forwardRef(() => Stores2Module),
         CategoriesModule,
     ],
-    providers: [Menus2Service, Menus2Appender, Menus2Reader, Menus2Manager, Menus2Repository, Stores2Reader],
+    providers: [
+        // Service
+        Menus2Service,
+
+        // Implement
+        Menus2Appender,
+        Menus2Reader,
+        Menus2Manager,
+        Stores2Appender,
+        Stores2Manager,
+        Stores2Reader,
+
+        // Repository
+        Menus2Repository,
+    ],
     controllers: [Menus2Controller],
+    exports: [Menus2Appender, Menus2Reader, Menus2Manager, Menus2Repository],
 })
 export class Menus2Module {}

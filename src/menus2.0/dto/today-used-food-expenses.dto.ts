@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsBoolean, IsEnum, IsInt, IsLatitude, IsLongitude, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsLatitude, IsLongitude, IsOptional } from 'class-validator';
 import { SortFilterType } from '../enum/sort-filter-type.enum';
 
 export class TodayUsedFoodExpensesDto {
@@ -13,7 +13,7 @@ export class TodayUsedFoodExpensesDto {
     @IsOptional()
     @IsBoolean()
     @Type(() => Boolean)
-    final: Boolean = false;
+    final: boolean = false;
 
     @IsLatitude()
     lat: number;

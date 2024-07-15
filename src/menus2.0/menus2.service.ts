@@ -4,6 +4,8 @@ import { Stores2Reader } from 'src/stores2.0/implement/stores2.reader';
 import { Menus2Appender } from './implement/menus2.appender';
 import { Menus2Manager } from './implement/menus2.manager';
 import { TodayUsedFoodExpensesDto } from './dto/today-used-food-expenses.dto';
+import { ResponseRefiner } from 'src/global/util/response-refiner';
+import { TodayUsedFoodExpensesRes } from './dto/refine-response.dto';
 
 @Injectable()
 export class Menus2Service {
@@ -15,6 +17,14 @@ export class Menus2Service {
     ) {}
 
     async todayUsedFoodExpenses(dto: TodayUsedFoodExpensesDto) {
-        return await this.menusReader.readTodayUsedFoodExpenses(dto.amount, dto.filter, dto.final, dto.lat, dto.lon);
+        const menus = await this.menusReader.readTodayUsedFoodExpenses(
+            dto.amount,
+            dto.filter,
+            dto.final,
+            dto.lat,
+            dto.lon,
+        );
+
+        return ResponseRefiner.refineObject(menus, TodayUsedFoodExpensesRes);
     }
 }

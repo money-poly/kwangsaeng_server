@@ -18,12 +18,7 @@ export class Menus2Repository {
         private readonly entityManager: EntityManager,
     ) {}
 
-    async todayUsedFoodExpensesLogic<T>(qb: SelectQueryBuilder<T>, amount: number, final: boolean) {
-        if (final) {
-            qb.offset(6);
-        } else {
-            qb.limit(6);
-        }
+    async todayUsedFoodExpensesLogic<T>(qb: SelectQueryBuilder<T>, amount: number) {
         // TODO) store을 Join하는 부분에 대해서 어떻게 생각하는지
         return qb
             .select('m.id', 'menuId')
@@ -80,6 +75,14 @@ export class Menus2Repository {
                 }
                 return qb.leftJoin(MenuView, 'mv', 'm.id = mv.menu_id').orderBy('mv.view_count', 'DESC');
         }
+    }
+
+    async settingOffset<T>(qb: SelectQueryBuilder<T>, offset: number) {
+        return qb.offset(offset);
+    }
+
+    async settingLimit<T>(qb: SelectQueryBuilder<T>, limit: number) {
+        return qb.limit(limit);
     }
 
     async getTotalCount<T>(qb: SelectQueryBuilder<T>) {

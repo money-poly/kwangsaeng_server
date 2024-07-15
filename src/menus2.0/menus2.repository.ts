@@ -30,6 +30,7 @@ export class Menus2Repository {
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
             .addSelect('m.name', 'menuName')
             .addSelect('m.price', 'price')
+            .addSelect('m.selling_price', 'sellingPrice')
             .addSelect('m.discount_rate', 'discountRate')
             .addSelect('m.count', 'count')
             .addSelect('mv.view_count', 'viewCount')
@@ -79,6 +80,10 @@ export class Menus2Repository {
                 }
                 return qb.leftJoin(MenuView, 'mv', 'm.id = mv.menu_id').orderBy('mv.view_count', 'DESC');
         }
+    }
+
+    async getTotalCount<T>(qb: SelectQueryBuilder<T>) {
+        return qb.getCount();
     }
 
     async executeQueryBuilder<T>(qb: SelectQueryBuilder<T>, type: ExecuteQueryBuilderType) {

@@ -20,9 +20,9 @@ export class Menus2Repository {
 
     async todayUsedFoodExpensesLogic<T>(qb: SelectQueryBuilder<T>, amount: number, final: boolean) {
         if (final) {
-            qb.limit(6);
-        } else {
             qb.offset(6);
+        } else {
+            qb.limit(6);
         }
         // TODO) store을 Join하는 부분에 대해서 어떻게 생각하는지
         return qb

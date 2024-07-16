@@ -1,4 +1,4 @@
-export class TodayUsedFoodExpensesRes {
+export class TodayUsingFoodExpensesRes {
     menus: {
         menu: {
             id: number;
@@ -40,11 +40,4 @@ export class TodayUsedFoodExpensesRes {
         }));
         this.totalCount = data.totalCount;
     }
-}
-
-export class AnotherRes {
-    // Another Response 구조 정의
-    // constructor(data: any) {
-    //   // 정제 로직
-    // }
 }

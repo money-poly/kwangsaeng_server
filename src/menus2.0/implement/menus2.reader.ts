@@ -7,7 +7,7 @@ import { ExecuteQueryBuilderType } from 'src/global/common/execute-qb-type.enum'
 export class Menus2Reader {
     constructor(private readonly menusRepository: Menus2Repository) {}
 
-    async readTodayUsedFoodExpenses(amount: number, filter: SortFilterType, final: boolean, lat: number, lon: number) {
+    async readTodayUsingFoodExpenses(amount: number, filter: SortFilterType, final: boolean, lat: number, lon: number) {
         const qb = await this.menusRepository.createQueryBuilder();
         let totalCount;
 
@@ -17,7 +17,7 @@ export class Menus2Reader {
             .then((qb) => this.menusRepository.leftJoinStoreDetail(qb))
             .then((qb) => this.menusRepository.filterDistance(qb, lat, lon))
             .then((qb) => this.menusRepository.sortInQb(qb, filter))
-            .then((qb) => this.menusRepository.todayUsedFoodExpensesLogic(qb, amount))
+            .then((qb) => this.menusRepository.todayUsingFoodExpensesLogic(qb, amount))
             .then(async (qb) => {
                 totalCount = await this.menusRepository.getTotalCount(qb);
                 return qb;

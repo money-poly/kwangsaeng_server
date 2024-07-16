@@ -1,13 +1,13 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { Menus2Service } from './menus2.service';
-import { TodayUsedFoodExpensesDto } from './dto/today-used-food-expenses.dto';
+import { TodayUsingFoodExpensesDto } from './dto/request/today-using-food-expenses.dto';
 
 @Controller('menus2')
 export class Menus2Controller {
     constructor(private readonly menusService: Menus2Service) {}
 
     @Get('amount-used')
-    async todayUsedFoodExpenses(@Query() dto: TodayUsedFoodExpensesDto) {
-        return this.menusService.todayUsedFoodExpenses(dto);
+    async todayUsingFoodExpenses(@Query() dto: TodayUsingFoodExpensesDto) {
+        return this.menusService.todayUsingFoodExpenses(dto);
     }
 }

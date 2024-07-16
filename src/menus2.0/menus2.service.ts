@@ -3,9 +3,9 @@ import { Menus2Reader } from './implement/menus2.reader';
 import { Stores2Reader } from 'src/stores2.0/implement/stores2.reader';
 import { Menus2Appender } from './implement/menus2.appender';
 import { Menus2Manager } from './implement/menus2.manager';
-import { TodayUsedFoodExpensesDto } from './dto/today-used-food-expenses.dto';
 import { ResponseRefiner } from 'src/global/util/response-refiner';
-import { TodayUsedFoodExpensesRes } from './dto/refine-response.dto';
+import { TodayUsingFoodExpensesDto } from './dto/request/today-using-food-expenses.dto';
+import { TodayUsingFoodExpensesRes } from './dto/response/today-using-food-expenses.dto';
 
 @Injectable()
 export class Menus2Service {
@@ -16,8 +16,8 @@ export class Menus2Service {
         private readonly menusManager: Menus2Manager,
     ) {}
 
-    async todayUsedFoodExpenses(dto: TodayUsedFoodExpensesDto) {
-        const menus = await this.menusReader.readTodayUsedFoodExpenses(
+    async todayUsingFoodExpenses(dto: TodayUsingFoodExpensesDto) {
+        const menus = await this.menusReader.readTodayUsingFoodExpenses(
             dto.amount,
             dto.filter,
             dto.final,
@@ -25,6 +25,6 @@ export class Menus2Service {
             dto.lon,
         );
 
-        return ResponseRefiner.refineObject(menus, TodayUsedFoodExpensesRes);
+        return ResponseRefiner.refineObject(menus, TodayUsingFoodExpensesRes);
     }
 }

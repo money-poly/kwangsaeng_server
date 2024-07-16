@@ -18,7 +18,7 @@ export class Menus2Repository {
         private readonly entityManager: EntityManager,
     ) {}
 
-    async todayUsedFoodExpensesLogic<T>(qb: SelectQueryBuilder<T>, amount: number) {
+    async todayUsingFoodExpensesLogic<T>(qb: SelectQueryBuilder<T>, amount: number) {
         // TODO) store을 Join하는 부분에 대해서 어떻게 생각하는지
         return qb
             .select('m.id', 'menuId')

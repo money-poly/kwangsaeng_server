@@ -472,7 +472,7 @@ export class MenusService {
         return await this.menusRepository.findMenusForOrder(store, orderBy);
     }
 
-    async updateCount(menuId: number, dto: UpdateMenuCountArgs, user: Seller) {
+    async updateStock(menuId: number, dto: UpdateMenuCountArgs, user: Seller) {
         const thisMenu = await this.menusRepository.findOne({ id: menuId }, { id: true });
         const ownStore: OwnStore = await this.menusRepository.findOwnStoreForMenuId(menuId);
 

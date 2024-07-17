@@ -521,7 +521,7 @@ export class MenusService {
         return await this.entityManager
             .createQueryBuilder(Menu, 'm')
             .select('m.menu_picture_url', 'menuPictureUrl')
-            .addSelect('m.id', 'menuId')
+            .addSelect('m.id', 'id')
             .addSelect('m.name', 'name')
             .addSelect('m.discount_rate', 'discountRate')
             .addSelect('m.selling_price', 'sellingPrice')

@@ -65,7 +65,7 @@ export class MenusService {
         await this.validateUserRole(user, Roles.OWNER);
         const createdMenu = await this.menusRepository.create(storeData, args);
         await this.storesRepository.addOrder(storeData, createdMenu);
-        return { menuId: createdMenu.id };
+        return { id: createdMenu.id };
     }
 
     async update(menuId: number, args: UpdateMenuArgs, user: Seller) {

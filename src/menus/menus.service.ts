@@ -492,6 +492,7 @@ export class MenusService {
         return ResponseRefiner.refineArray(recommendedData, RecommendationRes);
     }
 
+    // TODO 홈 리디자인으로 인한 삭제 예정
     private processDetailMenu(data) {
         const menu = {
             id: data.menuId,

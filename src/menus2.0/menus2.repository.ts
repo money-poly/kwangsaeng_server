@@ -63,9 +63,9 @@ export class Menus2Repository {
                 return qb.orderBy('discount_rate', 'DESC');
             case SortFilterType.PRICE:
                 return qb.orderBy('price', 'ASC');
-            case SortFilterType.expire:
+            case SortFilterType.EXPIRE:
                 return qb.orderBy('expired_date', 'DESC');
-            case SortFilterType.popular:
+            case SortFilterType.POPULAR:
                 // qb에 menuView가 이미 조인되어있는지 확인
                 const isJoin: any = qb.expressionMap.joinAttributes
                     .map((entity) => entity.entityOrProperty)

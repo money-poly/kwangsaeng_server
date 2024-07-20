@@ -6,7 +6,7 @@ import { TodayUsingFoodExpensesDto } from './dto/request/today-using-food-expens
 export class Menus2Controller {
     constructor(private readonly menusService: Menus2Service) {}
 
-    @Get('amount-used')
+    @Get('today-using-food-expenses')
     async todayUsingFoodExpenses(@Query() dto: TodayUsingFoodExpensesDto) {
         return this.menusService.todayUsingFoodExpenses(dto);
     }

@@ -65,7 +65,7 @@ export class MenusService {
         await this.validateUserRole(user, Roles.OWNER);
         const createdMenu = await this.menusRepository.create(storeData, args);
         await this.storesRepository.addOrder(storeData, createdMenu);
-        return { menuId: createdMenu.id };
+        return { id: createdMenu.id };
     }
 
     async update(menuId: number, args: UpdateMenuArgs, user: Seller) {
@@ -472,7 +472,7 @@ export class MenusService {
         return await this.menusRepository.findMenusForOrder(store, orderBy);
     }
 
-    async updateCount(menuId: number, dto: UpdateMenuCountArgs, user: Seller) {
+    async updateStock(menuId: number, dto: UpdateMenuCountArgs, user: Seller) {
         const thisMenu = await this.menusRepository.findOne({ id: menuId }, { id: true });
         const ownStore: OwnStore = await this.menusRepository.findOwnStoreForMenuId(menuId);
 
@@ -492,6 +492,7 @@ export class MenusService {
         return ResponseRefiner.refineArray(recommendedData, RecommendationRes);
     }
 
+    // TODO 홈 리디자인으로 인한 삭제 예정
     private processDetailMenu(data) {
         const menu = {
             id: data.menuId,
@@ -520,7 +521,7 @@ export class MenusService {
         return await this.entityManager
             .createQueryBuilder(Menu, 'm')
             .select('m.menu_picture_url', 'menuPictureUrl')
-            .addSelect('m.id', 'menuId')
+            .addSelect('m.id', 'id')
             .addSelect('m.name', 'name')
             .addSelect('m.discount_rate', 'discountRate')
             .addSelect('m.selling_price', 'sellingPrice')

@@ -94,9 +94,18 @@ export class OrdersService {
             const stockInt = parseInt(stockQuantity, 10);
             redisRollbackData.push({ key: stockKey, value: stockInt });
 
+            const menu = await this.dataSource
+                .createQueryBuilder(Menu, 'm')
+                .select('name', 'menuName')
+                .where('id = :menuId', { menuId: item.menuId })
+                .getRawOne();
+
             if (item.quantity > stockInt) {
                 insufficientStock.push({
-                    menuId: item.menuId,
+                    menus: {
+                        id: item.menuId,
+                        name: menu.menuName,
+                    },
                     requestedQuantity: item.quantity,
                     stockQuantity: stockInt,
                 });

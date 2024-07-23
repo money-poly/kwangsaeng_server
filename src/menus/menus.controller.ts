@@ -106,10 +106,10 @@ export class MenusController {
         return file.location;
     }
 
-    @Patch('/count/:id')
+    @Patch('/stock/:id')
     @UseGuards(AuthGuard)
-    async updateCount(@Param('id') menuId: number, @Body() dto: UpdateMenuCountDto, @CurrentUser() user: Seller) {
-        return await this.menusService.updateCount(menuId, dto, user);
+    async updateStock(@Param('id') menuId: number, @Body() dto: UpdateMenuCountDto, @CurrentUser() user: Seller) {
+        return await this.menusService.updateStock(menuId, dto, user);
     }
 
     @Get('/recommendation')

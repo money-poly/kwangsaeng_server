@@ -19,7 +19,7 @@ export class Menus2Service {
     async todayUsingFoodExpenses(dto: TodayUsingFoodExpensesDto) {
         const menus = await this.menusReader.readTodayUsingFoodExpenses(
             dto.amount,
-            dto.filter,
+            dto.type,
             dto.final,
             dto.lat,
             dto.lon,

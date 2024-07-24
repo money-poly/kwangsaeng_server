@@ -70,10 +70,10 @@ export class Menus2Repository {
                 const isJoin: any = qb.expressionMap.joinAttributes
                     .map((entity) => entity.entityOrProperty)
                     .includes(MenuView);
-                if (isJoin) {
-                    return qb.orderBy('mv.view_count', 'DESC');
+                if (!isJoin) {
+                    return qb.leftJoin(MenuView, 'mv', 'm.id = mv.menu_id');
                 }
-                return qb.leftJoin(MenuView, 'mv', 'm.id = mv.menu_id').orderBy('mv.view_count', 'DESC');
+                return qb.orderBy('mv.view_count', 'DESC');
         }
     }
 

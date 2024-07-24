@@ -85,6 +85,27 @@ export class Menus2Repository {
         return qb.limit(limit);
     }
 
+    async cursorPagination<T>(qb: SelectQueryBuilder<T>, type: SortFilterType, lastId: number, lastValue: string) {
+        qb.where('m.id > :id', { id: lastId });
+        switch (type) {
+            case SortFilterType.DISCOUNT:
+                return qb.where('discount_rate <= :rate', { rate: lastValue });
+            case SortFilterType.PRICE:
+                return qb.where('selling_price >= :price', { price: lastValue });
+            case SortFilterType.EXPIRE:
+                return qb.where('expired_date <= :date', { date: lastValue });
+            case SortFilterType.POPULAR:
+                // qb에 menuView가 이미 조인되어있는지 확인
+                const isJoin: any = qb.expressionMap.joinAttributes
+                    .map((entity) => entity.entityOrProperty)
+                    .includes(MenuView);
+                if (!isJoin) {
+                    return qb.leftJoin(MenuView, 'mv', 'm.id = mv.menu_id');
+                }
+                return qb.where('mv.view_count <= count', { count: lastValue });
+        }
+    }
+
     async getTotalCount<T>(qb: SelectQueryBuilder<T>) {
         return qb.getCount();
     }

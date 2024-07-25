@@ -8,6 +8,7 @@ import { SortFilterType } from './enum/sort-filter-type.enum';
 import { Store } from 'src/stores/entity/store.entity';
 import { StoreDetail } from 'src/stores/entity/store-detail.entity';
 import { addWhereCondition } from 'src/global/util/isWhereCondition';
+import { MenusException } from 'src/global/exception/menus-exception';
 
 @Injectable()
 export class Menus2Repository {
@@ -68,7 +69,7 @@ export class Menus2Repository {
     async filterDistance<T>(qb: SelectQueryBuilder<T>, lat: number, lon: number) {
         return addWhereCondition(
             qb,
-            'ST_DWithin(ST_SetSRID(ST_MakePoint(sd.lon, sd.lat), 4326), ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326), :range)',
+            'ST_DWithin(ST_Transform(ST_SetSRID(ST_MakePoint("sd"."lon", "sd"."lat"), 4326), 3857), ST_Transform(ST_SetSRID(ST_MakePoint(:longitude::numeric, :latitude::numeric), 4326), 3857), :range)',
             { longitude: lon, latitude: lat, range: 3000 },
         );
     }
@@ -76,21 +77,28 @@ export class Menus2Repository {
     async sortInQb<T>(qb: SelectQueryBuilder<T>, type: SortFilterType) {
         switch (type) {
             case SortFilterType.DISCOUNT:
-                return qb.orderBy('discount_rate', 'DESC');
+                qb.orderBy('discount_rate', 'DESC');
+                break;
             case SortFilterType.PRICE:
-                return qb.orderBy('price', 'ASC');
+                qb.orderBy('price', 'ASC');
+                break;
             case SortFilterType.EXPIRE:
-                return qb.orderBy('expired_date', 'DESC');
+                qb.orderBy('expired_date', 'DESC');
+                break;
             case SortFilterType.POPULAR:
                 // qb에 menuView가 이미 조인되어있는지 확인
                 const isJoin: any = qb.expressionMap.joinAttributes
                     .map((entity) => entity.entityOrProperty)
                     .includes(MenuView);
                 if (!isJoin) {
-                    return qb.leftJoin(MenuView, 'mv', 'm.id = mv.menu_id');
+                    qb.leftJoin(MenuView, 'mv', 'm.id = mv.menu_id');
                 }
-                return qb.orderBy('mv.view_count', 'DESC');
+                qb.orderBy('mv.view_count', 'DESC');
+                break;
+            default:
+                throw MenusException.FILTER_TYPE_NOT_FOUND;
         }
+        return qb.addOrderBy('m.id', 'ASC');
     }
 
     async settingOffset<T>(qb: SelectQueryBuilder<T>, offset: number) {

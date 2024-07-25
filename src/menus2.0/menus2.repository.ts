@@ -7,6 +7,8 @@ import { ExecuteQueryBuilderType } from 'src/global/common/execute-qb-type.enum'
 import { SortFilterType } from './enum/sort-filter-type.enum';
 import { Store } from 'src/stores/entity/store.entity';
 import { StoreDetail } from 'src/stores/entity/store-detail.entity';
+import { addWhereCondition } from 'src/global/util/isWhereCondition';
+import { MenusException } from 'src/global/exception/menus-exception';
 
 @Injectable()
 export class Menus2Repository {
@@ -19,7 +21,7 @@ export class Menus2Repository {
     ) {}
 
     async todayUsingFoodExpensesLogic<T>(qb: SelectQueryBuilder<T>, amount: number) {
-        // TODO) store을 Join하는 부분에 대해서 어떻게 생각하는지
+        addWhereCondition(qb, 'm.selling_price < :amount', { amount });
         return qb
             .select('m.id', 'menuId')
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
@@ -30,8 +32,22 @@ export class Menus2Repository {
             .addSelect('m.count', 'count')
             .addSelect('mv.view_count', 'viewCount')
             .addSelect('s.id', 'storeId')
-            .addSelect('s.name', 'storeName')
-            .where('m.selling_price < :amount', { amount });
+            .addSelect('s.name', 'storeName');
+    }
+
+    async onSaleLogic<T>(qb: SelectQueryBuilder<T>) {
+        addWhereCondition(qb, 'm.discount_rate > :rate', { rate: 0 });
+        return qb
+            .select('m.id', 'menuId')
+            .addSelect('m.menu_picture_url', 'menuPictureUrl')
+            .addSelect('m.name', 'menuName')
+            .addSelect('m.price', 'price')
+            .addSelect('m.discount_rate', 'discountRate')
+            .addSelect('m.selling_price', 'sellingPrice')
+            .addSelect('m.count', 'count')
+            .addSelect('mv.view_count', 'viewCount')
+            .addSelect('s.id', 'storeId')
+            .addSelect('s.name', 'storeName');
     }
 
     async createQueryBuilder() {
@@ -51,8 +67,9 @@ export class Menus2Repository {
     }
 
     async filterDistance<T>(qb: SelectQueryBuilder<T>, lat: number, lon: number) {
-        return qb.where(
-            'ST_DWithin(ST_SetSRID(ST_MakePoint(sd.lon, sd.lat), 4326), ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326), :range)',
+        return addWhereCondition(
+            qb,
+            'ST_DWithin(ST_Transform(ST_SetSRID(ST_MakePoint("sd"."lon", "sd"."lat"), 4326), 3857), ST_Transform(ST_SetSRID(ST_MakePoint(:longitude::numeric, :latitude::numeric), 4326), 3857), :range)',
             { longitude: lon, latitude: lat, range: 3000 },
         );
     }
@@ -60,21 +77,28 @@ export class Menus2Repository {
     async sortInQb<T>(qb: SelectQueryBuilder<T>, type: SortFilterType) {
         switch (type) {
             case SortFilterType.DISCOUNT:
-                return qb.orderBy('discount_rate', 'DESC');
+                qb.orderBy('discount_rate', 'DESC');
+                break;
             case SortFilterType.PRICE:
-                return qb.orderBy('price', 'ASC');
+                qb.orderBy('price', 'ASC');
+                break;
             case SortFilterType.EXPIRE:
-                return qb.orderBy('expired_date', 'DESC');
+                qb.orderBy('expired_date', 'DESC');
+                break;
             case SortFilterType.POPULAR:
                 // qb에 menuView가 이미 조인되어있는지 확인
                 const isJoin: any = qb.expressionMap.joinAttributes
                     .map((entity) => entity.entityOrProperty)
                     .includes(MenuView);
-                if (isJoin) {
-                    return qb.orderBy('mv.view_count', 'DESC');
+                if (!isJoin) {
+                    qb.leftJoin(MenuView, 'mv', 'm.id = mv.menu_id');
                 }
-                return qb.leftJoin(MenuView, 'mv', 'm.id = mv.menu_id').orderBy('mv.view_count', 'DESC');
+                qb.orderBy('mv.view_count', 'DESC');
+                break;
+            default:
+                throw MenusException.FILTER_TYPE_NOT_FOUND;
         }
+        return qb.addOrderBy('m.id', 'ASC');
     }
 
     async settingOffset<T>(qb: SelectQueryBuilder<T>, offset: number) {
@@ -83,6 +107,28 @@ export class Menus2Repository {
 
     async settingLimit<T>(qb: SelectQueryBuilder<T>, limit: number) {
         return qb.limit(limit);
+    }
+
+    async cursorPagination<T>(qb: SelectQueryBuilder<T>, type: SortFilterType, lastId: number, lastValue: string) {
+        await this.settingLimit(qb, 12);
+        addWhereCondition(qb, 'm.id > :id', { id: lastId });
+        switch (type) {
+            case SortFilterType.DISCOUNT:
+                return qb.andWhere('discount_rate <= :rate', { rate: lastValue });
+            case SortFilterType.PRICE:
+                return qb.andWhere('selling_price >= :price', { price: lastValue });
+            case SortFilterType.EXPIRE:
+                return qb.andWhere('expired_date <= :date', { date: lastValue });
+            case SortFilterType.POPULAR:
+                // qb에 menuView가 이미 조인되어있는지 확인
+                const isJoin: any = qb.expressionMap.joinAttributes
+                    .map((entity) => entity.entityOrProperty)
+                    .includes(MenuView);
+                if (!isJoin) {
+                    return qb.leftJoin(MenuView, 'mv', 'm.id = mv.menu_id');
+                }
+                return qb.andWhere('mv.view_count <= count', { count: lastValue });
+        }
     }
 
     async getTotalCount<T>(qb: SelectQueryBuilder<T>) {

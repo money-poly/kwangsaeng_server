@@ -110,6 +110,7 @@ export class Menus2Repository {
     }
 
     async cursorPagination<T>(qb: SelectQueryBuilder<T>, type: SortFilterType, lastId: number, lastValue: string) {
+        await this.settingLimit(qb, 12);
         addWhereCondition(qb, 'm.id > :id', { id: lastId });
         switch (type) {
             case SortFilterType.DISCOUNT:

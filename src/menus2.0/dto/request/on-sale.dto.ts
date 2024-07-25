@@ -1,4 +1,4 @@
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { IsEnum, IsInt, IsLatitude, IsLongitude, IsOptional, IsString } from 'class-validator';
 import { SortFilterType } from '../../enum/sort-filter-type.enum';
 
@@ -12,6 +12,7 @@ export class OnSaleDto {
 
     @IsOptional()
     @IsInt()
+    @Type(() => Number)
     lastId?: number;
 
     @IsOptional()

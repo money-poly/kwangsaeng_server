@@ -6,6 +6,8 @@ import { Menus2Manager } from './implement/menus2.manager';
 import { ResponseRefiner } from 'src/global/util/response-refiner';
 import { TodayUsingFoodExpensesDto } from './dto/request/today-using-food-expenses.dto';
 import { TodayUsingFoodExpensesRes } from './dto/response/today-using-food-expenses.dto';
+import { OnSaleDto } from './dto/request/on-sale.dto';
+import { OnSaleRes } from './dto/response/on-sale.dto';
 
 @Injectable()
 export class Menus2Service {
@@ -19,12 +21,18 @@ export class Menus2Service {
     async todayUsingFoodExpenses(dto: TodayUsingFoodExpensesDto) {
         const menus = await this.menusReader.readTodayUsingFoodExpenses(
             dto.amount,
-            dto.filter,
+            dto.type,
             dto.final,
             dto.lat,
             dto.lon,
         );
 
         return ResponseRefiner.refineObject(menus, TodayUsingFoodExpensesRes);
+    }
+
+    async onSale(dto: OnSaleDto) {
+        const menus = await this.menusReader.readOnSale(dto.type, dto.lat, dto.lon, dto.lastId, dto.lastValue);
+
+        return ResponseRefiner.refineObject(menus, OnSaleRes);
     }
 }

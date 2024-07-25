@@ -12,7 +12,7 @@ export class TodayUsingFoodExpensesDto {
     amount: number;
 
     @IsEnum(SortFilterType)
-    filter: SortFilterType;
+    type: SortFilterType;
 
     @IsOptional()
     @IsBoolean()

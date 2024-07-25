@@ -33,4 +33,31 @@ export class Menus2Reader {
         const executingQuery = await this.menusRepository.executeQueryBuilder(qb, ExecuteQueryBuilderType.MANY);
         return { menus: executingQuery, totalCount };
     }
+
+    async readOnSale(type: SortFilterType, lat: number, lon: number, lastId?: number, lastValue?: string) {
+        const qb = await this.menusRepository.createQueryBuilder();
+        let totalCount;
+
+        await this.menusRepository
+            .leftJoinMenuView(qb)
+            .then((qb) => this.menusRepository.leftJoinStore(qb))
+            .then((qb) => this.menusRepository.leftJoinStoreDetail(qb))
+            .then((qb) => this.menusRepository.filterDistance(qb, lat, lon))
+            .then((qb) => this.menusRepository.sortInQb(qb, type))
+            .then((qb) => this.menusRepository.onSaleLogic(qb))
+            .then(async (qb) => {
+                totalCount = await this.menusRepository.getTotalCount(qb);
+                return qb;
+            })
+            .then((qb) => {
+                if (lastId && lastValue) {
+                    return this.menusRepository.cursorPagination(qb, type, lastId, lastValue);
+                } else {
+                    return this.menusRepository.settingLimit(qb, 6);
+                }
+            });
+
+        const executingQuery = await this.menusRepository.executeQueryBuilder(qb, ExecuteQueryBuilderType.MANY);
+        return { menus: executingQuery, totalCount };
+    }
 }

@@ -60,4 +60,25 @@ export class Menus2Reader {
         const executingQuery = await this.menusRepository.executeQueryBuilder(qb, ExecuteQueryBuilderType.MANY);
         return { menus: executingQuery, totalCount };
     }
+
+    async readLastItem(lat: number, lon: number, final?: boolean) {
+        const qb = await this.menusRepository.createQueryBuilder();
+
+        await this.menusRepository
+            .leftJoinMenuView(qb)
+            .then((qb) => this.menusRepository.leftJoinStore(qb))
+            .then((qb) => this.menusRepository.leftJoinStoreDetail(qb))
+            .then((qb) => this.menusRepository.filterDistance(qb, lat, lon))
+            .then((qb) => this.menusRepository.lastItemLogic(qb))
+            .then((qb) => {
+                if (final) {
+                    return this.menusRepository.settingOffset(qb, 2);
+                } else {
+                    return this.menusRepository.settingLimit(qb, 2);
+                }
+            });
+
+        const executingQuery = await this.menusRepository.executeQueryBuilder(qb, ExecuteQueryBuilderType.MANY);
+        return { menus: executingQuery };
+    }
 }

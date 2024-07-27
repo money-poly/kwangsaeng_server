@@ -45,4 +45,17 @@ export class Menus2Service {
 
         return ResponseRefiner.refineObject(menus, LastItemRes);
     }
+
+    async lowStock(dto: LowStockDto) {
+        const menus = await this.menusReader.readLowStock(
+            dto.type,
+            dto.category,
+            dto.lat,
+            dto.lon,
+            dto.lastId,
+            dto.lastValue,
+        );
+
+        return ResponseRefiner.refineObject(menus, LowStockRes);
+    }
 }

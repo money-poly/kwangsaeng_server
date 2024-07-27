@@ -50,6 +50,20 @@ export class Menus2Repository {
             .addSelect('s.name', 'storeName');
     }
 
+    async lastItemLogic<T>(qb: SelectQueryBuilder<T>) {
+        addWhereCondition(qb, 'm.count = :count', { count: 1 });
+        return qb
+            .select('m.id', 'menuId')
+            .addSelect('m.menu_picture_url', 'menuPictureUrl')
+            .addSelect('m.name', 'menuName')
+            .addSelect('m.price', 'price')
+            .addSelect('m.discount_rate', 'discountRate')
+            .addSelect('m.selling_price', 'sellingPrice')
+            .addSelect('s.id', 'storeId')
+            .addSelect('s.name', 'storeName')
+            .addSelect('m.count', 'count');
+    }
+
     async createQueryBuilder() {
         return this.entityManager.createQueryBuilder(Menu, 'm');
     }

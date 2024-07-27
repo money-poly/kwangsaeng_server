@@ -8,6 +8,7 @@ import { TodayUsingFoodExpensesDto } from './dto/request/today-using-food-expens
 import { TodayUsingFoodExpensesRes } from './dto/response/today-using-food-expenses.dto';
 import { OnSaleDto } from './dto/request/on-sale.dto';
 import { OnSaleRes } from './dto/response/on-sale.dto';
+import { LastItemDto } from './dto/request/last-item.dto';
 
 @Injectable()
 export class Menus2Service {
@@ -32,6 +33,12 @@ export class Menus2Service {
 
     async onSale(dto: OnSaleDto) {
         const menus = await this.menusReader.readOnSale(dto.type, dto.lat, dto.lon, dto.lastId, dto.lastValue);
+
+        return ResponseRefiner.refineObject(menus, OnSaleRes);
+    }
+
+    async lastItem(dto: LastItemDto) {
+        const menus = await this.menusReader.readLastItem(dto.lat, dto.lon, dto.final);
 
         return ResponseRefiner.refineObject(menus, OnSaleRes);
     }

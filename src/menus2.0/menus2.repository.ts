@@ -9,6 +9,7 @@ import { Store } from 'src/stores/entity/store.entity';
 import { StoreDetail } from 'src/stores/entity/store-detail.entity';
 import { addWhereCondition } from 'src/global/util/isWhereCondition';
 import { MenusException } from 'src/global/exception/menus-exception';
+import { Category } from 'src/categories/entity/category.entity';
 
 @Injectable()
 export class Menus2Repository {
@@ -64,6 +65,21 @@ export class Menus2Repository {
             .addSelect('m.count', 'count');
     }
 
+    async lowStockLogic<T>(qb: SelectQueryBuilder<T>, category: string) {
+        addWhereCondition(qb, 'c.name = :name', { name: category });
+        return qb
+            .select('m.id', 'menuId')
+            .addSelect('m.menu_picture_url', 'menuPictureUrl')
+            .addSelect('m.name', 'menuName')
+            .addSelect('m.price', 'price')
+            .addSelect('m.selling_price', 'sellingPrice')
+            .addSelect('m.discount_rate', 'discountRate')
+            .addSelect('m.count', 'count')
+            .addSelect('mv.view_count', 'viewCount')
+            .addSelect('s.id', 'storeId')
+            .addSelect('s.name', 'storeName');
+    }
+
     async createQueryBuilder() {
         return this.entityManager.createQueryBuilder(Menu, 'm');
     }
@@ -78,6 +94,12 @@ export class Menus2Repository {
 
     async leftJoinStoreDetail<T>(qb: SelectQueryBuilder<T>) {
         return qb.leftJoinAndSelect(StoreDetail, 'sd', 's.id = sd.store_id');
+    }
+
+    async leftJoinCategories<T>(qb: SelectQueryBuilder<T>) {
+        return qb
+            .leftJoinAndSelect('store_categories', 'sc', 'm.store_id = sc.stores_id')
+            .leftJoinAndSelect(Category, 'c', 'sc.categories_id = c.id');
     }
 
     async filterDistance<T>(qb: SelectQueryBuilder<T>, lat: number, lon: number) {

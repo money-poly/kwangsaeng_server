@@ -9,6 +9,9 @@ import { TodayUsingFoodExpensesRes } from './dto/response/today-using-food-expen
 import { OnSaleDto } from './dto/request/on-sale.dto';
 import { OnSaleRes } from './dto/response/on-sale.dto';
 import { LastItemDto } from './dto/request/last-item.dto';
+import { LowStockDto } from './dto/request/low-stock.dto';
+import { LowStockRes } from './dto/response/low-stock.dto';
+import { LastItemRes } from './dto/response/last-item.dto';
 
 @Injectable()
 export class Menus2Service {
@@ -40,6 +43,19 @@ export class Menus2Service {
     async lastItem(dto: LastItemDto) {
         const menus = await this.menusReader.readLastItem(dto.lat, dto.lon, dto.final);
 
-        return ResponseRefiner.refineObject(menus, OnSaleRes);
+        return ResponseRefiner.refineObject(menus, LastItemRes);
+    }
+
+    async lowStock(dto: LowStockDto) {
+        const menus = await this.menusReader.readLowStock(
+            dto.type,
+            dto.category,
+            dto.lat,
+            dto.lon,
+            dto.lastId,
+            dto.lastValue,
+        );
+
+        return ResponseRefiner.refineObject(menus, LowStockRes);
     }
 }

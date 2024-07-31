@@ -12,6 +12,8 @@ import { LastItemDto } from './dto/request/last-item.dto';
 import { LowStockDto } from './dto/request/low-stock.dto';
 import { LowStockRes } from './dto/response/low-stock.dto';
 import { LastItemRes } from './dto/response/last-item.dto';
+import { UpcomingSalesDto } from './dto/request/upcoming-sales.dto';
+import { UpcomingSalesRes } from './dto/response/upcoming-sales.dto';
 
 @Injectable()
 export class Menus2Service {
@@ -57,5 +59,11 @@ export class Menus2Service {
         );
 
         return ResponseRefiner.refineObject(menus, LowStockRes);
+    }
+
+    async upcomingSales(dto: UpcomingSalesDto) {
+        const menus = await this.menusReader.readUpcomingSales(dto.lat, dto.lon);
+
+        return ResponseRefiner.refineObject(menus, UpcomingSalesRes);
     }
 }

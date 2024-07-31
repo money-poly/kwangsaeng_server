@@ -10,6 +10,8 @@ import { StoreDetail } from 'src/stores/entity/store-detail.entity';
 import { addWhereCondition } from 'src/global/util/isWhereCondition';
 import { MenusException } from 'src/global/exception/menus-exception';
 import { Category } from 'src/categories/entity/category.entity';
+import { MenuStatus } from 'src/menus/enum/menu-status.enum';
+import { getUTCTime } from './util/get-utc-time';
 
 @Injectable()
 export class Menus2Repository {
@@ -78,6 +80,28 @@ export class Menus2Repository {
             .addSelect('mv.view_count', 'viewCount')
             .addSelect('s.id', 'storeId')
             .addSelect('s.name', 'storeName');
+    }
+
+    async upcomingSalesLogic<T>(qb: SelectQueryBuilder<T>) {
+        const date = getUTCTime();
+        addWhereCondition(qb, 'm.prearranged_sale_time BETWEEN :now AND :prearragedTime', {
+            now: date.now,
+            prearragedTime: date.threeHoursLater,
+        });
+        addWhereCondition(qb, 'm.status = :status', { status: MenuStatus.PREARRANGED });
+        return qb
+            .select('m.id', 'menuId')
+            .addSelect('m.menu_picture_url', 'menuPictureUrl')
+            .addSelect('m.name', 'menuName')
+            .addSelect('m.price', 'price')
+            .addSelect('m.discount_rate', 'discountRate')
+            .addSelect('m.selling_price', 'sellingPrice')
+            .addSelect('s.id', 'storeId')
+            .addSelect('s.name', 'storeName')
+            .addSelect('m.count', 'count')
+            .addSelect('mv.view_count', 'viewCount')
+            .addSelect('m.prearrangedSaleTime', 'saleTime')
+            .orderBy('m.prearranged_sale_time', 'ASC');
     }
 
     async createQueryBuilder() {

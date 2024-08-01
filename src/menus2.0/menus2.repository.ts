@@ -1,6 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository, SelectQueryBuilder } from 'typeorm';
+import {
+    EntityManager,
+    FindOptionsRelations,
+    FindOptionsSelect,
+    FindOptionsWhere,
+    Repository,
+    SelectQueryBuilder,
+} from 'typeorm';
 import { MenuView } from 'src/menus/entity/menu-view.entity';
 import { Menu } from 'src/menus/entity/menu.entity';
 import { ExecuteQueryBuilderType } from 'src/global/common/execute-qb-type.enum';
@@ -11,7 +18,7 @@ import { addWhereCondition } from 'src/global/util/isWhereCondition';
 import { MenusException } from 'src/global/exception/menus-exception';
 import { Category } from 'src/categories/entity/category.entity';
 import { MenuStatus } from 'src/menus/enum/menu-status.enum';
-import { getUTCTime } from './util/get-utc-time';
+import { TimeUtil } from 'src/global/util/time.util';
 
 @Injectable()
 export class Menus2Repository {
@@ -83,7 +90,7 @@ export class Menus2Repository {
     }
 
     async upcomingSalesLogic<T>(qb: SelectQueryBuilder<T>) {
-        const date = getUTCTime();
+        const date = TimeUtil.getUTCTime();
         addWhereCondition(qb, 'm.prearranged_sale_time BETWEEN :now AND :prearragedTime', {
             now: date.now,
             prearragedTime: date.threeHoursLater,
@@ -102,6 +109,30 @@ export class Menus2Repository {
             .addSelect('mv.view_count', 'viewCount')
             .addSelect('m.prearrangedSaleTime', 'saleTime')
             .orderBy('m.prearranged_sale_time', 'ASC');
+    }
+
+    async findOne(
+        where: FindOptionsWhere<Menu>,
+        select?: FindOptionsSelect<Menu>,
+        relations?: FindOptionsRelations<Menu>,
+    ) {
+        return await this.menus.findOne({
+            where,
+            select,
+            relations,
+        });
+    }
+
+    async findMany(
+        where: FindOptionsWhere<Menu>,
+        select?: FindOptionsSelect<Menu>,
+        relations?: FindOptionsRelations<Menu>,
+    ) {
+        return await this.menus.find({
+            where,
+            select,
+            relations,
+        });
     }
 
     async createQueryBuilder() {

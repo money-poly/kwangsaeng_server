@@ -119,4 +119,19 @@ export class Menus2Reader {
         const executingQuery = await this.menusRepository.executeQueryBuilder(qb, ExecuteQueryBuilderType.MANY);
         return { menus: executingQuery, totalCount };
     }
+
+    async readUpcomingSales(lat: number, lon: number) {
+        const qb = await this.menusRepository.createQueryBuilder();
+
+        await this.menusRepository
+            .leftJoinMenuView(qb)
+            .then((qb) => this.menusRepository.leftJoinStore(qb))
+            .then((qb) => this.menusRepository.leftJoinStoreDetail(qb))
+            .then((qb) => this.menusRepository.leftJoinCategories(qb))
+            .then((qb) => this.menusRepository.filterDistance(qb, lat, lon))
+            .then((qb) => this.menusRepository.upcomingSalesLogic(qb));
+
+        const executingQuery = await this.menusRepository.executeQueryBuilder(qb, ExecuteQueryBuilderType.MANY);
+        return executingQuery;
+    }
 }

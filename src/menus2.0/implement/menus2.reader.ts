@@ -4,9 +4,9 @@ import { Menus2Repository } from '../menus2.repository';
 import { SortFilterType } from '../enum/sort-filter-type.enum';
 import { ExecuteQueryBuilderType } from 'src/global/common/execute-qb-type.enum';
 import { MenuCategories } from '../enum/categories.enum';
-import { translateCategory } from '../util/translate-category';
 import { MenuStatus } from 'src/menus/enum/menu-status.enum';
 import { TimeUtil } from 'src/global/util/time.util';
+import { CategoryUtil } from '../util/translate-category.util';
 
 @Injectable()
 export class Menus2Reader {
@@ -96,7 +96,7 @@ export class Menus2Reader {
         lastValue?: string,
     ) {
         const qb = await this.menusRepository.createQueryBuilder();
-        const translatedCategory = translateCategory(category);
+        const translatedCategory = CategoryUtil.translateCategory(category);
         let totalCount;
 
         await this.menusRepository

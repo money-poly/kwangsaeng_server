@@ -90,10 +90,9 @@ export class Menus2Repository {
     }
 
     async upcomingSalesLogic<T>(qb: SelectQueryBuilder<T>) {
-        const date = TimeUtil.getUTCTime();
         addWhereCondition(qb, 'm.prearranged_sale_time BETWEEN :now AND :prearragedTime', {
-            now: date.now,
-            prearragedTime: date.threeHoursLater,
+            now: TimeUtil.getISOTime(),
+            prearragedTime: TimeUtil.getISOTimeForThreeHoursLater(),
         });
         addWhereCondition(qb, 'm.status = :status', { status: MenuStatus.PREARRANGED });
         return qb
@@ -233,5 +232,11 @@ export class Menus2Repository {
             case ExecuteQueryBuilderType.ONE:
                 return qb.getRawOne();
         }
+    }
+
+    async updateStatusToPrearrangedSale(menus: Menu[]) {
+        menus.forEach(async (menu) => {
+            await this.menus.update({ id: menu.id }, { status: MenuStatus.SALE, prearrangedSaleTime: null });
+        });
     }
 }

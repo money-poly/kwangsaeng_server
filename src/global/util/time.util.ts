@@ -1,14 +1,17 @@
 // time.util.ts
 export class TimeUtil {
-    static getUTCTime() {
+    static getKSTTime() {
         // 현재 시간을 나타내는 Date 객체 생성
         const now = new Date();
 
         // 한국 표준시(KST)로 변환
         const nowKST = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
 
-        // 3시간을 밀리초로 변환 (3시간 * 60분 * 60초 * 1000밀리초)
-        const threeHoursLaterKST = new Date(nowKST.getTime() + 3 * 60 * 60 * 1000);
+        return nowKST;
+    }
+
+    static getISOTime() {
+        const nowKST = this.getKSTTime();
 
         // 현재 시간 포맷
         const currentYear = nowKST.getFullYear();
@@ -18,6 +21,18 @@ export class TimeUtil {
         const currentMinutes = String(nowKST.getMinutes()).padStart(2, '0');
         const currentSeconds = String(nowKST.getSeconds()).padStart(2, '0');
 
+        // ISO 형식으로 변환
+        const isoStringCurrentKST = `${currentYear}-${currentMonth}-${currentDay}T${currentHours}:${currentMinutes}:${currentSeconds}`;
+
+        return isoStringCurrentKST;
+    }
+
+    static getISOTimeForThreeHoursLater() {
+        // 3시간을 밀리초로 변환 (3시간 * 60분 * 60초 * 1000밀리초)
+        const nowKST = this.getKSTTime();
+
+        const threeHoursLaterKST = new Date(nowKST.getTime() + 3 * 60 * 60 * 1000);
+
         // 3시간 후 시간 포맷
         const laterYear = threeHoursLaterKST.getFullYear();
         const laterMonth = String(threeHoursLaterKST.getMonth() + 1).padStart(2, '0');
@@ -26,14 +41,8 @@ export class TimeUtil {
         const laterMinutes = String(threeHoursLaterKST.getMinutes()).padStart(2, '0');
         const laterSeconds = String(threeHoursLaterKST.getSeconds()).padStart(2, '0');
 
-        // ISO 형식으로 변환
-        const isoStringCurrentKST = `${currentYear}-${currentMonth}-${currentDay}T${currentHours}:${currentMinutes}:${currentSeconds}`;
         const isoStringLaterKST = `${laterYear}-${laterMonth}-${laterDay}T${laterHours}:${laterMinutes}:${laterSeconds}`;
 
-        return {
-            now: isoStringCurrentKST,
-            nowKST,
-            threeHoursLater: isoStringLaterKST,
-        };
+        return isoStringLaterKST;
     }
 }

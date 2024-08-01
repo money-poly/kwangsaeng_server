@@ -4,6 +4,7 @@ import { TodayUsingFoodExpensesDto } from './dto/request/today-using-food-expens
 import { OnSaleDto } from './dto/request/on-sale.dto';
 import { LastItemDto } from './dto/request/last-item.dto';
 import { LowStockDto } from './dto/request/low-stock.dto';
+import { UpcomingSalesDto } from './dto/request/upcoming-sales.dto';
 
 @Controller('menus2')
 export class Menus2Controller {
@@ -27,5 +28,10 @@ export class Menus2Controller {
     @Get('low-stock')
     async lowStock(@Query() dto: LowStockDto) {
         return this.menusService.lowStock(dto);
+    }
+
+    @Get('upcoming-sales')
+    async upcomingSales(@Query() dto: UpcomingSalesDto) {
+        return this.menusService.upcomingSales(dto);
     }
 }

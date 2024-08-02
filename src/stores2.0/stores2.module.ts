@@ -22,6 +22,7 @@ import { BusinessDetail } from 'src/stores/entity/business-detail.entity';
 import { Menus2Module } from 'src/menus2.0/menus2.module';
 import { Menus2Manager } from 'src/menus2.0/implement/menus2.manager';
 import { Menus2Appender } from 'src/menus2.0/implement/menus2.appender';
+import { Stores2Validator } from './implement/stores2.validator';
 
 @Module({
     imports: [
@@ -48,6 +49,7 @@ import { Menus2Appender } from 'src/menus2.0/implement/menus2.appender';
         Stores2Appender,
         Stores2Manager,
         Stores2Reader,
+        Stores2Validator,
         Menus2Appender,
         Menus2Reader,
         Menus2Manager,

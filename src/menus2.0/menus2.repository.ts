@@ -1,17 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository, SelectQueryBuilder } from 'typeorm';
+import {
+    EntityManager,
+    FindOptionsRelations,
+    FindOptionsSelect,
+    FindOptionsWhere,
+    Repository,
+    SelectQueryBuilder,
+} from 'typeorm';
 import { MenuView } from 'src/menus/entity/menu-view.entity';
 import { Menu } from 'src/menus/entity/menu.entity';
 import { ExecuteQueryBuilderType } from 'src/global/common/execute-qb-type.enum';
 import { SortFilterType } from './enum/sort-filter-type.enum';
 import { Store } from 'src/stores/entity/store.entity';
 import { StoreDetail } from 'src/stores/entity/store-detail.entity';
-import { addWhereCondition } from 'src/global/util/isWhereCondition';
 import { MenusException } from 'src/global/exception/menus-exception';
 import { Category } from 'src/categories/entity/category.entity';
 import { MenuStatus } from 'src/menus/enum/menu-status.enum';
-import { getUTCTime } from './util/get-utc-time';
+import { TimeUtil } from 'src/global/util/time.util';
+import { QueryBuilderUtil } from 'src/global/util/query-builder.util';
 
 @Injectable()
 export class Menus2Repository {
@@ -24,7 +31,7 @@ export class Menus2Repository {
     ) {}
 
     async todayUsingFoodExpensesLogic<T>(qb: SelectQueryBuilder<T>, amount: number) {
-        addWhereCondition(qb, 'm.selling_price < :amount', { amount });
+        QueryBuilderUtil.addWhereCondition(qb, 'm.selling_price < :amount', { amount });
         return qb
             .select('m.id', 'menuId')
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
@@ -39,7 +46,7 @@ export class Menus2Repository {
     }
 
     async onSaleLogic<T>(qb: SelectQueryBuilder<T>) {
-        addWhereCondition(qb, 'm.discount_rate > :rate', { rate: 0 });
+        QueryBuilderUtil.addWhereCondition(qb, 'm.discount_rate > :rate', { rate: 0 });
         return qb
             .select('m.id', 'menuId')
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
@@ -54,7 +61,7 @@ export class Menus2Repository {
     }
 
     async lastItemLogic<T>(qb: SelectQueryBuilder<T>) {
-        addWhereCondition(qb, 'm.count = :count', { count: 1 });
+        QueryBuilderUtil.addWhereCondition(qb, 'm.count = :count', { count: 1 });
         return qb
             .select('m.id', 'menuId')
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
@@ -68,7 +75,7 @@ export class Menus2Repository {
     }
 
     async lowStockLogic<T>(qb: SelectQueryBuilder<T>, category: string) {
-        addWhereCondition(qb, 'c.name = :name', { name: category });
+        QueryBuilderUtil.addWhereCondition(qb, 'c.name = :name', { name: category });
         return qb
             .select('m.id', 'menuId')
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
@@ -83,12 +90,11 @@ export class Menus2Repository {
     }
 
     async upcomingSalesLogic<T>(qb: SelectQueryBuilder<T>) {
-        const date = getUTCTime();
-        addWhereCondition(qb, 'm.prearranged_sale_time BETWEEN :now AND :prearragedTime', {
-            now: date.now,
-            prearragedTime: date.threeHoursLater,
+        QueryBuilderUtil.addWhereCondition(qb, 'm.prearranged_sale_time BETWEEN :now AND :prearragedTime', {
+            now: TimeUtil.getISOTime(),
+            prearragedTime: TimeUtil.getISOTimeForThreeHoursLater(),
         });
-        addWhereCondition(qb, 'm.status = :status', { status: MenuStatus.PREARRANGED });
+        QueryBuilderUtil.addWhereCondition(qb, 'm.status = :status', { status: MenuStatus.PREARRANGED });
         return qb
             .select('m.id', 'menuId')
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
@@ -102,6 +108,30 @@ export class Menus2Repository {
             .addSelect('mv.view_count', 'viewCount')
             .addSelect('m.prearrangedSaleTime', 'saleTime')
             .orderBy('m.prearranged_sale_time', 'ASC');
+    }
+
+    async findOne(
+        where: FindOptionsWhere<Menu>,
+        select?: FindOptionsSelect<Menu>,
+        relations?: FindOptionsRelations<Menu>,
+    ) {
+        return await this.menus.findOne({
+            where,
+            select,
+            relations,
+        });
+    }
+
+    async findMany(
+        where: FindOptionsWhere<Menu>,
+        select?: FindOptionsSelect<Menu>,
+        relations?: FindOptionsRelations<Menu>,
+    ) {
+        return await this.menus.find({
+            where,
+            select,
+            relations,
+        });
     }
 
     async createQueryBuilder() {
@@ -127,7 +157,7 @@ export class Menus2Repository {
     }
 
     async filterDistance<T>(qb: SelectQueryBuilder<T>, lat: number, lon: number) {
-        return addWhereCondition(
+        return QueryBuilderUtil.addWhereCondition(
             qb,
             'ST_DWithin(ST_Transform(ST_SetSRID(ST_MakePoint("sd"."lon", "sd"."lat"), 4326), 3857), ST_Transform(ST_SetSRID(ST_MakePoint(:longitude::numeric, :latitude::numeric), 4326), 3857), :range)',
             { longitude: lon, latitude: lat, range: 3000 },
@@ -171,7 +201,7 @@ export class Menus2Repository {
 
     async cursorPagination<T>(qb: SelectQueryBuilder<T>, type: SortFilterType, lastId: number, lastValue: string) {
         await this.settingLimit(qb, 12);
-        addWhereCondition(qb, 'm.id > :id', { id: lastId });
+        QueryBuilderUtil.addWhereCondition(qb, 'm.id > :id', { id: lastId });
         switch (type) {
             case SortFilterType.DISCOUNT:
                 return qb.andWhere('discount_rate <= :rate', { rate: lastValue });
@@ -202,5 +232,11 @@ export class Menus2Repository {
             case ExecuteQueryBuilderType.ONE:
                 return qb.getRawOne();
         }
+    }
+
+    async updateStatusToPrearrangedSale(menus: Menu[]) {
+        menus.forEach(async (menu) => {
+            await this.menus.update({ id: menu.id }, { status: MenuStatus.SALE, prearrangedSaleTime: null });
+        });
     }
 }

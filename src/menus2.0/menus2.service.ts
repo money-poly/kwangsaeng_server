@@ -14,6 +14,7 @@ import { LowStockRes } from './dto/response/low-stock.dto';
 import { LastItemRes } from './dto/response/last-item.dto';
 import { UpcomingSalesDto } from './dto/request/upcoming-sales.dto';
 import { UpcomingSalesRes } from './dto/response/upcoming-sales.dto';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class Menus2Service {
@@ -65,5 +66,10 @@ export class Menus2Service {
         const menus = await this.menusReader.readUpcomingSales(dto.lat, dto.lon);
 
         return ResponseRefiner.refineObject(menus, UpcomingSalesRes);
+    }
+
+    @Cron(CronExpression.EVERY_30_MINUTES)
+    private async updateMenuStatusAboutPrearragedSale() {
+        await this.menusManager.managePrearrangedSale();
     }
 }

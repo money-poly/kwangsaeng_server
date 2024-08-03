@@ -13,4 +13,11 @@ export class Stores2Validator {
             throw StoresException.NOT_APPROVED;
         }
     }
+
+    async checkOpen(store: Store): Promise<void> {
+        const isOpend = await this.storesRepository.checkOpen(store);
+        if (!isOpend) {
+            throw StoresException.NOT_APPROVED;
+        }
+    }
 }

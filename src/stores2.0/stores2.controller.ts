@@ -9,7 +9,7 @@ export class Stores2Controller {
 
     @SkipThrottle()
     @Get(':id')
-    async findOneStore(@Param('id') id: number, @Query() dto: FindStoreDetailDto) {
-        return await this.storesService.findStore(id, dto);
+    async findDetailOne(@Param('id') id: number, @Query() dto: FindStoreDetailDto) {
+        return await this.storesService.findDetailOne(id, dto);
     }
 }

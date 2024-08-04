@@ -5,7 +5,9 @@ import { BusinessDetail } from 'src/stores/entity/business-detail.entity';
 import { StoreApprove } from 'src/stores/entity/store-approve.entity';
 import { StoreDetail } from 'src/stores/entity/store-detail.entity';
 import { Store } from 'src/stores/entity/store.entity';
-import { EntityManager, Repository } from 'typeorm';
+import { StoreApproveStatus } from 'src/stores/enum/store-approve-status.enum';
+import { StoreStatus } from 'src/stores/enum/store-status.enum';
+import { EntityManager, FindOptionsRelations, FindOptionsSelect, FindOptionsWhere, Repository } from 'typeorm';
 
 @Injectable()
 export class Stores2Repository {
@@ -21,4 +23,46 @@ export class Stores2Repository {
         private readonly categoryService: CategoriesService,
         public entityManager: EntityManager,
     ) {}
+
+    async findOne(
+        where: FindOptionsWhere<Store>,
+        select?: FindOptionsSelect<Store>,
+        relations?: FindOptionsRelations<Store>,
+    ): Promise<Store> {
+        return await this.stores.findOne({
+            where,
+            select,
+            relations,
+        });
+    }
+
+    async findMany(
+        where: FindOptionsWhere<Store>,
+        select?: FindOptionsSelect<Store>,
+        relations?: FindOptionsRelations<Store>,
+    ): Promise<Store[]> {
+        return await this.stores.find({
+            where,
+            select,
+            relations,
+        });
+    }
+
+    async checkApprove(store: Store): Promise<boolean> {
+        return await this.storeApprove.exists({
+            where: {
+                store,
+                isApproved: StoreApproveStatus.DONE,
+            },
+        });
+    }
+
+    async checkOpen(store: Store): Promise<boolean> {
+        return await this.stores.exists({
+            where: {
+                id: store.id,
+                status: StoreStatus.OPEN,
+            },
+        });
+    }
 }

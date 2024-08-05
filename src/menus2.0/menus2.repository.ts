@@ -110,6 +110,10 @@ export class Menus2Repository {
             .orderBy('m.prearranged_sale_time', 'ASC');
     }
 
+    async readInOrdeThroughStore<T>(qb: SelectQueryBuilder<T>) {
+        return qb.select('m.menu_orders', 'menuOrders');
+    }
+
     async findOne(
         where: FindOptionsWhere<Menu>,
         select?: FindOptionsSelect<Menu>,

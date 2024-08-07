@@ -31,6 +31,19 @@ export class FindStoreRes {
             ingredient: string;
             origin: string;
         }[];
+    }[];
+    discountSchdule: {
+        menus: {
+            id: number;
+            name: string;
+            discountRate: number;
+            sellingPrice: number;
+            description?: string;
+            price: number;
+            menuPictureUrl?: string;
+            count: number;
+        }[];
+        startedAt: string;
     };
     caution: string[];
 
@@ -54,6 +67,19 @@ export class FindStoreRes {
             pickUpTime: data.pickUpTime,
         };
         this.menus = data.menus;
+        this.discountSchdule = {
+            menus: data.discountSchdule.map((menu) => ({
+                id: menu.id,
+                name: menu.name,
+                discountRate: menu.discountRate,
+                sellingPrice: menu.sellingPrice,
+                description: menu.description,
+                price: menu.price,
+                menuPictureUrl: menu.menuPictureUrl,
+                count: menu.count,
+            })),
+            startedAt: data.discountSchdule[0].prearrangedSaleTime,
+        };
         this.caution = CAUTION_TEXT;
     }
 }

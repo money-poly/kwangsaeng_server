@@ -43,4 +43,6 @@ export abstract class StoresException {
         2010,
         HttpStatus.BAD_REQUEST,
     );
+
+    static HAS_LONG_DISTANCE = new CommonException('가게와의 거리가 너무 멉니다.', 2011, HttpStatus.BAD_REQUEST);
 }

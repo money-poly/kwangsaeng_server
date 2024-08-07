@@ -51,7 +51,9 @@ export class Stores2Repository {
     async checkApprove(store: Store): Promise<boolean> {
         return await this.storeApprove.exists({
             where: {
-                store,
+                store: {
+                    id: store.id,
+                },
                 isApproved: StoreApproveStatus.DONE,
             },
         });

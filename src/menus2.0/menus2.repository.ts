@@ -14,11 +14,11 @@ import { ExecuteQueryBuilderType } from 'src/global/common/execute-qb-type.enum'
 import { SortFilterType } from './enum/sort-filter-type.enum';
 import { Store } from 'src/stores/entity/store.entity';
 import { StoreDetail } from 'src/stores/entity/store-detail.entity';
-import { addWhereCondition } from 'src/global/util/isWhereCondition';
 import { MenusException } from 'src/global/exception/menus-exception';
 import { Category } from 'src/categories/entity/category.entity';
 import { MenuStatus } from 'src/menus/enum/menu-status.enum';
 import { TimeUtil } from 'src/global/util/time.util';
+import { QueryBuilderUtil } from 'src/global/util/query-builder.util';
 
 @Injectable()
 export class Menus2Repository {
@@ -31,7 +31,7 @@ export class Menus2Repository {
     ) {}
 
     async todayUsingFoodExpensesLogic<T>(qb: SelectQueryBuilder<T>, amount: number) {
-        addWhereCondition(qb, 'm.selling_price < :amount', { amount });
+        QueryBuilderUtil.addWhereCondition(qb, 'm.selling_price < :amount', { amount });
         return qb
             .select('m.id', 'menuId')
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
@@ -46,7 +46,7 @@ export class Menus2Repository {
     }
 
     async onSaleLogic<T>(qb: SelectQueryBuilder<T>) {
-        addWhereCondition(qb, 'm.discount_rate > :rate', { rate: 0 });
+        QueryBuilderUtil.addWhereCondition(qb, 'm.discount_rate > :rate', { rate: 0 });
         return qb
             .select('m.id', 'menuId')
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
@@ -61,7 +61,7 @@ export class Menus2Repository {
     }
 
     async lastItemLogic<T>(qb: SelectQueryBuilder<T>) {
-        addWhereCondition(qb, 'm.count = :count', { count: 1 });
+        QueryBuilderUtil.addWhereCondition(qb, 'm.count = :count', { count: 1 });
         return qb
             .select('m.id', 'menuId')
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
@@ -75,7 +75,7 @@ export class Menus2Repository {
     }
 
     async lowStockLogic<T>(qb: SelectQueryBuilder<T>, category: string) {
-        addWhereCondition(qb, 'c.name = :name', { name: category });
+        QueryBuilderUtil.addWhereCondition(qb, 'c.name = :name', { name: category });
         return qb
             .select('m.id', 'menuId')
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
@@ -90,11 +90,11 @@ export class Menus2Repository {
     }
 
     async upcomingSalesLogic<T>(qb: SelectQueryBuilder<T>) {
-        addWhereCondition(qb, 'm.prearranged_sale_time BETWEEN :now AND :prearragedTime', {
+        QueryBuilderUtil.addWhereCondition(qb, 'm.prearranged_sale_time BETWEEN :now AND :prearragedTime', {
             now: TimeUtil.getISOTime(),
             prearragedTime: TimeUtil.getISOTimeForThreeHoursLater(),
         });
-        addWhereCondition(qb, 'm.status = :status', { status: MenuStatus.PREARRANGED });
+        QueryBuilderUtil.addWhereCondition(qb, 'm.status = :status', { status: MenuStatus.PREARRANGED });
         return qb
             .select('m.id', 'menuId')
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
@@ -108,6 +108,44 @@ export class Menus2Repository {
             .addSelect('mv.view_count', 'viewCount')
             .addSelect('m.prearrangedSaleTime', 'saleTime')
             .orderBy('m.prearranged_sale_time', 'ASC');
+    }
+
+    async readInOrdeThroughStoreLogic<T>(qb: SelectQueryBuilder<T>, store: Store, orderBy: string) {
+        return await qb
+            .select('m.id', 'id')
+            .addSelect('m.name', 'name')
+            .addSelect('m.discount_rate', 'discountRate')
+            .addSelect('m.selling_price', 'sellingPrice')
+            .addSelect('m.description', 'description')
+            .addSelect('m.price', 'price')
+            .addSelect('m.status', 'status')
+            .addSelect('m.menu_picture_url', 'menuPictureUrl')
+            .addSelect('m.country_of_origin', 'countryOfOrigin')
+            .where('m.store_id = :storeId', { storeId: store.id })
+            .andWhere('m.status != :status', { status: MenuStatus.HIDDEN })
+            .orderBy(orderBy, 'DESC')
+            .getRawMany();
+    }
+
+    async readDiscountScheduleLogic<T>(qb: SelectQueryBuilder<T>, store: Store) {
+        const subQb = (await this.createQueryBuilder())
+            .select('MIN(m.prearranged_sale_time)', 'prearrangedSaleTime')
+            .where('m.store_id = :storeId', { storeId: store.id })
+            .andWhere('m.status = :status', { status: MenuStatus.PREARRANGED });
+
+        return await qb
+            .select('m.id', 'id')
+            .addSelect('m.name', 'name')
+            .addSelect('m.discount_rate', 'discountRate')
+            .addSelect('m.selling_price', 'sellingPrice')
+            .addSelect('m.price', 'price')
+            .addSelect('m.menu_picture_url', 'menuPictureUrl')
+            .addSelect('m.count', 'count')
+            .addSelect('m.prearranged_sale_time', 'prearrangedSaleTime')
+            .where('m.store_id = :storeId', { storeId: store.id })
+            .andWhere('m.status = :status', { status: MenuStatus.PREARRANGED })
+            .andWhere('m.prearranged_sale_time = (' + subQb.getQuery() + ')')
+            .getRawMany();
     }
 
     async findOne(
@@ -157,7 +195,7 @@ export class Menus2Repository {
     }
 
     async filterDistance<T>(qb: SelectQueryBuilder<T>, lat: number, lon: number) {
-        return addWhereCondition(
+        return QueryBuilderUtil.addWhereCondition(
             qb,
             'ST_DWithin(ST_Transform(ST_SetSRID(ST_MakePoint("sd"."lon", "sd"."lat"), 4326), 3857), ST_Transform(ST_SetSRID(ST_MakePoint(:longitude::numeric, :latitude::numeric), 4326), 3857), :range)',
             { longitude: lon, latitude: lat, range: 3000 },
@@ -201,7 +239,7 @@ export class Menus2Repository {
 
     async cursorPagination<T>(qb: SelectQueryBuilder<T>, type: SortFilterType, lastId: number, lastValue: string) {
         await this.settingLimit(qb, 12);
-        addWhereCondition(qb, 'm.id > :id', { id: lastId });
+        QueryBuilderUtil.addWhereCondition(qb, 'm.id > :id', { id: lastId });
         switch (type) {
             case SortFilterType.DISCOUNT:
                 return qb.andWhere('discount_rate <= :rate', { rate: lastValue });

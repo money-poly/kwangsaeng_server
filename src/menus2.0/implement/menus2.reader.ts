@@ -7,10 +7,16 @@ import { MenuCategories } from '../enum/categories.enum';
 import { MenuStatus } from 'src/menus/enum/menu-status.enum';
 import { TimeUtil } from 'src/global/util/time.util';
 import { CategoryUtil } from '../util/translate-category.util';
+import { Store } from 'src/stores/entity/store.entity';
+import { ProcessOrderUtil } from '../util/process-order.util';
+import { Stores2Reader } from 'src/stores2.0/implement/stores2.reader';
 
 @Injectable()
 export class Menus2Reader {
-    constructor(private readonly menusRepository: Menus2Repository) {}
+    constructor(
+        private readonly menusRepository: Menus2Repository,
+        private readonly storesReader: Stores2Reader,
+    ) {}
 
     async readTodayUsingFoodExpenses(amount: number, type: SortFilterType, final: boolean, lat: number, lon: number) {
         const qb = await this.menusRepository.createQueryBuilder();
@@ -143,5 +149,33 @@ export class Menus2Reader {
             { status: MenuStatus.PREARRANGED, prearrangedSaleTime: LessThanOrEqual(TimeUtil.getKSTTime()) },
             { id: true, status: true },
         );
+    }
+
+    async readInOrdeThroughStore(store: Store) {
+        const menuOrder = store.detail.menuOrders.join();
+        if (!menuOrder) {
+            return null;
+        }
+
+        const orderBy = ProcessOrderUtil.refine(menuOrder);
+
+        const qb = await this.menusRepository.createQueryBuilder();
+
+        await this.menusRepository.readInOrdeThroughStoreLogic(qb, store, orderBy);
+
+        const executingQuery = await this.menusRepository.executeQueryBuilder(qb, ExecuteQueryBuilderType.MANY);
+        return executingQuery;
+    }
+
+    async readDiscountSchedule(store: Store) {
+        const qb = await this.menusRepository.createQueryBuilder();
+
+        await this.menusRepository
+            .leftJoinStore(qb)
+            .then((qb) => this.menusRepository.leftJoinStoreDetail(qb))
+            .then((qb) => this.menusRepository.readDiscountScheduleLogic(qb, store));
+
+        const executingQuery = await this.menusRepository.executeQueryBuilder(qb, ExecuteQueryBuilderType.MANY);
+        return executingQuery;
     }
 }

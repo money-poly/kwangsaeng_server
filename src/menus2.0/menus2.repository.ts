@@ -127,6 +127,27 @@ export class Menus2Repository {
             .getRawMany();
     }
 
+    async readDiscountScheduleLogic<T>(qb: SelectQueryBuilder<T>, store: Store) {
+        const subQb = (await this.createQueryBuilder())
+            .select('MIN(m.prearranged_sale_time)', 'prearrangedSaleTime')
+            .where('m.store_id = :storeId', { storeId: store.id })
+            .andWhere('m.status = :status', { status: MenuStatus.PREARRANGED });
+
+        return await qb
+            .select('m.id', 'id')
+            .addSelect('m.name', 'name')
+            .addSelect('m.discount_rate', 'discountRate')
+            .addSelect('m.selling_price', 'sellingPrice')
+            .addSelect('m.price', 'price')
+            .addSelect('m.menu_picture_url', 'menuPictureUrl')
+            .addSelect('m.count', 'count')
+            .addSelect('m.prearranged_sale_time', 'prearrangedSaleTime')
+            .where('m.store_id = :storeId', { storeId: store.id })
+            .andWhere('m.status = :status', { status: MenuStatus.PREARRANGED })
+            .andWhere('m.prearranged_sale_time = (' + subQb.getQuery() + ')')
+            .getRawMany();
+    }
+
     async findOne(
         where: FindOptionsWhere<Menu>,
         select?: FindOptionsSelect<Menu>,

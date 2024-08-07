@@ -166,4 +166,16 @@ export class Menus2Reader {
         const executingQuery = await this.menusRepository.executeQueryBuilder(qb, ExecuteQueryBuilderType.MANY);
         return executingQuery;
     }
+
+    async readDiscountSchedule(store: Store) {
+        const qb = await this.menusRepository.createQueryBuilder();
+
+        await this.menusRepository
+            .leftJoinStore(qb)
+            .then((qb) => this.menusRepository.leftJoinStoreDetail(qb))
+            .then((qb) => this.menusRepository.readDiscountScheduleLogic(qb, store));
+
+        const executingQuery = await this.menusRepository.executeQueryBuilder(qb, ExecuteQueryBuilderType.MANY);
+        return executingQuery;
+    }
 }

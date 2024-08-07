@@ -1,5 +1,8 @@
 import { Logger, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { validationSchema } from './global/config/validation.schema';
 import { DatabaseModule } from './database/database.module';
 import { UsersModule } from './users/users.module';
@@ -14,8 +17,6 @@ import { CacheModule } from './cache/cache.module';
 import { VersionModule } from './version/version.module';
 import { BannersModule } from './banners/banners.module';
 import aligoConfiguration from './global/config/aligo.configuration';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
 import { TagsModule } from './tags/tags.module';
 import { SearchModule } from './search/search.module';
 import { OrdersModule } from './orders/orders.module';
@@ -45,6 +46,7 @@ import { Menus2Module } from './menus2.0/menus2.module';
                 limit: 50,
             },
         ]),
+        ScheduleModule.forRoot(),
         DatabaseModule,
         UsersModule,
         StoresModule,

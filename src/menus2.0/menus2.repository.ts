@@ -110,8 +110,21 @@ export class Menus2Repository {
             .orderBy('m.prearranged_sale_time', 'ASC');
     }
 
-    async readInOrdeThroughStore<T>(qb: SelectQueryBuilder<T>) {
-        return qb.select('m.menu_orders', 'menuOrders');
+    async readInOrdeThroughStoreLogic<T>(qb: SelectQueryBuilder<T>, store: Store, orderBy: string) {
+        return await qb
+            .select('m.id', 'id')
+            .addSelect('m.name', 'name')
+            .addSelect('m.discount_rate', 'discountRate')
+            .addSelect('m.selling_price', 'sellingPrice')
+            .addSelect('m.description', 'description')
+            .addSelect('m.price', 'price')
+            .addSelect('m.status', 'status')
+            .addSelect('m.menu_picture_url', 'menuPictureUrl')
+            .addSelect('m.country_of_origin', 'countryOfOrigin')
+            .where('m.store_id = :storeId', { storeId: store.id })
+            .andWhere('m.status != :status', { status: MenuStatus.HIDDEN })
+            .orderBy(orderBy, 'DESC')
+            .getRawMany();
     }
 
     async findOne(

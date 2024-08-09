@@ -1,7 +1,6 @@
-import { Logger, NotFoundException } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { AbstractEntity } from './abstract.entity';
 import { EntityManager, FindOptionsRelations, FindOptionsSelect, FindOptionsWhere, Repository } from 'typeorm';
-import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
 export abstract class AbstractRepository<T extends AbstractEntity<T>> {
     protected abstract readonly logger: Logger;
@@ -11,8 +10,8 @@ export abstract class AbstractRepository<T extends AbstractEntity<T>> {
         private readonly entityManager: EntityManager,
     ) {}
 
-    async exist(where: FindOptionsWhere<T>): Promise<boolean> {
-        return this.entityRepository.exist({ where });
+    async exists(where: FindOptionsWhere<T>): Promise<boolean> {
+        return this.entityRepository.exists({ where });
     }
 
     async create(entity: T): Promise<T> {
@@ -26,27 +25,7 @@ export abstract class AbstractRepository<T extends AbstractEntity<T>> {
     ): Promise<T> {
         const entity = await this.entityRepository.findOne({ select, where, relations });
 
-        if (!entity) {
-            this.logger.warn('Entity not found with where', where);
-            throw new NotFoundException('Entity not found.');
-        }
-
         return entity;
-    }
-
-    async findOneAndUpdate(where: FindOptionsWhere<T>, partialEntity: QueryDeepPartialEntity<T>): Promise<T> {
-        const updateResult = await this.entityRepository.update(where, partialEntity);
-
-        if (!updateResult.affected) {
-            this.logger.warn('Entity not found with where', where);
-            throw new NotFoundException('Entity not found');
-        }
-
-        return this.findOne(where);
-    }
-
-    async find(where?: FindOptionsWhere<T>) {
-        return this.entityRepository.findBy(where);
     }
 
     async findOneAndDelete(where: FindOptionsWhere<T>) {

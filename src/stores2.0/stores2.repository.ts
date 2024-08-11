@@ -7,7 +7,14 @@ import { StoreDetail } from 'src/stores/entity/store-detail.entity';
 import { Store } from 'src/stores/entity/store.entity';
 import { StoreApproveStatus } from 'src/stores/enum/store-approve-status.enum';
 import { StoreStatus } from 'src/stores/enum/store-status.enum';
-import { EntityManager, FindOptionsRelations, FindOptionsSelect, FindOptionsWhere, Repository } from 'typeorm';
+import {
+    EntityManager,
+    FindOptionsRelations,
+    FindOptionsSelect,
+    FindOptionsWhere,
+    Repository,
+    SelectQueryBuilder,
+} from 'typeorm';
 
 @Injectable()
 export class Stores2Repository {
@@ -66,5 +73,13 @@ export class Stores2Repository {
                 status: StoreStatus.OPEN,
             },
         });
+    }
+
+    async leftJoinStoreToMenu<Menu>(qb: SelectQueryBuilder<Menu>) {
+        return qb.leftJoinAndSelect(Store, 's', 'm.store_id = s.id');
+    }
+
+    async leftJoinStoreDetail<Store>(qb: SelectQueryBuilder<Store>) {
+        return qb.leftJoinAndSelect(StoreDetail, 'sd', 's.id = sd.store_id');
     }
 }

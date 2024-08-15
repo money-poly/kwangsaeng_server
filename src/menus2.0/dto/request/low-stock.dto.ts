@@ -1,10 +1,43 @@
 import { Transform, Type } from 'class-transformer';
-import { IsEnum, IsInt, IsLatitude, IsLongitude, IsOptional, IsString } from 'class-validator';
+import {
+    IsEnum,
+    IsInt,
+    IsLatitude,
+    IsLongitude,
+    IsOptional,
+    IsString,
+    registerDecorator,
+    ValidationOptions,
+    ValidationArguments,
+    isEnum,
+} from 'class-validator';
 import { SortFilterType } from '../../enum/sort-filter-type.enum';
 import { MenuCategories } from 'src/menus2.0/enum/categories.enum';
 
 function toString(value: number | string): string {
     return String(value);
+}
+
+function IsEnumOrString(enumType: object, allowedString: string, validationOptions?: ValidationOptions) {
+    return function (object: Object, propertyName: string) {
+        registerDecorator({
+            name: 'IsEnumOrString',
+            target: object.constructor,
+            propertyName,
+            options: validationOptions,
+            constraints: [enumType, allowedString],
+            validator: {
+                validate(value: any, args: ValidationArguments) {
+                    const [enumType, allowedString] = args.constraints;
+                    return isEnum(value, enumType) || value === allowedString;
+                },
+                defaultMessage(args: ValidationArguments) {
+                    const allowedString = args.constraints[1];
+                    return `$property must be either a valid enum value or the string '${allowedString}'`;
+                },
+            },
+        });
+    };
 }
 
 export class LowStockDto {
@@ -27,6 +60,6 @@ export class LowStockDto {
     @IsLongitude()
     lon: number;
 
-    @IsEnum(MenuCategories)
-    category: MenuCategories;
+    @IsEnumOrString(MenuCategories, 'all')
+    category: MenuCategories | 'all';
 }

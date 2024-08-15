@@ -11,12 +11,14 @@ import { Store } from 'src/stores/entity/store.entity';
 import { ProcessOrderUtil } from '../util/process-order.util';
 import { Stores2Reader } from 'src/stores2.0/implement/stores2.reader';
 import { Menu } from 'src/menus/entity/menu.entity';
+import { OrdersReader } from 'src/orders/implement/orders.reader';
 
 @Injectable()
 export class Menus2Reader {
     constructor(
         private readonly menusRepository: Menus2Repository,
         private readonly storesReader: Stores2Reader,
+        private readonly ordersReader: OrdersReader,
     ) {}
 
     async readTodayUsingFoodExpenses(amount: number, type: SortFilterType, final: boolean, lat: number, lon: number) {
@@ -84,7 +86,7 @@ export class Menus2Reader {
 
     async readLowStock(
         type: SortFilterType,
-        category: MenuCategories,
+        category: MenuCategories | 'all',
         lat: number,
         lon: number,
         lastId?: number,
@@ -99,7 +101,8 @@ export class Menus2Reader {
         qb = this.menusRepository.leftJoinCategoriesToMenu(qb);
         qb = this.menusRepository.filterDistance(qb, lat, lon);
         qb = this.menusRepository.sortInQb(qb, type);
-        qb = this.menusRepository.lowStockLogic(qb, translatedCategory);
+        qb = this.menusRepository.filterCategory(qb, translatedCategory);
+        qb = this.menusRepository.lowStockLogic(qb);
 
         const totalCount = await this.menusRepository.getTotalCount(qb);
 

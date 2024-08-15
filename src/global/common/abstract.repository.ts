@@ -18,6 +18,7 @@ import { StoreApprove } from 'src/stores/entity/store-approve.entity';
 import { Category } from 'src/categories/entity/category.entity';
 import { ExecuteQueryBuilderType } from './execute-qb-type.enum';
 import { QueryBuilderUtil } from '../util/query-builder.util';
+import { OrderDetail } from 'src/orders/entity/order-detail.entity';
 
 export abstract class AbstractRepository<T extends AbstractEntity<T>> {
     protected abstract readonly logger: Logger;
@@ -83,6 +84,10 @@ export abstract class AbstractRepository<T extends AbstractEntity<T>> {
 
     leftJoinStoreDetail<Store>(qb: SelectQueryBuilder<Store>) {
         return qb.leftJoinAndSelect(StoreDetail, 'sd', 's.id = sd.store_id');
+    }
+
+    leftJoinOrderDetail<Order>(qb: SelectQueryBuilder<Order>) {
+        return qb.leftJoinAndSelect(OrderDetail, 'od', 'o.id = od.order_id');
     }
 
     settingOffset<T>(qb: SelectQueryBuilder<T>, offset: number) {

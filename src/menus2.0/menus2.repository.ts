@@ -10,6 +10,7 @@ import { MenuStatus } from 'src/menus/enum/menu-status.enum';
 import { TimeUtil } from 'src/global/util/time.util';
 import { QueryBuilderUtil } from 'src/global/util/query-builder.util';
 import { AbstractRepository } from 'src/global/common/abstract.repository';
+import { MenuCategories } from './enum/categories.enum';
 
 @Injectable()
 export class Menus2Repository extends AbstractRepository<Menu> {
@@ -69,8 +70,7 @@ export class Menus2Repository extends AbstractRepository<Menu> {
             .addSelect('m.count', 'count');
     }
 
-    lowStockLogic(qb: SelectQueryBuilder<Menu>, category: string) {
-        QueryBuilderUtil.addWhereCondition(qb, 'c.name = :name', { name: category });
+    lowStockLogic(qb: SelectQueryBuilder<Menu>) {
         return qb
             .select('m.id', 'menuId')
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
@@ -143,19 +143,13 @@ export class Menus2Repository extends AbstractRepository<Menu> {
 
     readTopOrdersId(qb: SelectQueryBuilder<Menu>) {
         return qb.groupBy('');
-        // return await qb
-        //     .select('m.id', 'id')
-        //     .addSelect('m.name', 'name')
-        //     .addSelect('m.discount_rate', 'discountRate')
-        //     .addSelect('m.selling_price', 'sellingPrice')
-        //     .addSelect('m.price', 'price')
-        //     .addSelect('m.menu_picture_url', 'menuPictureUrl')
-        //     .addSelect('m.count', 'count')
-        //     .addSelect('mv.view_count', 'viewCount')
-        //     .addSelect('s.id', 'storeId')
-        //     .addSelect('s.name', 'storeName')
-        //     .
-        //     .getRawMany();
+    }
+
+    filterCategory(qb: SelectQueryBuilder<Menu>, translatedCategory: string) {
+        if (translatedCategory === 'all') {
+            return qb;
+        }
+        return QueryBuilderUtil.addWhereCondition(qb, 'c.name = :name', { name: translatedCategory });
     }
 
     sortInQb(qb: SelectQueryBuilder<Menu>, type: SortFilterType) {

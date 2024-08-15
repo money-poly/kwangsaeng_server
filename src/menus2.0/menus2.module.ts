@@ -21,6 +21,8 @@ import { Stores2Reader } from 'src/stores2.0/implement/stores2.reader';
 import { Stores2Module } from 'src/stores2.0/stores2.module';
 import { Stores2Appender } from 'src/stores2.0/implement/stores2.appender';
 import { Stores2Manager } from 'src/stores2.0/implement/stores2.manager';
+import { OrdersReader } from 'src/orders/implement/orders.reader';
+import { OrdersModule } from 'src/orders/orders.module';
 
 @Module({
     imports: [
@@ -32,6 +34,7 @@ import { Stores2Manager } from 'src/stores2.0/implement/stores2.manager';
         }),
         // Store의 Implement Layer를 사용하기 위해서는 Store Module DI해야함.
         forwardRef(() => Stores2Module),
+        OrdersModule,
         CategoriesModule,
     ],
     providers: [
@@ -45,6 +48,7 @@ import { Stores2Manager } from 'src/stores2.0/implement/stores2.manager';
         Stores2Appender,
         Stores2Manager,
         Stores2Reader,
+        OrdersReader,
 
         // Repository
         Menus2Repository,

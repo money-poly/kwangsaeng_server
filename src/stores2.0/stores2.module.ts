@@ -23,6 +23,8 @@ import { Menus2Module } from 'src/menus2.0/menus2.module';
 import { Menus2Manager } from 'src/menus2.0/implement/menus2.manager';
 import { Menus2Appender } from 'src/menus2.0/implement/menus2.appender';
 import { Stores2Validator } from './implement/stores2.validator';
+import { OrdersReader } from 'src/orders/implement/orders.reader';
+import { OrdersModule } from 'src/orders/orders.module';
 
 @Module({
     imports: [
@@ -40,6 +42,7 @@ import { Stores2Validator } from './implement/stores2.validator';
         }),
         // Menu의 Implement Layer를 사용하기 위해서는 Menu Module DI해야함.
         forwardRef(() => Menus2Module),
+        OrdersModule,
     ],
     providers: [
         // Service
@@ -53,6 +56,7 @@ import { Stores2Validator } from './implement/stores2.validator';
         Menus2Appender,
         Menus2Reader,
         Menus2Manager,
+        OrdersReader,
 
         // Repository
         Stores2Repository,

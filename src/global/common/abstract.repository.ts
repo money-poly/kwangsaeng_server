@@ -19,6 +19,7 @@ import { Category } from 'src/categories/entity/category.entity';
 import { ExecuteQueryBuilderType } from './execute-qb-type.enum';
 import { QueryBuilderUtil } from '../util/query-builder.util';
 import { OrderDetail } from 'src/orders/entity/order-detail.entity';
+import { Order } from 'src/orders/entity/order.entity';
 
 export abstract class AbstractRepository<T extends AbstractEntity<T>> {
     protected abstract readonly logger: Logger;
@@ -107,6 +108,7 @@ export abstract class AbstractRepository<T extends AbstractEntity<T>> {
     }
 
     createQueryBuilder<E extends T>(entityClass: EntityTarget<E>): SelectQueryBuilder<E> {
+        console.log(entityClass);
         let alias;
         switch (entityClass) {
             case Menu:
@@ -123,6 +125,9 @@ export abstract class AbstractRepository<T extends AbstractEntity<T>> {
                 break;
             case StoreApprove:
                 alias = 'sa';
+                break;
+            case Order:
+                alias = 'o';
                 break;
         }
         return this.entityManager.createQueryBuilder(entityClass, alias);

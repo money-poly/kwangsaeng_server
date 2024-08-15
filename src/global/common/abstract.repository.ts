@@ -108,7 +108,6 @@ export abstract class AbstractRepository<T extends AbstractEntity<T>> {
     }
 
     createQueryBuilder<E extends T>(entityClass: EntityTarget<E>): SelectQueryBuilder<E> {
-        console.log(entityClass);
         let alias;
         switch (entityClass) {
             case Menu:

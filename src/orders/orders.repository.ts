@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
     EntityManager,
     FindOptionsRelations,
@@ -10,16 +10,21 @@ import {
 import { Order } from './entity/order.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { OrderDetail } from './entity/order-detail.entity';
+import { AbstractRepository } from 'src/global/common/abstract.repository';
 
 @Injectable()
-export class OrdersRepository {
+export class OrdersRepository extends AbstractRepository<Order> {
+    protected readonly logger = new Logger(OrdersRepository.name);
+
     constructor(
         @InjectRepository(Order)
         private readonly orders: Repository<Order>,
         @InjectRepository(OrderDetail)
         private readonly orderDetail: Repository<OrderDetail>,
-        private readonly entityManager: EntityManager,
-    ) {}
+        entityManager: EntityManager,
+    ) {
+        super(orders, entityManager);
+    }
 
     async findOne(
         where: FindOptionsWhere<Order>,
@@ -45,7 +50,7 @@ export class OrdersRepository {
         });
     }
 
-    async createQueryBuilder() {
-        return this.entityManager.createQueryBuilder(Order, 'o');
+    findTopOrderMenusLogic<Order>(qb: SelectQueryBuilder<Order>) {
+        return qb.select('count(*)').addSelect('menu_id').groupBy('menu_id').orderBy('count(*)', 'DESC');
     }
 }

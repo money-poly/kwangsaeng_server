@@ -8,9 +8,7 @@ import { Store } from 'src/stores/entity/store.entity';
 import { MenusException } from 'src/global/exception/menus-exception';
 import { MenuStatus } from 'src/menus/enum/menu-status.enum';
 import { TimeUtil } from 'src/global/util/time.util';
-import { QueryBuilderUtil } from 'src/global/util/query-builder.util';
 import { AbstractRepository } from 'src/global/common/abstract.repository';
-import { MenuCategories } from './enum/categories.enum';
 
 @Injectable()
 export class Menus2Repository extends AbstractRepository<Menu> {
@@ -27,7 +25,6 @@ export class Menus2Repository extends AbstractRepository<Menu> {
     }
 
     todayUsingFoodExpensesLogic(qb: SelectQueryBuilder<Menu>, amount: number) {
-        QueryBuilderUtil.addWhereCondition(qb, 'm.selling_price < :amount', { amount });
         return qb
             .select('m.id', 'menuId')
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
@@ -38,11 +35,11 @@ export class Menus2Repository extends AbstractRepository<Menu> {
             .addSelect('m.count', 'count')
             .addSelect('mv.view_count', 'viewCount')
             .addSelect('s.id', 'storeId')
-            .addSelect('s.name', 'storeName');
+            .addSelect('s.name', 'storeName')
+            .andWhere('m.selling_price < :amount', { amount });
     }
 
     onSaleLogic(qb: SelectQueryBuilder<Menu>) {
-        QueryBuilderUtil.addWhereCondition(qb, 'm.discount_rate > :rate', { rate: 0 });
         return qb
             .select('m.id', 'menuId')
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
@@ -53,11 +50,11 @@ export class Menus2Repository extends AbstractRepository<Menu> {
             .addSelect('m.count', 'count')
             .addSelect('mv.view_count', 'viewCount')
             .addSelect('s.id', 'storeId')
-            .addSelect('s.name', 'storeName');
+            .addSelect('s.name', 'storeName')
+            .andWhere('m.discount_rate > :rate', { rate: 0 });
     }
 
     lastItemLogic(qb: SelectQueryBuilder<Menu>) {
-        QueryBuilderUtil.addWhereCondition(qb, 'm.count = :count', { count: 1 });
         return qb
             .select('m.id', 'menuId')
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
@@ -67,7 +64,8 @@ export class Menus2Repository extends AbstractRepository<Menu> {
             .addSelect('m.selling_price', 'sellingPrice')
             .addSelect('s.id', 'storeId')
             .addSelect('s.name', 'storeName')
-            .addSelect('m.count', 'count');
+            .addSelect('m.count', 'count')
+            .andWhere('m.count = :count', { count: 1 });
     }
 
     lowStockLogic(qb: SelectQueryBuilder<Menu>) {
@@ -85,11 +83,6 @@ export class Menus2Repository extends AbstractRepository<Menu> {
     }
 
     upcomingSalesLogic(qb: SelectQueryBuilder<Menu>) {
-        QueryBuilderUtil.addWhereCondition(qb, 'm.prearranged_sale_time BETWEEN :now AND :prearragedTime', {
-            now: TimeUtil.getISOTime(),
-            prearragedTime: TimeUtil.getISOTimeForThreeHoursLater(),
-        });
-        QueryBuilderUtil.addWhereCondition(qb, 'm.status = :status', { status: MenuStatus.PREARRANGED });
         return qb
             .select('m.id', 'menuId')
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
@@ -102,6 +95,11 @@ export class Menus2Repository extends AbstractRepository<Menu> {
             .addSelect('m.count', 'count')
             .addSelect('mv.view_count', 'viewCount')
             .addSelect('m.prearrangedSaleTime', 'saleTime')
+            .andWhere('m.prearranged_sale_time BETWEEN :now AND :prearragedTime', {
+                now: TimeUtil.getISOTime(),
+                prearragedTime: TimeUtil.getISOTimeForThreeHoursLater(),
+            })
+            .andWhere('m.status = :status', { status: MenuStatus.PREARRANGED })
             .orderBy('m.prearranged_sale_time', 'ASC');
     }
 
@@ -141,15 +139,15 @@ export class Menus2Repository extends AbstractRepository<Menu> {
             .andWhere('m.prearranged_sale_time = (' + subQb.getQuery() + ')');
     }
 
-    readTopOrdersId(qb: SelectQueryBuilder<Menu>) {
-        return qb.groupBy('');
-    }
+    // readTopOrdersLogic(qb: SelectQueryBuilder<Menu>, menusId: number[]) {
+    //     return qb.where;
+    // }
 
     filterCategory(qb: SelectQueryBuilder<Menu>, translatedCategory: string) {
         if (translatedCategory === 'all') {
             return qb;
         }
-        return QueryBuilderUtil.addWhereCondition(qb, 'c.name = :name', { name: translatedCategory });
+        return qb.andWhere('c.name = :name', { name: translatedCategory });
     }
 
     sortInQb(qb: SelectQueryBuilder<Menu>, type: SortFilterType) {
@@ -181,7 +179,7 @@ export class Menus2Repository extends AbstractRepository<Menu> {
 
     cursorPagination(qb: SelectQueryBuilder<Menu>, type: SortFilterType, lastId: number, lastValue: string) {
         this.settingLimit(qb, 12);
-        QueryBuilderUtil.addWhereCondition(qb, 'm.id > :id', { id: lastId });
+        qb = qb.andWhere('m.id > :id', { id: lastId });
         switch (type) {
             case SortFilterType.DISCOUNT:
                 return qb.andWhere('discount_rate <= :rate', { rate: lastValue });

@@ -15,6 +15,7 @@ import { LastItemRes } from './dto/response/last-item.dto';
 import { UpcomingSalesDto } from './dto/request/upcoming-sales.dto';
 import { UpcomingSalesRes } from './dto/response/upcoming-sales.dto';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { TopOrdersDto } from './dto/request/top-orders.dto';
 
 @Injectable()
 export class Menus2Service {
@@ -66,6 +67,19 @@ export class Menus2Service {
         const menus = await this.menusReader.readUpcomingSales(dto.lat, dto.lon);
 
         return ResponseRefiner.refineObject(menus, UpcomingSalesRes);
+    }
+
+    async topOrders(dto: TopOrdersDto) {
+        const menus = await this.menusReader.readTopOrders(
+            dto.type,
+            dto.lat,
+            dto.lon,
+            dto.category,
+            dto.lastId,
+            dto.lastValue,
+        );
+
+        return menus;
     }
 
     @Cron(CronExpression.EVERY_30_MINUTES)

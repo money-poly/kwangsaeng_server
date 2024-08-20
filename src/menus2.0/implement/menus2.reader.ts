@@ -163,4 +163,27 @@ export class Menus2Reader {
         const executingQuery = await this.menusRepository.executeQueryBuilder(qb, ExecuteQueryBuilderType.MANY);
         return executingQuery;
     }
+
+    async readTopOrders(
+        type: SortFilterType,
+        lat: number,
+        lon: number,
+        category: MenuCategories | 'all',
+        lastId?: number,
+        lastValue?: string,
+    ) {
+        const menusId = await this.ordersReader.readTopOrderMenus();
+
+        let qb = this.menusRepository.createQueryBuilder(Menu);
+
+        qb = this.menusRepository.leftJoinStoreToMenu(qb);
+        qb = this.menusRepository.leftJoinStoreDetail(qb);
+        // qb = this.menusRepository.readTopOrdersLogic(qb, menusId)
+
+        if (lastId && lastValue) {
+            qb = this.menusRepository.cursorPagination(qb, type, lastId, lastValue);
+        } else {
+            qb = this.menusRepository.settingLimit(qb, 6);
+        }
+    }
 }

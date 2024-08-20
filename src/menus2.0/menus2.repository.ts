@@ -1,37 +1,30 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-    EntityManager,
-    FindOptionsRelations,
-    FindOptionsSelect,
-    FindOptionsWhere,
-    Repository,
-    SelectQueryBuilder,
-} from 'typeorm';
+import { EntityManager, Repository, SelectQueryBuilder } from 'typeorm';
 import { MenuView } from 'src/menus/entity/menu-view.entity';
 import { Menu } from 'src/menus/entity/menu.entity';
-import { ExecuteQueryBuilderType } from 'src/global/common/execute-qb-type.enum';
 import { SortFilterType } from './enum/sort-filter-type.enum';
 import { Store } from 'src/stores/entity/store.entity';
-import { StoreDetail } from 'src/stores/entity/store-detail.entity';
 import { MenusException } from 'src/global/exception/menus-exception';
-import { Category } from 'src/categories/entity/category.entity';
 import { MenuStatus } from 'src/menus/enum/menu-status.enum';
 import { TimeUtil } from 'src/global/util/time.util';
-import { QueryBuilderUtil } from 'src/global/util/query-builder.util';
+import { AbstractRepository } from 'src/global/common/abstract.repository';
 
 @Injectable()
-export class Menus2Repository {
+export class Menus2Repository extends AbstractRepository<Menu> {
+    protected readonly logger = new Logger(Menus2Repository.name);
+
     constructor(
         @InjectRepository(Menu)
         private readonly menus: Repository<Menu>,
         @InjectRepository(MenuView)
         private readonly menuView: Repository<MenuView>,
-        private readonly entityManager: EntityManager,
-    ) {}
+        entityManager: EntityManager,
+    ) {
+        super(menus, entityManager);
+    }
 
-    async todayUsingFoodExpensesLogic<T>(qb: SelectQueryBuilder<T>, amount: number) {
-        QueryBuilderUtil.addWhereCondition(qb, 'm.selling_price < :amount', { amount });
+    todayUsingFoodExpensesLogic(qb: SelectQueryBuilder<Menu>, amount: number) {
         return qb
             .select('m.id', 'menuId')
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
@@ -42,11 +35,11 @@ export class Menus2Repository {
             .addSelect('m.count', 'count')
             .addSelect('mv.view_count', 'viewCount')
             .addSelect('s.id', 'storeId')
-            .addSelect('s.name', 'storeName');
+            .addSelect('s.name', 'storeName')
+            .andWhere('m.selling_price < :amount', { amount });
     }
 
-    async onSaleLogic<T>(qb: SelectQueryBuilder<T>) {
-        QueryBuilderUtil.addWhereCondition(qb, 'm.discount_rate > :rate', { rate: 0 });
+    onSaleLogic(qb: SelectQueryBuilder<Menu>) {
         return qb
             .select('m.id', 'menuId')
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
@@ -57,11 +50,11 @@ export class Menus2Repository {
             .addSelect('m.count', 'count')
             .addSelect('mv.view_count', 'viewCount')
             .addSelect('s.id', 'storeId')
-            .addSelect('s.name', 'storeName');
+            .addSelect('s.name', 'storeName')
+            .andWhere('m.discount_rate > :rate', { rate: 0 });
     }
 
-    async lastItemLogic<T>(qb: SelectQueryBuilder<T>) {
-        QueryBuilderUtil.addWhereCondition(qb, 'm.count = :count', { count: 1 });
+    lastItemLogic(qb: SelectQueryBuilder<Menu>) {
         return qb
             .select('m.id', 'menuId')
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
@@ -71,11 +64,11 @@ export class Menus2Repository {
             .addSelect('m.selling_price', 'sellingPrice')
             .addSelect('s.id', 'storeId')
             .addSelect('s.name', 'storeName')
-            .addSelect('m.count', 'count');
+            .addSelect('m.count', 'count')
+            .andWhere('m.count = :count', { count: 1 });
     }
 
-    async lowStockLogic<T>(qb: SelectQueryBuilder<T>, category: string) {
-        QueryBuilderUtil.addWhereCondition(qb, 'c.name = :name', { name: category });
+    lowStockLogic(qb: SelectQueryBuilder<Menu>) {
         return qb
             .select('m.id', 'menuId')
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
@@ -89,12 +82,7 @@ export class Menus2Repository {
             .addSelect('s.name', 'storeName');
     }
 
-    async upcomingSalesLogic<T>(qb: SelectQueryBuilder<T>) {
-        QueryBuilderUtil.addWhereCondition(qb, 'm.prearranged_sale_time BETWEEN :now AND :prearragedTime', {
-            now: TimeUtil.getISOTime(),
-            prearragedTime: TimeUtil.getISOTimeForThreeHoursLater(),
-        });
-        QueryBuilderUtil.addWhereCondition(qb, 'm.status = :status', { status: MenuStatus.PREARRANGED });
+    upcomingSalesLogic(qb: SelectQueryBuilder<Menu>) {
         return qb
             .select('m.id', 'menuId')
             .addSelect('m.menu_picture_url', 'menuPictureUrl')
@@ -107,11 +95,16 @@ export class Menus2Repository {
             .addSelect('m.count', 'count')
             .addSelect('mv.view_count', 'viewCount')
             .addSelect('m.prearrangedSaleTime', 'saleTime')
+            .andWhere('m.prearranged_sale_time BETWEEN :now AND :prearragedTime', {
+                now: TimeUtil.getISOTime(),
+                prearragedTime: TimeUtil.getISOTimeForThreeHoursLater(),
+            })
+            .andWhere('m.status = :status', { status: MenuStatus.PREARRANGED })
             .orderBy('m.prearranged_sale_time', 'ASC');
     }
 
-    async readInOrdeThroughStoreLogic<T>(qb: SelectQueryBuilder<T>, store: Store, orderBy: string) {
-        return await qb
+    readInOrdeThroughStoreLogic(qb: SelectQueryBuilder<Menu>, store: Store, orderBy: string) {
+        return qb
             .select('m.id', 'id')
             .addSelect('m.name', 'name')
             .addSelect('m.discount_rate', 'discountRate')
@@ -123,17 +116,16 @@ export class Menus2Repository {
             .addSelect('m.country_of_origin', 'countryOfOrigin')
             .where('m.store_id = :storeId', { storeId: store.id })
             .andWhere('m.status != :status', { status: MenuStatus.HIDDEN })
-            .orderBy(orderBy, 'DESC')
-            .getRawMany();
+            .orderBy(orderBy, 'DESC');
     }
 
-    async readDiscountScheduleLogic<T>(qb: SelectQueryBuilder<T>, store: Store) {
-        const subQb = (await this.createQueryBuilder())
+    readDiscountScheduleLogic(qb: SelectQueryBuilder<Menu>, store: Store) {
+        const subQb = this.createQueryBuilder(Menu)
             .select('MIN(m.prearranged_sale_time)', 'prearrangedSaleTime')
             .where('m.store_id = :storeId', { storeId: store.id })
             .andWhere('m.status = :status', { status: MenuStatus.PREARRANGED });
 
-        return await qb
+        return qb
             .select('m.id', 'id')
             .addSelect('m.name', 'name')
             .addSelect('m.discount_rate', 'discountRate')
@@ -144,65 +136,21 @@ export class Menus2Repository {
             .addSelect('m.prearranged_sale_time', 'prearrangedSaleTime')
             .where('m.store_id = :storeId', { storeId: store.id })
             .andWhere('m.status = :status', { status: MenuStatus.PREARRANGED })
-            .andWhere('m.prearranged_sale_time = (' + subQb.getQuery() + ')')
-            .getRawMany();
+            .andWhere('m.prearranged_sale_time = (' + subQb.getQuery() + ')');
     }
 
-    async findOne(
-        where: FindOptionsWhere<Menu>,
-        select?: FindOptionsSelect<Menu>,
-        relations?: FindOptionsRelations<Menu>,
-    ) {
-        return await this.menus.findOne({
-            where,
-            select,
-            relations,
-        });
+    // readTopOrdersLogic(qb: SelectQueryBuilder<Menu>, menusId: number[]) {
+    //     return qb.where;
+    // }
+
+    filterCategory(qb: SelectQueryBuilder<Menu>, translatedCategory: string) {
+        if (translatedCategory === 'all') {
+            return qb;
+        }
+        return qb.andWhere('c.name = :name', { name: translatedCategory });
     }
 
-    async findMany(
-        where: FindOptionsWhere<Menu>,
-        select?: FindOptionsSelect<Menu>,
-        relations?: FindOptionsRelations<Menu>,
-    ) {
-        return await this.menus.find({
-            where,
-            select,
-            relations,
-        });
-    }
-
-    async createQueryBuilder() {
-        return this.entityManager.createQueryBuilder(Menu, 'm');
-    }
-
-    async leftJoinMenuView<T>(qb: SelectQueryBuilder<T>) {
-        return qb.leftJoinAndSelect(MenuView, 'mv', 'm.id = mv.menu_id');
-    }
-
-    async leftJoinStore<T>(qb: SelectQueryBuilder<T>) {
-        return qb.leftJoinAndSelect(Store, 's', 'm.store_id = s.id');
-    }
-
-    async leftJoinStoreDetail<T>(qb: SelectQueryBuilder<T>) {
-        return qb.leftJoinAndSelect(StoreDetail, 'sd', 's.id = sd.store_id');
-    }
-
-    async leftJoinCategories<T>(qb: SelectQueryBuilder<T>) {
-        return qb
-            .leftJoinAndSelect('store_categories', 'sc', 'm.store_id = sc.stores_id')
-            .leftJoinAndSelect(Category, 'c', 'sc.categories_id = c.id');
-    }
-
-    async filterDistance<T>(qb: SelectQueryBuilder<T>, lat: number, lon: number) {
-        return QueryBuilderUtil.addWhereCondition(
-            qb,
-            'ST_DWithin(ST_Transform(ST_SetSRID(ST_MakePoint("sd"."lon", "sd"."lat"), 4326), 3857), ST_Transform(ST_SetSRID(ST_MakePoint(:longitude::numeric, :latitude::numeric), 4326), 3857), :range)',
-            { longitude: lon, latitude: lat, range: 3000 },
-        );
-    }
-
-    async sortInQb<T>(qb: SelectQueryBuilder<T>, type: SortFilterType) {
+    sortInQb(qb: SelectQueryBuilder<Menu>, type: SortFilterType) {
         switch (type) {
             case SortFilterType.DISCOUNT:
                 qb.orderBy('discount_rate', 'DESC');
@@ -229,17 +177,9 @@ export class Menus2Repository {
         return qb.addOrderBy('m.id', 'ASC');
     }
 
-    async settingOffset<T>(qb: SelectQueryBuilder<T>, offset: number) {
-        return qb.offset(offset);
-    }
-
-    async settingLimit<T>(qb: SelectQueryBuilder<T>, limit: number) {
-        return qb.limit(limit);
-    }
-
-    async cursorPagination<T>(qb: SelectQueryBuilder<T>, type: SortFilterType, lastId: number, lastValue: string) {
-        await this.settingLimit(qb, 12);
-        QueryBuilderUtil.addWhereCondition(qb, 'm.id > :id', { id: lastId });
+    cursorPagination(qb: SelectQueryBuilder<Menu>, type: SortFilterType, lastId: number, lastValue: string) {
+        this.settingLimit(qb, 12);
+        qb = qb.andWhere('m.id > :id', { id: lastId });
         switch (type) {
             case SortFilterType.DISCOUNT:
                 return qb.andWhere('discount_rate <= :rate', { rate: lastValue });
@@ -256,19 +196,6 @@ export class Menus2Repository {
                     return qb.leftJoin(MenuView, 'mv', 'm.id = mv.menu_id');
                 }
                 return qb.andWhere('mv.view_count <= count', { count: lastValue });
-        }
-    }
-
-    async getTotalCount<T>(qb: SelectQueryBuilder<T>) {
-        return qb.getCount();
-    }
-
-    async executeQueryBuilder<T>(qb: SelectQueryBuilder<T>, type: ExecuteQueryBuilderType) {
-        switch (type) {
-            case ExecuteQueryBuilderType.MANY:
-                return qb.getRawMany();
-            case ExecuteQueryBuilderType.ONE:
-                return qb.getRawOne();
         }
     }
 

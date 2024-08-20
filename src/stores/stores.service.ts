@@ -283,7 +283,7 @@ export class StoresService {
     async initMockStores() {
         const owners: Seller[] = mockOwners;
 
-        const isExist = await this.usersRepository.exist({
+        const isExist = await this.usersRepository.exists({
             name: owners[owners.length - 1].name,
         });
 

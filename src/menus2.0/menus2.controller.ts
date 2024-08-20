@@ -5,6 +5,7 @@ import { OnSaleDto } from './dto/request/on-sale.dto';
 import { LastItemDto } from './dto/request/last-item.dto';
 import { LowStockDto } from './dto/request/low-stock.dto';
 import { UpcomingSalesDto } from './dto/request/upcoming-sales.dto';
+import { TopOrdersDto } from './dto/request/top-orders.dto';
 
 @Controller('menus2')
 export class Menus2Controller {
@@ -33,5 +34,10 @@ export class Menus2Controller {
     @Get('upcoming-sales')
     async upcomingSales(@Query() dto: UpcomingSalesDto) {
         return this.menusService.upcomingSales(dto);
+    }
+
+    @Get('top-orders')
+    async topOrders(@Query() dto: TopOrdersDto) {
+        return this.menusService.topOrders(dto);
     }
 }

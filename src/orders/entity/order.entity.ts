@@ -24,13 +24,13 @@ export class Order extends SoftDeleteEntity<Order> {
     @Column({ comment: '결제 수단', type: 'enum', enum: PayMethod })
     payMethod: PayMethod;
 
-    @Column({ comment: '결제 완료 시간' })
+    @Column({ comment: '결제 완료 시간', nullable: true })
     paidAt: Date;
 
-    @Column({ comment: '결제 실패 시간' })
+    @Column({ comment: '결제 실패 시간', nullable: true })
     failedAt: Date;
 
-    @Column({ comment: '결제 취소 시간' })
+    @Column({ comment: '결제 취소 시간', nullable: true })
     cancelledAt: Date;
 
     @Column({ comment: '주문 상태', type: 'enum', enum: OrderStatus, default: OrderStatus.REQUEST })

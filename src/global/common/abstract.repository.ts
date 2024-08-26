@@ -17,7 +17,6 @@ import { StoreDetail } from 'src/stores/entity/store-detail.entity';
 import { StoreApprove } from 'src/stores/entity/store-approve.entity';
 import { Category } from 'src/categories/entity/category.entity';
 import { ExecuteQueryBuilderType } from './execute-qb-type.enum';
-import { QueryBuilderUtil } from '../util/query-builder.util';
 import { OrderDetail } from 'src/orders/entity/order-detail.entity';
 import { Order } from 'src/orders/entity/order.entity';
 

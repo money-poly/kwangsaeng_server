@@ -16,6 +16,7 @@ import { UpcomingSalesDto } from './dto/request/upcoming-sales.dto';
 import { UpcomingSalesRes } from './dto/response/upcoming-sales.dto';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { TopOrdersDto } from './dto/request/top-orders.dto';
+import { TopOrdersRes } from './dto/response/top-orders.dto';
 
 @Injectable()
 export class Menus2Service {
@@ -79,7 +80,7 @@ export class Menus2Service {
             dto.lastValue,
         );
 
-        return menus;
+        return ResponseRefiner.refineObject(menus, TopOrdersRes);
     }
 
     @Cron(CronExpression.EVERY_30_MINUTES)

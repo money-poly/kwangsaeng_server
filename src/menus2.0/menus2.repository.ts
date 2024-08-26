@@ -139,9 +139,20 @@ export class Menus2Repository extends AbstractRepository<Menu> {
             .andWhere('m.prearranged_sale_time = (' + subQb.getQuery() + ')');
     }
 
-    // readTopOrdersLogic(qb: SelectQueryBuilder<Menu>, menusId: number[]) {
-    //     return qb.where;
-    // }
+    readTopOrdersLogic(qb: SelectQueryBuilder<Menu>, menusId: string) {
+        return qb
+            .select('m.id', 'menuId')
+            .addSelect('m.menu_picture_url', 'menuPictureUrl')
+            .addSelect('m.name', 'menuName')
+            .addSelect('m.price', 'price')
+            .addSelect('m.discount_rate', 'discountRate')
+            .addSelect('m.selling_price', 'sellingPrice')
+            .addSelect('s.id', 'storeId')
+            .addSelect('s.name', 'storeName')
+            .addSelect('m.count', 'count')
+            .addSelect('mv.view_count', 'viewCount')
+            .where(`m.id IN (${menusId})`);
+    }
 
     filterCategory(qb: SelectQueryBuilder<Menu>, translatedCategory: string) {
         if (translatedCategory === 'all') {

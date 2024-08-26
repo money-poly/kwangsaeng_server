@@ -172,18 +172,27 @@ export class Menus2Reader {
         lastId?: number,
         lastValue?: string,
     ) {
-        const menusId = await this.ordersReader.readTopOrderMenus();
+        const translatedCategory = CategoryUtil.translateCategory(category);
+        const menus = await this.ordersReader.readTopOrderMenus();
+        const menuIds = menus.map((item) => item.menu_id);
+        const refinedMenus = menuIds.map((id) => `'${id}'`).join(', ');
 
         let qb = this.menusRepository.createQueryBuilder(Menu);
 
+        qb = this.menusRepository.leftJoinMenuView(qb);
         qb = this.menusRepository.leftJoinStoreToMenu(qb);
         qb = this.menusRepository.leftJoinStoreDetail(qb);
-        // qb = this.menusRepository.readTopOrdersLogic(qb, menusId)
+        qb = this.menusRepository.filterDistance(qb, lat, lon);
+        qb = this.menusRepository.filterCategory(qb, translatedCategory);
+        qb = this.menusRepository.readTopOrdersLogic(qb, refinedMenus);
 
         if (lastId && lastValue) {
             qb = this.menusRepository.cursorPagination(qb, type, lastId, lastValue);
         } else {
             qb = this.menusRepository.settingLimit(qb, 6);
         }
+
+        const executingQuery = await this.menusRepository.executeQueryBuilder(qb, ExecuteQueryBuilderType.MANY);
+        return executingQuery;
     }
 }

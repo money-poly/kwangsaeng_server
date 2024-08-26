@@ -48,6 +48,10 @@ export class FindStoreRes {
     caution: string[];
 
     constructor(data: any) {
+        let isExistDiscountSchdule: boolean = false;
+        if (data.discountSchdule.length) {
+            isExistDiscountSchdule = true;
+        }
         this.id = data.store.id;
         this.name = data.store.name;
         this.categories = data.categories.map((item) => {
@@ -78,7 +82,7 @@ export class FindStoreRes {
                 menuPictureUrl: menu.menuPictureUrl,
                 count: menu.count,
             })),
-            startedAt: data.discountSchdule[0].prearrangedSaleTime,
+            startedAt: isExistDiscountSchdule ? data.discountSchdule[0].prearrangedSaleTime : null,
         };
         this.caution = CAUTION_TEXT;
     }

@@ -11,6 +11,7 @@ export class OrdersController {
         // @InjectRedis() private readonly redis: Redis,
     ) {}
 
+    // TODO) 주문번호 생성 여부에 따라 Status Code 분리
     @Patch('create-order-number')
     async createOrder(@Body() orderRequest: OrderMenuDto) {
         return await this.orderService.checkStockAndLock(orderRequest);

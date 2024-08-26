@@ -1,5 +1,6 @@
 import { Transform, Type } from 'class-transformer';
 import {
+    isEnum,
     IsEnum,
     IsInt,
     IsLatitude,
@@ -7,12 +8,11 @@ import {
     IsOptional,
     IsString,
     registerDecorator,
-    ValidationOptions,
     ValidationArguments,
-    isEnum,
+    ValidationOptions,
 } from 'class-validator';
-import { SortFilterType } from '../../enum/sort-filter-type.enum';
 import { MenuCategories } from 'src/menus2.0/enum/categories.enum';
+import { SortFilterType } from 'src/menus2.0/enum/sort-filter-type.enum';
 
 function toString(value: number | string): string {
     return String(value);
@@ -40,7 +40,7 @@ function IsEnumOrString(enumType: object, allowedString: string, validationOptio
     };
 }
 
-export class LowStockDto {
+export class TopOrdersDto {
     @IsEnum(SortFilterType)
     type: SortFilterType;
 

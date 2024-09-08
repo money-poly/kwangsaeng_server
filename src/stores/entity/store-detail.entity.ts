@@ -1,10 +1,11 @@
 import { AbstractEntity } from 'src/global/common/abstract.entity';
 import { Tag } from 'src/tags/entity/tag.entity';
-import { BeforeInsert, BeforeUpdate, Column, Entity, JoinColumn, OneToOne } from 'typeorm';
+import { BeforeInsert, BeforeUpdate, Column, Entity, Index, JoinColumn, OneToOne } from 'typeorm';
 import { OperationTimes } from '../interfaces/operation-times.interface';
 import { Store } from './store.entity';
 import axios, { AxiosRequestConfig } from 'axios';
 import { StoresException } from 'src/global/exception/stores-exception';
+import { Point } from 'geojson';
 
 @Entity({ name: 'store_detail' })
 export class StoreDetail extends AbstractEntity<StoreDetail> {
@@ -19,6 +20,16 @@ export class StoreDetail extends AbstractEntity<StoreDetail> {
 
     @Column({ type: 'decimal', precision: 16, scale: 13, comment: '가게 경도', default: 0 })
     lon: number;
+
+    @Column({
+        type: 'geometry',
+        spatialFeatureType: 'Point',
+        srid: 3857,
+        nullable: true,
+        comment: '위도와 경도를 결합한 공간 데이터',
+    })
+    @Index({ spatial: true })
+    point: Point;
 
     @Column({ comment: '가게 전화번호' })
     phone: string;
@@ -82,5 +93,11 @@ export class StoreDetail extends AbstractEntity<StoreDetail> {
 
         this.lat = parseFloat(y);
         this.lon = parseFloat(x);
+
+        // 위경도를 기반으로 Point 객체 생성
+        this.point = {
+            type: 'Point',
+            coordinates: [this.lon, this.lat], // 경도, 위도 순서로 설정
+        };
     }
 }

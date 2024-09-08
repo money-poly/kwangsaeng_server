@@ -99,15 +99,11 @@ export abstract class AbstractRepository<T extends AbstractEntity<T>> {
     }
 
     filterDistance<T>(qb: SelectQueryBuilder<T>, lat: number, lon: number) {
-        // return QueryBuilderUtil.addWhereCondition(
-        //     qb,
-        // 'ST_DWithin(ST_Transform(ST_SetSRID(ST_MakePoint("sd"."lon", "sd"."lat"), 4326), 3857), ST_Transform(ST_SetSRID(ST_MakePoint(:longitude::numeric, :latitude::numeric), 4326), 3857), :range)',
-        // { longitude: lon, latitude: lat, range: 3000 },
-        // );
-        return qb.andWhere(
-            'ST_DWithin(ST_Transform(ST_SetSRID(ST_MakePoint("sd"."lon", "sd"."lat"), 4326), 3857), ST_Transform(ST_SetSRID(ST_MakePoint(:longitude::numeric, :latitude::numeric), 4326), 3857), :range)',
-            { longitude: lon, latitude: lat, range: 3000 },
-        );
+        return qb.andWhere(`ST_DWithin("sd"."point", ST_SetSRID(ST_MakePoint(:longitude, :latitude), 3857), :range)`, {
+            longitude: lon,
+            latitude: lat,
+            range: 3000,
+        });
     }
 
     createQueryBuilder<E extends T>(entityClass: EntityTarget<E>): SelectQueryBuilder<E> {

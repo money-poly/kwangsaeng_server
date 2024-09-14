@@ -6,10 +6,11 @@
 
 ## ERD
 
-
+[ERD Diagram](https://dbdiagram.io/d/%EA%B4%91%EC%83%9D-661502f203593b6b618c8751)
 
 ## API
 
+[API Sheet](https://www.notion.so/kkardd/API-Sheet-b5a1a5bdcc9942c4948378e40604b8ca)
 
 ## Stack
 <img src="https://img.shields.io/badge/node.js-339933?style=for-the-badge&logo=Node.js&logoColor=white"> <img src="https://img.shields.io/badge/nestjs-E0234E?style=for-the-badge&logo=nestjs&logoColor=white"> <img src="https://img.shields.io/badge/typescript-3178C6?style=for-the-badge&logo=typescript&logoColor=white"> 

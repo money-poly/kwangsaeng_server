@@ -2,7 +2,7 @@
 
 ## Architecture
 
-
+![광생 아키텍쳐 drawio](https://github.com/user-attachments/assets/fd3304b4-7493-470d-84dc-d81ae6ae79a1)
 
 ## ERD
 

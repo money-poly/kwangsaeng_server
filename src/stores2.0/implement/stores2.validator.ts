@@ -8,6 +8,13 @@ import { LocationUtil } from '../util/pickup-time.util';
 export class Stores2Validator {
     constructor(private readonly storesRepository: Stores2Repository) {}
 
+    async checkExist(store: Store): Promise<void> {
+        const isExist = await this.storesRepository.findOne({ id: store.id });
+        if (!isExist) {
+            throw StoresException.ENTITY_NOT_FOUND;
+        }
+    }
+
     async checkApprove(store: Store): Promise<void> {
         const isApproved = await this.storesRepository.checkApprove(store);
         if (!isApproved) {

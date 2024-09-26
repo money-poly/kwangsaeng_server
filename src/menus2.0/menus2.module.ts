@@ -58,6 +58,6 @@ import { Menus2Validator } from './implement/menus2.validator';
         Menus2Repository,
     ],
     controllers: [Menus2Controller],
-    exports: [Menus2Appender, Menus2Reader, Menus2Manager, Menus2Repository],
+    exports: [Menus2Appender, Menus2Reader, Menus2Manager, Menus2Validator, Menus2Repository],
 })
 export class Menus2Module {}

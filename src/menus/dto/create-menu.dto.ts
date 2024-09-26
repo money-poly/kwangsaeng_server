@@ -1,5 +1,5 @@
 import {
-    IsDateString,
+    IsDate,
     IsDefined,
     IsEnum,
     IsNotEmpty,
@@ -33,9 +33,9 @@ export class CreateMenuDto implements CreateMenuArgs {
     @IsNotEmpty()
     name: string;
 
-    @IsDateString()
+    @IsDate()
     @IsOptional()
-    expiredDate?: string;
+    expiredDate: Date;
 
     @IsEnum(MenuStatus)
     @IsNotEmpty()

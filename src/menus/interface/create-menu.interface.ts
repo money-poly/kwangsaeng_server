@@ -6,7 +6,7 @@ export interface CreateMenuArgs {
     name: string;
     description?: string;
     status: MenuStatus;
-    expiredDate?: string;
+    expiredDate?: Date;
     price: number;
     discountRate: number;
     sellingPrice: number;

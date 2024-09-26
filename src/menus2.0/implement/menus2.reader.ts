@@ -21,6 +21,10 @@ export class Menus2Reader {
         private readonly ordersReader: OrdersReader,
     ) {}
 
+    async readOne(menuId: number) {
+        return await this.menusRepository.findOne({ id: menuId });
+    }
+
     async readTodayUsingFoodExpenses(amount: number, type: SortFilterType, final: boolean, lat: number, lon: number) {
         let qb = this.menusRepository.createQueryBuilder(Menu);
 

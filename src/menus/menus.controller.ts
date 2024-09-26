@@ -31,10 +31,14 @@ import { UpdateMenuCountDto } from './dto/update-count.dto';
 import { Seller } from 'src/users/entity/seller.entity';
 import { OperationGuard } from 'src/stores/guard/operation.guard';
 import { OwnerGuard } from 'src/stores/guard/owner.guard';
+import { Menus2Service } from 'src/menus2.0/menus2.service';
 
 @Controller('menus')
 export class MenusController {
-    constructor(private readonly menusService: MenusService) {}
+    constructor(
+        private readonly menusService: MenusService,
+        private readonly menus2Service: Menus2Service,
+    ) {}
 
     @SkipThrottle()
     @Get('/detail/:id')
@@ -46,7 +50,7 @@ export class MenusController {
     @Post()
     @UseGuards(AuthGuard)
     async create(@CurrentUser() user: Seller, @Body(ModifyMenuValidationPipe) dto: CreateMenuDto) {
-        return await this.menusService.create(user, dto);
+        return await this.menus2Service.craete(user, dto);
     }
 
     @Put('/:id')

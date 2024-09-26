@@ -23,6 +23,8 @@ import { Stores2Appender } from 'src/stores2.0/implement/stores2.appender';
 import { Stores2Manager } from 'src/stores2.0/implement/stores2.manager';
 import { OrdersReader } from 'src/orders/implement/orders.reader';
 import { OrdersModule } from 'src/orders/orders.module';
+import { Stores2Validator } from 'src/stores2.0/implement/stores2.validator';
+import { Menus2Validator } from './implement/menus2.validator';
 
 @Module({
     imports: [
@@ -45,9 +47,11 @@ import { OrdersModule } from 'src/orders/orders.module';
         Menus2Appender,
         Menus2Reader,
         Menus2Manager,
+        Menus2Validator,
         Stores2Appender,
         Stores2Manager,
         Stores2Reader,
+        Stores2Validator,
         OrdersReader,
 
         // Repository

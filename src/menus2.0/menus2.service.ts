@@ -17,6 +17,8 @@ import { UpcomingSalesRes } from './dto/response/upcoming-sales.dto';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { TopOrdersDto } from './dto/request/top-orders.dto';
 import { TopOrdersRes } from './dto/response/top-orders.dto';
+import { Seller } from 'src/users/entity/seller.entity';
+import { CreateMenuDto } from 'src/menus/dto/create-menu.dto';
 
 @Injectable()
 export class Menus2Service {
@@ -26,6 +28,10 @@ export class Menus2Service {
         private readonly menusAppender: Menus2Appender,
         private readonly menusManager: Menus2Manager,
     ) {}
+
+    async craete(user: Seller, dto: CreateMenuDto) {
+        return await this.menusAppender.create(user, dto);
+    }
 
     async todayUsingFoodExpenses(dto: TodayUsingFoodExpensesDto) {
         const menus = await this.menusReader.readTodayUsingFoodExpenses(

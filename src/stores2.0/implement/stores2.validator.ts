@@ -29,7 +29,7 @@ export class Stores2Validator {
         }
     }
 
-    async checkDistance(store: Store, userLat: number, userLon: number) {
+    checkDistance(store: Store, userLat: number, userLon: number) {
         const storeLat = store.detail.lat;
         const storeLon = store.detail.lon;
         const distance = LocationUtil.measureDistance(userLat, storeLat, userLon, storeLon);

@@ -21,7 +21,7 @@ export class Stores2Service {
     ) {}
 
     async findDetailOne(id: number, dto: FindStoreDetailDto) {
-        const store = await this.storesReader.read(id);
+        const store = await this.storesReader.readOne(id);
         await this.storesValidator.checkApprove(store);
         await this.storesValidator.checkOpen(store);
 
